@@ -1401,71 +1401,71 @@ The residual stream is a <em>communication channel</em>: early layers write mess
 </div>
 </section>
 <section id="architektura2" data-level="5">
-<h3 id="mlp">4.4 · Az MLP-réteg: a feldolgozó- és tudásegység</h3>
-<p>A blokk másik fele, az MLP (multi-layer perceptron, más néven feed-forward réteg) minden pozíción <em>külön-külön, azonos súlyokkal</em> fut — a pozíciók között itt semmilyen információ nem áramlik. Szerkezete egyszerű: a streamvektort egy nagy mátrix <strong>felvetíti</strong> egy jóval bővebb térbe (tipikusan a modell-dimenzió ~4-szeresébe), ott egy elemenkénti <strong>nemlinearitás</strong> hat rá, majd egy másik mátrix <strong>visszavetíti</strong> az eredeti dimenzióba. A paraméterek többsége — durván kétharmada — ezekben a mátrixokban ül.</p>
+<h3 id="mlp">4.4 · The MLP layer: the processing and knowledge unit</h3>
+<p>The other half of the block, the MLP (multi-layer perceptron, also called the feed-forward layer), runs at every position <em>separately, with the same weights</em> — no information flows between positions here. Its structure is simple: a large matrix <strong>projects up</strong> the stream vector into a much wider space (typically about 4× the model dimension), an element-wise <strong>nonlinearity</strong> acts on it there, and another matrix <strong>projects it back down</strong> into the original dimension. Most of the parameters — roughly two thirds — sit in these matrices.</p>
 
-<p>Mire jó ez? A nemlinearitás nélkül az egész transzformer rétegek bármilyen mély egymásra pakolása is összeomlana egyetlen lineáris leképezéssé — a kifejezőerő az „megtörésből” jön. Intuitívabban: az MLP <strong>kulcs–érték memóriaként</strong> is olvasható. A felvetítő mátrix minden sora egy <em>mintázatdetektor</em> (kulcs): mennyire van jelen a bemenetben egy adott jellemzőkombináció? A nemlinearitás küszöböl — a gyengén illeszkedő detektorok elhallgatnak —, a visszavetítő mátrix megfelelő sora (érték) pedig a bekapcsolt detektorokhoz tartozó tartalmat írja a streambe. Sok tényszerű asszociáció — „Eiffel-torony → Párizs” — kimutathatóan a középső rétegek MLP-iben tárolódik.</p>
+<p>What is it for? Without the nonlinearity, stacking transformer layers to any depth would collapse into a single linear map — the expressive power comes from that “break”. More intuitively: the MLP can also be read as a <strong>key–value memory</strong>. Every row of the up-projection matrix is a <em>pattern detector</em> (a key): to what degree is a particular combination of features present in the input? The nonlinearity thresholds — weakly matching detectors fall silent — and the corresponding row of the down-projection matrix (the value) writes the content belonging to the activated detectors into the stream. Many factual associations — “Eiffel Tower → Paris” — are demonstrably stored in the MLPs of the middle layers.</p>
 
-<p>Egy pontosítás, hogy ne értsük túl: a kulcs–érték olvasat <strong>értelmezési keret, nem szó szerinti architektúraleírás</strong>. Matematikailag a felírás pontos (a kimenet mindig az értékvektorok aktiváció-súlyozott összege), de abból nem következik, hogy egy-egy neuron egyetlen, emberi fogalommal címkézhető kulcsnak felelne meg — a valóságban a neuronok többsége <em>poliszemantikus</em> (8.4), vagyis egy sor több, egymással nem rokon mintázatra is tüzel. A kettő nem mond ellent egymásnak: a „kulcsok" léteznek, csak nem a neuronbázisban, hanem szuperponált irányok formájában. Az MLP tehát kulcs–érték memóriaként <em>viselkedik</em>, de a szótára nem a neuronok listája.</p>
+<p>One clarification, so as not to over-read it: the key–value account is <strong>an interpretive frame, not a literal description of the architecture</strong>. Mathematically the formulation is exact (the output is always the activation-weighted sum of the value vectors), but it does not follow that any single neuron corresponds to one key labelable with a human concept — in reality most neurons are <em>polysemantic</em> (8.4), that is, one row fires for several unrelated patterns. The two are not in conflict: the “keys” exist, only not in the neuron basis but in the form of superposed directions. The MLP therefore <em>behaves</em> like a key–value memory, but its dictionary is not the list of neurons.</p>
 
 <details class="level l2">
-<summary><span class="badge b2">2. szint</span> Képletek: GELU-tól a SwiGLU-ig</summary>
+<summary><span class="badge b2">Level 2</span> Formulas: from GELU to SwiGLU</summary>
 <div class="body">
-<p>A klasszikus forma két mátrixszal (<span class="math"><b>W</b><sub><span class="rm">in</span></sub> ∈ ℝ<sup>d×4d</sup></span>, <span class="math"><b>W</b><sub><span class="rm">out</span></sub> ∈ ℝ<sup>4d×d</sup></span>):</p>
+<p>The classic form, with two matrices (<span class="math"><b>W</b><sub><span class="rm">in</span></sub> ∈ ℝ<sup>d×4d</sup></span>, <span class="math"><b>W</b><sub><span class="rm">out</span></sub> ∈ ℝ<sup>4d×d</sup></span>):</p>
 <div class="eq"><span class="rm">MLP</span>(<b>x</b>) = <span class="rm">GELU</span>(<b>x</b><b>W</b><sub><span class="rm">in</span></sub>) <b>W</b><sub><span class="rm">out</span></sub></div>
-<p>A nemlinearitás ma jellemzően nem ReLU, hanem annak sima változata, a GELU: <span class="math"><span class="rm">GELU</span>(x) = x·Φ(x)</span>, ahol Φ a standard normális eloszlásfüggvény — kis negatív értékeknél nem vág nullára élesen, ami simább optimalizálást ad. A modern modellek többsége <strong>kapuzott</strong> változatot használ, a SwiGLU-t, három mátrixszal:</p>
+<p>The nonlinearity today is typically not ReLU but its smooth variant, GELU: <span class="math"><span class="rm">GELU</span>(x) = x·Φ(x)</span>, where Φ is the standard normal cumulative distribution function — it does not cut sharply to zero at small negative values, which gives smoother optimization. Most modern models use a <strong>gated</strong> variant, SwiGLU, with three matrices:</p>
 <div class="eq"><span class="rm">SwiGLU</span>(<b>x</b>) = [<span class="rm">Swish</span>(<b>x</b><b>W</b><sub><span class="rm">gate</span></sub>) ⊙ (<b>x</b><b>W</b><sub><span class="rm">up</span></sub>)] <b>W</b><sub><span class="rm">down</span></sub></div>
-<p>ahol <span class="math"><span class="rm">Swish</span>(x) = x·σ(x)</span> és ⊙ az elemenkénti szorzás. A kapuzás multiplikatív interakciót enged két vetítés között — empirikusan konzisztensen jobb loss-t ad azonos paraméterszámnál (a rejtett dimenziót ilyenkor ~8d/3-ra veszik, hogy a három mátrix össz-paraméterszáma kijöjjön).</p>
-<p>A kulcs–érték olvasat formálisan: <span class="math"><span class="rm">MLP</span>(<b>x</b>) = Σ<sub>n</sub> a<sub>n</sub>(<b>x</b>)·<b>w</b><sub><span class="rm">out</span>,n</sub></span>, ahol <span class="math">a<sub>n</sub>(<b>x</b>) = <span class="rm">GELU</span>(<b>w</b><sub><span class="rm">in</span>,n</sub>·<b>x</b>)</span> az n-edik neuron aktivációja. A kimenet tehát mindig a <span class="math"><b>w</b><sub><span class="rm">out</span>,n</sub></span> „értékvektorok” aktiváció-súlyozott összege — az MLP a saját kis szótárából ír a streambe.</p>
+<p>where <span class="math"><span class="rm">Swish</span>(x) = x·σ(x)</span> and ⊙ is element-wise multiplication. The gating allows a multiplicative interaction between two projections — empirically it consistently gives a better loss at the same parameter count (the hidden dimension is then taken to be about 8d/3, so that the three matrices add up to the same total).</p>
+<p>The key–value account, formally: <span class="math"><span class="rm">MLP</span>(<b>x</b>) = Σ<sub>n</sub> a<sub>n</sub>(<b>x</b>)·<b>w</b><sub><span class="rm">out</span>,n</sub></span>, where <span class="math">a<sub>n</sub>(<b>x</b>) = <span class="rm">GELU</span>(<b>w</b><sub><span class="rm">in</span>,n</sub>·<b>x</b>)</span> is the activation of neuron n. The output is therefore always the activation-weighted sum of the “value vectors” <span class="math"><b>w</b><sub><span class="rm">out</span>,n</sub></span> — the MLP writes into the stream from its own small dictionary.</p>
 </div>
 </details>
 
 <details class="level l3">
-<summary><span class="badge b3">3. szint</span> Tudástárolás és -szerkesztés; poliszemantikus neuronok</summary>
+<summary><span class="badge b3">Level 3</span> Storing and editing knowledge; polysemantic neurons</summary>
 <div class="body">
-<p>A „factual recall” lokalizálására irányuló munkák (Geva et al. 2021 — az MLP mint kulcs–érték memória; Meng et al. 2022 — ROME/MEMIT tudásszerkesztés) azt mutatják, hogy egy-egy asszociáció célzottan <em>szerkeszthető</em>: a középső rétegi MLP-súlyok rangalacsony módosításával a modell elhihetővé tehető, hogy „az Eiffel-torony Rómában áll” — miközben a környező tudás nagyrészt érintetlen marad. Ugyanakkor a lokalizáció nem tiszta: az ok-okozati nyomkövetés (causal tracing) szerint a tény több rétegen elkenve él, és a szerkesztések mellékhatásai (ripple effects) máig kutatott probléma.</p>
-<p>A neuronszintű értelmezés fő akadálya, hogy az egyes MLP-neuronok többségének nincs egyetlen jelentése: ugyanaz a neuron tüzel mondjuk akadémiai idézetekre, angol párbeszédekre és HTTP-kérésekre — ez a <strong>poliszemantikusság</strong>. A 8.4 szakasz szuperpozíció-elmélete szerint ez nem hiba, hanem tömörítési stratégia: a modell több jellemzőt tárol, mint ahány neuronja van, nem-bázis-irányokban. Ezért váltott a terület a neuronokról a <em>tanult szótárirányokra</em> (SAE-k, 8.5).</p>
+<p>Work aimed at localizing “factual recall” (Geva et al. 2021 — the MLP as key–value memory; Meng et al. 2022 — ROME/MEMIT knowledge editing) shows that an individual association can be <em>edited</em> in a targeted way: with a low-rank modification of mid-layer MLP weights the model can be made to believe that “the Eiffel Tower stands in Rome” — while the surrounding knowledge stays largely intact. The localization is not clean, however: causal tracing indicates that the fact lives smeared across several layers, and the side effects of edits (ripple effects) remain an open research problem.</p>
+<p>The main obstacle to neuron-level interpretation is that most individual MLP neurons have no single meaning: the same neuron fires for, say, academic citations, English dialogue and HTTP requests — this is <strong>polysemanticity</strong>. According to the superposition theory of section 8.4 this is not a defect but a compression strategy: the model stores more features than it has neurons, in non-basis directions. This is why the field moved from neurons to <em>learned dictionary directions</em> (SAEs, 8.5).</p>
 </div>
 </details>
 
-<h3 id="norm">4.5 · Normalizálás: a jel karbantartása</h3>
-<p>Sok réteg egymásra halmozásakor a vektorok nagysága rétegről rétegre nőhet vagy zsugorodhat, ami a tanítást instabillá teszi. A megoldás: minden alegység bemeneténél a vektort <strong>átskálázzuk egy standard méretre</strong>. A LayerNorm kivonja a vektor komponenseinek átlagát és eloszt a szórásukkal; a ma elterjedtebb, egyszerűbb <strong>RMSNorm</strong> csak a négyzetes középértékkel oszt: <span class="math"><b>x</b> / <span class="rm">RMS</span>(<b>x</b>) · <b>g</b></span>, ahol <span class="math"><b>g</b></span> tanult, elemenkénti erősítés. A modern <em>pre-norm</em> elrendezés — normalizálás az alegység <em>előtt</em>, a residual összeadáson kívül — kulcsfontosságú: így a residual út érintetlen identitás marad, és a mély modellek tanítása stabil warmup-trükkök nélkül is.</p>
+<h3 id="norm">4.5 · Normalization: keeping the signal in shape</h3>
+<p>When many layers are stacked, the magnitude of the vectors can grow or shrink from layer to layer, which makes training unstable. The remedy: at the input of every sub-layer the vector is <strong>rescaled to a standard size</strong>. LayerNorm subtracts the mean of the vector's components and divides by their standard deviation; the simpler <strong>RMSNorm</strong>, more common today, divides only by the root mean square: <span class="math"><b>x</b> / <span class="rm">RMS</span>(<b>x</b>) · <b>g</b></span>, where <span class="math"><b>g</b></span> is a learned element-wise gain. The modern <em>pre-norm</em> arrangement — normalization <em>before</em> the sub-layer, outside the residual addition — is crucial: this way the residual path stays an untouched identity, and deep models train stably even without warmup tricks.</p>
 
-<h3 id="pozicio">4.6 · Pozíciókódolás: honnan tudja a modell, mi hol van?</h3>
-<p>Meglepő tény: az attention önmagában <strong>nem lát sorrendet</strong>. A query–key illeszkedés csak a vektorok tartalmától függ — ha a bemenet tokenjeit összekevernénk, (maszk nélkül) ugyanazokat a súlyokat kapnánk. A „kutya harapja a postást” és a „postás harapja a kutyát” megkülönböztetéséhez a pozíciót <em>be kell juttatni</em> a rendszerbe.</p>
+<h3 id="pozicio">4.6 · Positional encoding: how does the model know what is where?</h3>
+<p>A surprising fact: attention on its own <strong>sees no order</strong>. The query–key match depends only on the contents of the vectors — if we shuffled the input tokens we would get (without the mask) the same weights. To tell “the dog bites the postman” from “the postman bites the dog”, position has to be <em>injected</em> into the system.</p>
 
-<p>Az első generációs megoldások a pozíciót <em>vektorként adták hozzá</em> az embeddinghez (rögzített szinuszos minta vagy tanult pozíció-embedding). A mai standard a <strong>RoPE</strong> (rotary position embedding), amely elegánsabb: nem a tartalomhoz ad hozzá semmit, hanem a query- és key-vektorokat <strong>elforgatja</strong> a pozíciójukkal arányos szöggel. Két elforgatott vektor skalárszorzata a <em>pozíciótól</em> kizárólag a két elforgatási szög <em>különbségén</em> keresztül függ — formálisan ⟨<b>R</b><sub>m</sub><b>q</b>, <b>R</b><sub>n</sub><b>k</b>⟩ = ⟨<b>q</b>, <b>R</b><sub>n−m</sub><b>k</b>⟩ —, vagyis az attention-pontszám automatikusan a tokenek <em>relatív távolságát</em> érzékeli, nem az abszolút helyüket. (A skalárszorzat értéke természetesen magától a két vektortól is függ; az állítás lényege az, hogy a pozíció csakis az <span class="math">m−n</span> különbségen át szól bele — az elforgatás ortogonális, tehát a normákat érintetlenül hagyja.) Ez pontosan az a tulajdonság, amit a nyelv kíván: az „egymás melletti” reláció ugyanazt jelenti a szöveg elején és a közepén.</p>
+<p>First-generation solutions <em>added position as a vector</em> to the embedding (a fixed sinusoidal pattern or a learned positional embedding). Today's standard is <strong>RoPE</strong> (rotary position embedding), which is more elegant: it adds nothing to the content but <strong>rotates</strong> the query and key vectors by an angle proportional to their position. The dot product of two rotated vectors depends on <em>position</em> solely through the <em>difference</em> of the two rotation angles — formally ⟨<b>R</b><sub>m</sub><b>q</b>, <b>R</b><sub>n</sub><b>k</b>⟩ = ⟨<b>q</b>, <b>R</b><sub>n−m</sub><b>k</b>⟩ — that is, the attention score automatically senses the <em>relative distance</em> of the tokens rather than their absolute places. (The value of the dot product of course also depends on the two vectors themselves; the point of the claim is that position enters only through the difference <span class="math">m−n</span> — the rotation is orthogonal, so it leaves the norms untouched.) This is exactly the property language calls for: the relation “next to each other” means the same at the start of a text as in the middle.</p>
 
 <details class="level l2">
-<summary><span class="badge b2">2. szint</span> RoPE képletekkel</summary>
+<summary><span class="badge b2">Level 2</span> RoPE with formulas</summary>
 <div class="body">
-<p>A <span class="math">d<sub>h</sub></span>-dimenziós query/key vektort koordinátapárokra bontjuk, és az <span class="math">i</span>-edik párt (2D-síkként kezelve) az <span class="math">m</span>-edik pozícióban <span class="math">mθ<sub>i</sub></span> szöggel forgatjuk el, ahol a frekvenciák geometrikus sort alkotnak:</p>
-<div class="eq">θ<sub>i</sub> = b<sup>−2i/d<sub>h</sub></sup>, &nbsp;&nbsp; b = 10 000 <span class="rm">(vagy nagyobb bázis)</span></div>
+<p>The <span class="math">d<sub>h</sub></span>-dimensional query/key vector is split into coordinate pairs, and pair <span class="math">i</span> (treated as a 2D plane) is rotated at position <span class="math">m</span> by the angle <span class="math">mθ<sub>i</sub></span>, where the frequencies form a geometric series:</p>
+<div class="eq">θ<sub>i</sub> = b<sup>−2i/d<sub>h</sub></sup>, &nbsp;&nbsp; b = 10 000 <span class="rm">(or a larger base)</span></div>
 <div class="eq"><b>q</b><sub>m</sub><sup>(i)</sup> ↦ R(mθ<sub>i</sub>)<b>q</b><sub>m</sub><sup>(i)</sup>, &nbsp; R(α) = <span class="rm">[[cos α, −sin α], [sin α, cos α]]</span></div>
-<p>A forgatás ortogonális, ezért <span class="math">⟨R(mθ)<b>q</b>, R(nθ)<b>k</b>⟩ = ⟨<b>q</b>, R((n−m)θ)<b>k</b>⟩</span> — a pontszám valóban csak az <span class="math">n−m</span> különbségtől függ. A sokféle frekvencia együtt egyfajta többsávos „óraszerkezet”: a gyors sávok a szomszédos tokenek finomfelbontását, a lassúak a nagy távolságok durvafelbontását adják.</p>
-<p>Gyakorlati következmény: a kontextusablak <strong>nyújtható</strong>. Ha egy modellt 8k tokenre tanítottunk, a RoPE-frekvenciák átskálázásával (position interpolation, NTK-aware skálázás, YaRN) a tanultnál hosszabb szekvenciákra is kiterjeszthető viszonylag kevés utótanítással — a hosszú kontextusú modellek egyik kulcstechnikája.</p>
+<p>The rotation is orthogonal, hence <span class="math">⟨R(mθ)<b>q</b>, R(nθ)<b>k</b>⟩ = ⟨<b>q</b>, R((n−m)θ)<b>k</b>⟩</span> — the score really does depend only on the difference <span class="math">n−m</span>. Together, the many frequencies form a kind of multi-band “clockwork”: the fast bands give fine resolution among neighboring tokens, the slow ones coarse resolution over long distances.</p>
+<p>A practical consequence: the context window can be <strong>stretched</strong>. If a model was trained on 8k tokens, rescaling the RoPE frequencies (position interpolation, NTK-aware scaling, YaRN) can extend it to longer sequences than it was trained on, with relatively little post-training — one of the key techniques behind long-context models.</p>
 </div>
 </details>
 
-<h3 id="kimenet">4.7 · A kimeneti fej: vektorból valószínűség</h3>
-<p>Az utolsó blokk után minden pozíció streamvektora egy végső normalizáláson, majd az <strong>unembedding-mátrixon</strong> (<span class="math"><b>W</b><sub>U</sub> ∈ ℝ<sup>d×V</sup></span>) megy át, amely minden szótárelemhez egy nyers pontszámot — <strong>logitot</strong> — rendel. Geometriailag: a modell a végső vektort összeveti minden token „olvasó-irányával”; amelyik irányba a vektor leginkább mutat, az a token kapja a legnagyobb pontszámot. A logitokból a <strong>softmax</strong> csinál valószínűség-eloszlást:</p>
+<h3 id="kimenet">4.7 · The output head: from vector to probability</h3>
+<p>After the last block, the stream vector of every position passes through a final normalization and then the <strong>unembedding matrix</strong> (<span class="math"><b>W</b><sub>U</sub> ∈ ℝ<sup>d×V</sup></span>), which assigns a raw score — a <strong>logit</strong> — to every vocabulary entry. Geometrically: the model compares the final vector with the “reading direction” of every token; whichever direction the vector points along most gets the highest score. The <strong>softmax</strong> turns the logits into a probability distribution:</p>
 <div class="eq">P(<span class="rm">token</span> i) = <span class="frac"><span>e<sup>z<sub>i</sub></sup></span><span>Σ<sub>j</sub> e<sup>z<sub>j</sub></sup></span></span></div>
-<p>Az exponenciális biztosítja, hogy minden valószínűség pozitív legyen és 1-re összegződjön, közben a logit-különbségeket arányokká alakítja: +1 logit ≈ e-szeres (~2,7×) valószínűség. Hogy ebből az eloszlásból hogyan lesz konkrét token — és mit csinál a temperature —, azt a 7. fejezet tárgyalja, interaktív demóval.</p>
+<p>The exponential guarantees that every probability is positive and that they sum to 1, while turning logit differences into ratios: +1 logit ≈ e times (~2.7×) the probability. How a concrete token comes out of this distribution — and what temperature does — is covered in chapter 7, with an interactive demo.</p>
 
-<h3 id="variansok">4.8 · Modern variánsok: mit változtatott az ipar?</h3>
-<p>A 2017-es recept magja meglepően stabil, de szinte minden alkatrészt optimalizáltak azóta. A legfontosabb irányok:</p>
+<h3 id="variansok">4.8 · Modern variants: what has the industry changed?</h3>
+<p>The core of the 2017 recipe is surprisingly stable, but almost every component has been optimized since. The most important directions:</p>
 
 <table>
-<tr><th>Technika</th><th>Mit old meg?</th><th>Hogyan?</th></tr>
-<tr><td><strong>GQA / MQA</strong><br>(grouped-/multi-query attention)</td><td>A KV-cache memóriaigénye inferenciakor (7. fejezet)</td><td>Sok query-fej osztozik kevés key/value-fejen — a cache mérete a KV-fejek számával arányosan zsugorodik, minimális minőségvesztéssel.</td></tr>
-<tr><td><strong>MoE</strong><br>(mixture of experts)</td><td>A paraméterszám és a per-token számítás szétcsatolása</td><td>Az MLP helyett sok „szakértő”-MLP; egy tanult router tokenenként csak néhányat aktivál. Óriási össz-kapacitás, tokenenként kis compute — a modern nagy modellek jellemző választása.</td></tr>
-<tr><td><strong>Ritka / csúszóablakos attention</strong></td><td>A T²-es attention-költség</td><td>A rétegek egy része csak lokális ablakban figyel; néhány globális réteg tartja a távoli kapcsolatot. Gyakran rétegenként váltakozva.</td></tr>
-<tr><td><strong>FlashAttention</strong></td><td>Az attention memória-sávszélesség-korlátja</td><td>Nem architektúra-, hanem kernel-újratervezés: a T×T mátrix sosem íródik ki a lassú GPU-memóriába — csempénként, on-chip számolódik. Egzakt eredmény, többszörös gyorsulás.</td></tr>
-<tr><td><strong>SSM-hibridek</strong><br>(pl. Mamba-vonal)</td><td>Lineáris idejű szekvenciafeldolgozás</td><td>Állapottér-modellek: fix méretű, tanult állapot görgetése a szekvencián. Tiszta formában a pontos visszakeresés gyengébb; a gyakorlatban attention-nel kevert hibridek terjednek.</td></tr>
+<tr><th>Technique</th><th>What does it solve?</th><th>How?</th></tr>
+<tr><td><strong>GQA / MQA</strong><br>(grouped-/multi-query attention)</td><td>The memory footprint of the KV cache at inference time (chapter 7)</td><td>Many query heads share a few key/value heads — the size of the cache shrinks in proportion to the number of KV heads, with minimal loss of quality.</td></tr>
+<tr><td><strong>MoE</strong><br>(mixture of experts)</td><td>Decoupling parameter count from per-token computation</td><td>Instead of one MLP, many “expert” MLPs; a learned router activates only a few per token. Enormous total capacity, small compute per token — the typical choice of modern large models.</td></tr>
+<tr><td><strong>Sparse / sliding-window attention</strong></td><td>The T² cost of attention</td><td>Some layers attend only within a local window; a few global layers maintain long-range connections. Often alternating layer by layer.</td></tr>
+<tr><td><strong>FlashAttention</strong></td><td>The memory-bandwidth limit of attention</td><td>Not an architectural redesign but a kernel one: the T×T matrix is never written out to slow GPU memory — it is computed tile by tile, on chip. Exact result, several-fold speedup.</td></tr>
+<tr><td><strong>SSM hybrids</strong><br>(e.g. the Mamba line)</td><td>Linear-time sequence processing</td><td>State-space models: rolling a fixed-size learned state along the sequence. In pure form, exact retrieval is weaker; in practice hybrids mixed with attention are spreading.</td></tr>
 </table>
 
-<div class="warn"><span class="label">Összegzés a továbblépéshez</span>
-Ezen a ponton a teljes előreirányú számítás a kezünkben van: tokenek → embedding → N × (attention + MLP a residual streamen) → unembedding → softmax. Egyetlen dolog hiányzik: honnan jönnek a súlyok? Ez a tanítás — a következő fejezet.
+<div class="warn"><span class="label">Summary before moving on</span>
+At this point we have the entire forward computation in hand: tokens → embedding → N × (attention + MLP on the residual stream) → unembedding → softmax. One thing is missing: where do the weights come from? That is training — the next chapter.
 </div>
 
 <div class="quiz" id="quiz-5" data-level="5">
@@ -1478,36 +1478,36 @@ Ezen a ponton a teljes előreirányú számítás a kezünkben van: tokenek → 
 </section>
 <section id="tanitas" data-level="6">
 <div class="chapter-kicker">Chapter 5</div>
-<h2>Tanítás: honnan jönnek a súlyok?</h2>
+<h2>Training: where do the weights come from?</h2>
 
-<p>A frissen inicializált modell súlyai véletlenszámok, kimenete értelmetlen zaj. A tanítás célja, hogy ebből a zajból — kizárólag példák és egy hibamérték alapján — a 4. fejezet gépezetének <em>jó</em> paraméterei álljanak elő. A recept elve egyszerű, és lényegében az egész deep learning erre az egy hurokra épül:</p>
+<p>The weights of a freshly initialized model are random numbers and its output is meaningless noise. The aim of training is that out of this noise — purely from examples and a measure of error — the <em>good</em> parameters of the machinery in chapter 4 should emerge. The principle of the recipe is simple, and essentially all of deep learning is built on this one loop:</p>
 
 <ol>
-<li>Vegyél egy adag szöveget a korpuszból, futtasd le rajta a modellt.</li>
-<li>Mérd meg egy <strong>veszteségfüggvénnyel</strong> (loss), mennyire volt rossz a jóslás.</li>
-<li>Számold ki <strong>minden egyes paraméterre</strong>, hogy kis megváltoztatása mennyit javítana a lossen — ez a <strong>gradiens</strong>, és a <strong>backpropagation</strong> számolja.</li>
-<li>Mozdíts el minden paramétert egy picit a javulás irányába (<strong>optimalizáló</strong>).</li>
-<li>Ismételd — nagy modelleknél sok millió lépésen és sok billió tokenen át.</li>
+<li>Take a batch of text from the corpus and run the model on it.</li>
+<li>Measure with a <strong>loss function</strong> how bad the prediction was.</li>
+<li>Compute, <strong>for every single parameter</strong>, how much a small change to it would improve the loss — this is the <strong>gradient</strong>, and <strong>backpropagation</strong> computes it.</li>
+<li>Move every parameter a little in the direction of improvement (the <strong>optimizer</strong>).</li>
+<li>Repeat — for large models, over many millions of steps and many trillions of tokens.</li>
 </ol>
 
-<h3 id="loss">5.1 · A veszteségfüggvény: cross-entropy</h3>
-<p>Mit jelent „rossz jóslás”? A modell minden pozícióban egy eloszlást adott a következő tokenre — a korpuszban pedig ott áll, mi <em>volt</em> ténylegesen a következő token. A <strong>cross-entropy loss</strong> egyszerűen a helyes token modellbeli valószínűségének negatív logaritmusa: ha a modell 90%-ot adott a helyes tokenre, a veszteség kicsi (−ln 0,9 ≈ 0,105); ha 1%-ot, nagy (−ln 0,01 ≈ 4,6). A tanítás tehát szó szerint azt optimalizálja, hogy a ténylegesen leírt szövegek a modell szerint <em>minél valószínűbbek</em> legyenek — ez a maximum likelihood elv.</p>
+<h3 id="loss">5.1 · The loss function: cross-entropy</h3>
+<p>What does “a bad prediction” mean? At every position the model produced a distribution over the next token — and the corpus tells us what the next token actually <em>was</em>. The <strong>cross-entropy loss</strong> is simply the negative logarithm of the model's probability for the correct token: if the model gave 90% to the correct token, the loss is small (−ln 0.9 ≈ 0.105); if it gave 1%, the loss is large (−ln 0.01 ≈ 4.6). Training therefore literally optimizes for the texts that were actually written to be <em>as probable as possible</em> according to the model — this is the maximum likelihood principle.</p>
 
-<div class="example"><span class="label">Másik olvasat: tömörítés</span>
-Az információelmélet szerint egy p valószínűségű esemény optimális kódhossza −log₂ p bit. A cross-entropy így pontosan azt méri, hány bittel tudná a modell tömöríteni a szöveget: a jobb nyelvi modell = jobb tömörítő, és ez nem hasonlat, hanem matematikai azonosság (aritmetikai kódolással a modell ténylegesen tömörítővé alakítható). A „megértés mint tömörítés” gondolat a skálázási törvények (5.6) értelmezésének is kulcsa. A gyakran idézett <strong>perplexitás</strong> a loss exponenciálisa: azt mondja meg, átlagosan „hányfelé tanácstalan” a modell — 20-as perplexitás ≈ mintha pozíciónként 20 egyenlően valószínű folytatás közül kellene választania.
+<div class="example"><span class="label">Another reading: compression</span>
+According to information theory, the optimal code length for an event of probability p is −log₂ p bits. Cross-entropy therefore measures exactly how many bits the model could compress the text into: a better language model = a better compressor, and this is not an analogy but a mathematical identity (with arithmetic coding the model really can be turned into a compressor). The idea of “understanding as compression” is also key to interpreting the scaling laws (5.6). The frequently quoted <strong>perplexity</strong> is the exponential of the loss: it says how many ways the model is “undecided” on average — a perplexity of 20 ≈ as if it had to choose between 20 equally likely continuations at each position.
 </div>
 
 <details class="level l2">
-<summary><span class="badge b2">2. szint</span> A loss pontos alakja</summary>
+<summary><span class="badge b2">Level 2</span> The exact form of the loss</summary>
 <div class="body">
-<p>Egy T hosszú <span class="math">x<sub>1</sub>…x<sub>T</sub></span> tanítószekvenciára a veszteség az összes pozíció átlaga:</p>
+<p>For a training sequence <span class="math">x<sub>1</sub>…x<sub>T</sub></span> of length T, the loss is the average over all positions:</p>
 <div class="eq">L(θ) = − <span class="frac"><span>1</span><span>T</span></span> <span class="rm">Σ</span><sub>t=1</sub><sup>T</sup> <span class="rm">log</span> P<sub>θ</sub>(x<sub>t</sub> | x<sub>&lt;t</sub>)</div>
-<p>A kauzális maszk (4.3) miatt mind a T jóslás egyetlen előrefuttatásból kiesik — minden token egyszerre tanítójel. Ekvivalens megfogalmazás: pozíciónként a modell <span class="math"><b>p</b></span> eloszlásának és a valóság <span class="math"><b>y</b></span> one-hot eloszlásának kereszt-entrópiája, <span class="math">H(<b>y</b>, <b>p</b>) = −Σ<sub>i</sub> y<sub>i</sub> <span class="rm">log</span> p<sub>i</sub></span>. Mivel <span class="math"><b>y</b></span> one-hot, ez épp a helyes token −log-valószínűsége. A minimalizálás a modell eloszlását a tanítóeloszláshoz húzza: a loss a kettő közti KL-divergenciát csökkenti (plusz egy konstans, az adat saját entrópiája — ez alá a loss elvileg sem mehet).</p>
+<p>Thanks to the causal mask (4.3), all T predictions fall out of a single forward pass — every token is a training signal at once. An equivalent formulation: at each position, the cross-entropy between the model's distribution <span class="math"><b>p</b></span> and reality's one-hot distribution <span class="math"><b>y</b></span>, <span class="math">H(<b>y</b>, <b>p</b>) = −Σ<sub>i</sub> y<sub>i</sub> <span class="rm">log</span> p<sub>i</sub></span>. Since <span class="math"><b>y</b></span> is one-hot, this is exactly the −log probability of the correct token. Minimizing it pulls the model's distribution toward the data distribution: the loss reduces the KL divergence between the two (plus a constant, the data's own entropy — below which the loss cannot go even in principle).</p>
 </div>
 </details>
 
-<h3 id="autograd">5.2 · A számítási gráf és az automatikus differenciálás</h3>
-<p>A gradiens kiszámításához vegyük észre: a loss a paraméterek <em>függvénye</em> — egy irdatlanul összetett, de elemi lépésekből (mátrixszorzás, összeadás, softmax…) felépülő függvény. A modern keretrendszerek (PyTorch, JAX) az előrefuttatás közben feljegyzik ezt a felépítést egy <strong>számítási gráfba</strong>: minden csomópont egy művelet, minden él egy adatfüggés. A gradiens számítása ezután gépies: a gráfon <em>visszafelé</em> haladva minden művelet a saját (ismert, egyszerű) deriváltjával szorozza tovább a mögötte érkező gradienst. Ez az <strong>automatikus differenciálás</strong> (reverse-mode autodiff) — a backpropagation ennek a neurális hálós neve.</p>
+<h3 id="autograd">5.2 · The computational graph and automatic differentiation</h3>
+<p>To compute the gradient, notice that the loss is a <em>function</em> of the parameters — a monstrously complex one, but built out of elementary steps (matrix multiplication, addition, softmax…). Modern frameworks (PyTorch, JAX) record this structure during the forward pass into a <strong>computational graph</strong>: every node is an operation, every edge a data dependency. Computing the gradient is then mechanical: moving <em>backwards</em> through the graph, each operation multiplies the incoming gradient by its own (known, simple) derivative. This is <strong>automatic differentiation</strong> (reverse-mode autodiff) — backpropagation is its name in the neural-network world.</p>
 
 <figure class="diagram">
 <svg viewBox="0 0 920 330" role="img" aria-label="Computational graph with forward and backward flow">
@@ -1515,8 +1515,8 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
     <marker id="arrF" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--s2)"/></marker>
     <marker id="arrV" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--s7)"/></marker>
   </defs>
-  <text x="20" y="26" font-size="13" font-weight="700" class="svg-ink">Kétrétegű minihálózat gráfja: előre a zöld, visszafelé a lila út</text>
-  <!-- csomópontok -->
+  <text x="20" y="26" font-size="13" font-weight="700" class="svg-ink">Graph of a two-layer mini-network: the green path forward, the purple path backward</text>
+  <!-- nodes -->
   <g font-size="12.5">
     <rect x="30" y="120" width="80" height="40" rx="9" class="svg-box" stroke-width="1.2"/><text x="70" y="145" text-anchor="middle" class="svg-ink"><tspan class="math">x</tspan></text>
     <rect x="160" y="120" width="110" height="40" rx="9" fill="var(--wash-blue)" stroke="var(--s1)" stroke-width="1.3"/><text x="215" y="145" text-anchor="middle" class="svg-ink">h = W₁x</text>
@@ -1526,14 +1526,14 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
     <text x="705" y="153" text-anchor="middle" class="svg-ink2" font-size="10.5">+ cross-entropy</text>
     <rect x="810" y="120" width="80" height="40" rx="9" fill="var(--wash-orange)" stroke="var(--s6)" stroke-width="1.4"/><text x="850" y="145" text-anchor="middle" fill="var(--s6)" font-weight="700">L</text>
   </g>
-  <!-- paraméterek alul -->
+  <!-- parameters at the bottom -->
   <g font-size="11.5">
     <rect x="175" y="215" width="80" height="32" rx="8" fill="var(--wash-orange)" stroke="var(--s6)"/><text x="215" y="236" text-anchor="middle" class="svg-ink">W₁</text>
     <rect x="495" y="215" width="80" height="32" rx="8" fill="var(--wash-orange)" stroke="var(--s6)"/><text x="535" y="236" text-anchor="middle" class="svg-ink">W₂</text>
     <line x1="215" y1="215" x2="215" y2="164" stroke="var(--s2)" stroke-width="1.6" marker-end="url(#arrF)"/>
     <line x1="535" y1="215" x2="535" y2="164" stroke="var(--s2)" stroke-width="1.6" marker-end="url(#arrF)"/>
   </g>
-  <!-- előre élek -->
+  <!-- forward edges -->
   <g stroke="var(--s2)" stroke-width="1.8">
     <line x1="110" y1="132" x2="156" y2="132" marker-end="url(#arrF)"/>
     <line x1="270" y1="132" x2="316" y2="132" marker-end="url(#arrF)"/>
@@ -1541,8 +1541,8 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
     <line x1="590" y1="132" x2="636" y2="132" marker-end="url(#arrF)"/>
     <line x1="770" y1="132" x2="806" y2="132" marker-end="url(#arrF)"/>
   </g>
-  <text x="120" y="120" font-size="10.5" fill="var(--s2)" font-weight="600">előre (forward)</text>
-  <!-- vissza élek -->
+  <text x="120" y="120" font-size="10.5" fill="var(--s2)" font-weight="600">forward</text>
+  <!-- backward edges -->
   <g stroke="var(--s7)" stroke-width="1.8">
     <line x1="806" y1="150" x2="774" y2="150" marker-end="url(#arrV)"/>
     <line x1="636" y1="150" x2="594" y2="150" marker-end="url(#arrV)"/>
@@ -1550,14 +1550,14 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
     <line x1="316" y1="150" x2="274" y2="150" marker-end="url(#arrV)"/>
     <line x1="156" y1="150" x2="114" y2="150" marker-end="url(#arrV)"/>
   </g>
-  <!-- lokális deriváltak felül -->
+  <!-- local derivatives on top -->
   <g font-size="10.5" fill="var(--s7)">
     <text x="705" y="105" text-anchor="middle" class="math">∂L/∂z = p − y</text>
     <text x="535" y="105" text-anchor="middle" class="math">∂z/∂a = W₂ᵀ</text>
     <text x="375" y="105" text-anchor="middle" class="math">∂a/∂h = σ′(h)</text>
     <text x="215" y="105" text-anchor="middle" class="math">∂h/∂x = W₁ᵀ</text>
   </g>
-  <!-- paraméter-gradiensek -->
+  <!-- parameter gradients -->
   <g stroke="var(--s7)" stroke-width="1.6" stroke-dasharray="5,4">
     <line x1="228" y1="164" x2="228" y2="211" marker-end="url(#arrV)"/>
     <line x1="548" y1="164" x2="548" y2="211" marker-end="url(#arrV)"/>
@@ -1566,40 +1566,40 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
     <text x="266" y="238" class="math">∂L/∂W₁</text>
     <text x="586" y="238" class="math">∂L/∂W₂</text>
   </g>
-  <text x="130" y="180" font-size="10.5" fill="var(--s7)" font-weight="600">vissza (backward)</text>
-  <text x="20" y="300" font-size="11" class="svg-muted">A visszaút minden csomópontban a lokális deriválttal szoroz — a láncszabály mechanikus végrehajtása. Egy visszafuttatás költsége ≈ két előrefuttatásé.</text>
+  <text x="130" y="180" font-size="10.5" fill="var(--s7)" font-weight="600">backward</text>
+  <text x="20" y="300" font-size="11" class="svg-muted">At every node the backward pass multiplies by the local derivative — a mechanical execution of the chain rule. One backward pass costs ≈ two forward passes.</text>
 </svg>
-<figcaption><span class="fig-num">7. ábra.</span> A backpropagation a számítási gráfon. Az előrefuttatás (zöld) kiszámolja és megjegyzi a köztes értékeket; a visszafuttatás (lila) a lossból indulva minden élen a lokális deriválttal szoroz, és útközben minden paraméterhez „lecsöpögteti” a rá vonatkozó gradienst. Egyetlen menetben áll elő az összes — akár több százmilliárd — parciális derivált.</figcaption>
+<figcaption><span class="fig-num">Figure 7.</span> Backpropagation on the computational graph. The forward pass (green) computes and remembers the intermediate values; the backward pass (purple) starts from the loss and multiplies by the local derivative along every edge, dripping off the relevant gradient to each parameter as it goes. All the partial derivatives — up to hundreds of billions of them — are produced in a single sweep.</figcaption>
 </figure>
 
-<h3 id="backprop">5.3 · Backpropagation: a láncszabály iparosítása</h3>
-<p>A backprop lényege a középiskolából ismerős <strong>láncszabály</strong>: összetett függvény deriváltja a részderiváltak szorzata. A számítási gráfban a loss és egy mély paraméter között hosszú műveletlánc áll — a gradiens ezen a láncon szorzódik végig visszafelé. A zsenialitás a <em>szervezésben</em> van: ahelyett, hogy minden paraméterre külön végigszámolnánk a láncot (ez paraméterenként egy előrefuttatás lenne — milliárd paraméternél kivitelezhetetlen), a visszafelé haladás <strong>megosztja a közös részszorzatokat</strong>: minden csomópont gradiensét egyszer számoljuk ki, és minden paraméter a saját csomópontjánál kapja meg a magáét. Így az <em>összes</em> gradiens együtt nagyjából két előrefuttatás áráért áll elő.</p>
+<h3 id="backprop">5.3 · Backpropagation: industrializing the chain rule</h3>
+<p>The essence of backprop is the <strong>chain rule</strong>, familiar from school: the derivative of a composite function is the product of the partial derivatives. In the computational graph, a long chain of operations stands between the loss and a deep parameter — and the gradient multiplies its way back along that chain. The genius is in the <em>organization</em>: instead of walking the chain separately for every parameter (which would be one forward pass per parameter — unworkable at a billion parameters), moving backwards <strong>shares the common partial products</strong>: the gradient at every node is computed once, and every parameter picks up its own at its own node. This is how <em>all</em> the gradients together come out for roughly the price of two forward passes.</p>
 
 <details class="level l2">
-<summary><span class="badge b2">2. szint</span> Levezetés: a softmax + cross-entropy gradiense</summary>
+<summary><span class="badge b2">Level 2</span> Derivation: the gradient of softmax + cross-entropy</summary>
 <div class="body">
-<p>A leghíresebb és legszebb részeredmény a kimeneti réteg gradiense. Legyen <span class="math">z<sub>i</sub></span> a logit, <span class="math">p<sub>i</sub> = e<sup>z<sub>i</sub></sup>/Σ<sub>j</sub>e<sup>z<sub>j</sub></sup></span> a softmax-kimenet, a helyes token indexe <span class="math">c</span>, a loss <span class="math">L = −<span class="rm">log</span> p<sub>c</sub></span>. Írjuk ki:</p>
+<p>The most famous and most elegant partial result is the gradient of the output layer. Let <span class="math">z<sub>i</sub></span> be the logit, <span class="math">p<sub>i</sub> = e<sup>z<sub>i</sub></sup>/Σ<sub>j</sub>e<sup>z<sub>j</sub></sup></span> the softmax output, <span class="math">c</span> the index of the correct token, and the loss <span class="math">L = −<span class="rm">log</span> p<sub>c</sub></span>. Written out:</p>
 <div class="eq">L = −z<sub>c</sub> + <span class="rm">log</span> <span class="rm">Σ</span><sub>j</sub> e<sup>z<sub>j</sub></sup></div>
-<p>Deriváljunk <span class="math">z<sub>i</sub></span> szerint. Az első tag deriváltja <span class="math">−1</span>, ha <span class="math">i = c</span>, egyébként 0. A második tagé:</p>
+<p>Differentiate with respect to <span class="math">z<sub>i</sub></span>. The derivative of the first term is <span class="math">−1</span> if <span class="math">i = c</span>, and 0 otherwise. That of the second term:</p>
 <div class="eq"><span class="frac"><span>∂</span><span>∂z<sub>i</sub></span></span> <span class="rm">log</span> <span class="rm">Σ</span><sub>j</sub> e<sup>z<sub>j</sub></sup> = <span class="frac"><span>e<sup>z<sub>i</sub></sup></span><span><span class="rm">Σ</span><sub>j</sub> e<sup>z<sub>j</sub></sup></span></span> = p<sub>i</sub></div>
-<p>Összerakva, one-hot céllal (<span class="math">y<sub>i</sub> = 1</span>, ha <span class="math">i=c</span>):</p>
+<p>Putting it together, with a one-hot target (<span class="math">y<sub>i</sub> = 1</span> if <span class="math">i=c</span>):</p>
 <div class="eq"><span class="frac"><span>∂L</span><span>∂z<sub>i</sub></span></span> = p<sub>i</sub> − y<sub>i</sub></div>
-<p>A gradiens tehát szó szerint <strong>a jóslat és a valóság különbsége</strong>. Ha a modell 0,51-et adott a helyes tokenre, a gradiens ott −0,49: „tolj még felfelé”. Minden rossz token annyi lefelé tolást kap, amennyi valószínűséget kapott. Numerikusan is kegyes: nincs benne osztás közel-nulla számmal, a softmax és a log összeépítve stabil (log-sum-exp trükk).</p>
-<p><strong>A mátrixrétegek szabályai.</strong> Egy <span class="math"><b>Z</b> = <b>X</b><b>W</b></span> lineáris rétegen a gradiens visszafelé (jelölje <span class="math"><b>G</b> = ∂L/∂<b>Z</b></span>):</p>
+<p>The gradient is therefore literally <strong>the difference between the prediction and reality</strong>. If the model gave 0.51 to the correct token, the gradient there is −0.49: “push further up”. Every wrong token receives exactly as much downward push as the probability it received. It is numerically kind as well: it contains no division by a near-zero number, and softmax combined with log is stable (the log-sum-exp trick).</p>
+<p><strong>The rules for matrix layers.</strong> Through a linear layer <span class="math"><b>Z</b> = <b>X</b><b>W</b></span>, the gradient backwards (writing <span class="math"><b>G</b> = ∂L/∂<b>Z</b></span>):</p>
 <div class="eq"><span class="frac"><span>∂L</span><span>∂<b>X</b></span></span> = <b>G</b><b>W</b><sup>⊤</sup>, &nbsp;&nbsp; <span class="frac"><span>∂L</span><span>∂<b>W</b></span></span> = <b>X</b><sup>⊤</sup><b>G</b></div>
-<p>Ez a két képlet a teljes transzformer-visszafuttatás munkalova: a backward menet ugyanolyan mátrixszorzások sorozata, mint az előre — csak transzponált súlyokkal. Innen a klasszikus költségbecslés is: az előrefuttatás ≈ 2ND FLOP (N paraméter, D token, szorzás+összeadás), a visszafuttatás kétszer ennyi (két mátrixszorzás műveletenként: bemenet- és súlygradiens) — a tanítás összesen <span class="math">C ≈ 6ND</span>. Ez a képlet a skálázási törvények (5.6) valutája.</p>
+<p>These two formulas are the workhorse of the entire transformer backward pass: the backward run is the same sequence of matrix multiplications as the forward one — only with transposed weights. The classic cost estimate comes from here too: the forward pass ≈ 2ND FLOPs (N parameters, D tokens, multiply plus add), the backward pass twice that (two matrix products per operation: the input gradient and the weight gradient) — training in total <span class="math">C ≈ 6ND</span>. This formula is the currency of the scaling laws (5.6).</p>
 </div>
 </details>
 
 <details class="level l3">
-<summary><span class="badge b3">3. szint</span> Az eltűnő gradiens és amiért a transzformer tanítható</summary>
+<summary><span class="badge b3">Level 3</span> The vanishing gradient, and why the transformer is trainable</summary>
 <div class="body">
-<p>A gradiens hosszú szorzatlánc — és a szorzatok hajlamosak exponenciálisan viselkedni. Ha a lánc tagjainak „erősítése” jellemzően 1 alatt van, a mély rétegek gradiense exponenciálisan <strong>eltűnik</strong> (a korai rétegek nem tanulnak); ha 1 felett, <strong>felrobban</strong> (a tanítás széthullik). Ez ölte meg a mély RNN-eket: az időben visszafelé terjedő gradiens (BPTT) minden lépésben ugyanazon a rekurrens mátrixon szorzódott át, a viselkedést a mátrix spektrálsugara diktálta.</p>
-<p>A transzformer három szerkezeti válasza:</p>
-<p><strong>(1) Reziduális kapcsolatok.</strong> Az <span class="math"><b>x</b><sub>ℓ+1</sub> = <b>x</b><sub>ℓ</sub> + F(<b>x</b><sub>ℓ</sub>)</span> alak deriváltja <span class="math">I + ∂F/∂<b>x</b></span> — a gradiens minden rétegben kap egy <em>additív identitás-utat</em>, amelyen csillapítatlanul folyhat vissza. A szorzatlánc összeggé „lazul”: a loss-tól minden réteghez létezik rövid, szorzásmentes út.</p>
-<p><strong>(2) Normalizálás.</strong> A pre-norm elrendezés minden alegység bemenetét standard skálára hozza, így az alegységek erősítése kontrollált marad a mélység növelésekor is.</p>
-<p><strong>(3) Rövid attention-utak.</strong> Két tetszőleges pozíció között az információ (és a gradiens) egyetlen attention-ugrással közlekedhet — nincs T-lépéses lánc, mint az RNN-nél; a hosszútávú függés tanulása nem kíván hosszú szorzatláncot.</p>
-<p>Maradék instabilitások így is vannak — loss-tüskék, a softmax/attention-logitok elszállása, alacsony precíziós numerika (5.5) —, kezelésükre szolgál a gradient clipping (a gradiensnorma levágása), a QK-norm, a z-loss és társaik. A nagy futtatások gyakorlatában a stabilitás-mérnökség önálló szakma: egy több hónapos tanítás közben a divergenciát észlelni, checkpointból visszaállni, adatot vagy tanulási rátát igazítani kell.</p>
+<p>The gradient is a long chain of products — and products tend to behave exponentially. If the “gain” of the chain's terms is typically below 1, the gradient of deep layers <strong>vanishes</strong> exponentially (the early layers do not learn); if above 1, it <strong>explodes</strong> (training falls apart). This is what killed deep RNNs: the gradient propagating backwards through time (BPTT) was multiplied at every step through the same recurrent matrix, and the behavior was dictated by that matrix's spectral radius.</p>
+<p>The transformer's three structural answers:</p>
+<p><strong>(1) Residual connections.</strong> The derivative of the form <span class="math"><b>x</b><sub>ℓ+1</sub> = <b>x</b><sub>ℓ</sub> + F(<b>x</b><sub>ℓ</sub>)</span> is <span class="math">I + ∂F/∂<b>x</b></span> — at every layer the gradient gets an <em>additive identity path</em> along which it can flow back undamped. The chain of products “loosens” into a sum: from the loss to every layer there exists a short, multiplication-free route.</p>
+<p><strong>(2) Normalization.</strong> The pre-norm arrangement brings the input of every sub-layer to a standard scale, so the gain of the sub-layers stays controlled even as depth grows.</p>
+<p><strong>(3) Short attention paths.</strong> Between any two positions, information (and the gradient) can travel in a single attention hop — there is no T-step chain as in an RNN; learning a long-range dependency does not require a long chain of products.</p>
+<p>Residual instabilities remain even so — loss spikes, softmax/attention logits running away, low-precision numerics (5.5) — and gradient clipping (capping the gradient norm), QK-norm, z-loss and their relatives exist to handle them. In the practice of large runs, stability engineering is a profession of its own: during a training run of several months, divergence has to be spotted, checkpoints restored, and data or learning rate adjusted.</p>
 </div>
 </details>
 
@@ -2583,59 +2583,59 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       {
         id: 'mlp-nemlinearitas',
         type: 'choice',
-        q: 'Egy 80 rétegű modellben kicseréled az MLP nemlinearitását az identitásra (<span class="math">f(x) = x</span>), minden mást változatlanul hagysz. Mi lesz a modell kifejezőerejével?',
+        q: 'In an 80-layer model you replace the MLP\u2019s nonlinearity with the identity (<span class="math">f(x) = x</span>), leaving everything else unchanged. What happens to the model\u2019s expressive power?',
         options: [
-          { t: 'Összeomlik: egymás után kapcsolt lineáris leképezések sorozata maga is egyetlen lineáris leképezés, tehát a 80 réteg pontosan annyit tud, mint egy.', ok: true },
-          { t: 'Nem változik lényegesen, csak a tanítás lesz lassabb.' },
-          { t: 'Nő, mert a nemlinearitás információt veszít, az identitás pedig mindent továbbenged.' },
-          { t: 'A modell csak a hosszú kontextusokon romlik el, rövid bemeneteken jó marad.' }
+          { t: 'It collapses: a chain of linear maps is itself a single linear map, so the 80 layers can do exactly what one layer can.', ok: true },
+          { t: 'It does not change substantially, training just becomes slower.' },
+          { t: 'It grows, because the nonlinearity loses information while the identity lets everything through.' },
+          { t: 'The model degrades only on long contexts and stays fine on short inputs.' }
         ],
-        why: 'Két lineáris leképezés kompozíciója lineáris — és ez akárhány rétegre igaz. A mélység tehát önmagában <em>semmit</em> nem ér: a kifejezőerő abból jön, hogy a rétegek között valami „megtöri” a linearitást. A harmadik válasz csábító félreértés: a nemlinearitás valóban eldob információt (a GELU a kis negatív értékeket lenyomja), de éppen ez a szelektív küszöbölés teszi lehetővé, hogy az MLP <em>mintázatokra</em> reagáljon, ne csak elforgassa a teret. Ugyanez az oka, hogy az attention-t sem lehet önmagában mélyíteni: a softmax az egyetlen nemlinearitása, és az csak a súlyozást érinti, a value-tartalom mozgatását nem.'
+        why: 'The composition of two linear maps is linear — and that holds for any number of layers. Depth on its own is therefore worth <em>nothing</em>: expressive power comes from something between the layers “breaking” linearity. The third answer is a tempting misreading: the nonlinearity does discard information (GELU flattens small negative values), but it is exactly this selective thresholding that lets the MLP respond to <em>patterns</em> rather than merely rotate the space. The same reasoning explains why attention alone cannot be deepened either: its only nonlinearity is the softmax, and that affects the weighting, not the movement of value content.'
       },
       {
         id: 'mlp-neuron',
         type: 'choice',
-        q: 'Ha az MLP kulcs–érték memóriaként viselkedik, miért nem lehet a modell tudását egyszerűen neuronról neuronra kiolvasni?',
+        q: 'If the MLP behaves like a key–value memory, why can the model\u2019s knowledge not simply be read out neuron by neuron?',
         options: [
-          { t: 'Mert a „kulcsok” nem a neuronbázisban élnek: a neuronok többsége poliszemantikus — ugyanaz a neuron egymással nem rokon mintázatokra is tüzel —, a jellemzők pedig szuperponált irányokként vannak eltárolva.', ok: true },
-          { t: 'Mert a neuronok aktivációi titkosítva vannak, és csak a modell tudja visszafejteni őket.' },
-          { t: 'Mert a tudás nem az MLP-ben, hanem kizárólag az attention-fejekben tárolódik.' },
-          { t: 'Mert egy neuron mindig pontosan egy fogalmat kódol, de túl sok neuron van ahhoz, hogy végignézzük őket.' }
+          { t: 'Because the “keys” do not live in the neuron basis: most neurons are polysemantic — the same neuron fires for unrelated patterns — and the features are stored as superposed directions.', ok: true },
+          { t: 'Because neuron activations are encrypted and only the model can decode them.' },
+          { t: 'Because the knowledge is not in the MLP but exclusively in the attention heads.' },
+          { t: 'Because one neuron always encodes exactly one concept, but there are too many neurons to go through.' }
         ],
-        why: 'A kulcs–érték olvasat matematikailag pontos: a kimenet mindig az értékvektorok aktiváció-súlyozott összege. Ebből viszont <strong>nem</strong> következik, hogy egy sor egyetlen, emberi fogalommal címkézhető kulcs lenne. A valóságban ugyanaz a neuron tüzelhet akadémiai idézetekre, angol párbeszédekre és HTTP-kérésekre egyszerre. A 8.4 szerint ez nem hiba, hanem tömörítés: a modell több jellemzőt tárol, mint ahány neuronja van, nem-bázis-irányokban. Ezért fordult a terület a neuronokról a <em>tanult szótárirányok</em> (SAE-k, 8.5) felé — az MLP kulcs–érték memóriaként <em>viselkedik</em>, de a szótára nem a neuronok listája.'
+        why: 'The key–value reading is mathematically exact: the output is always the activation-weighted sum of the value vectors. It does <strong>not</strong> follow, however, that one row is a single key labelable with a human concept. In reality the same neuron may fire for academic citations, English dialogue and HTTP requests at once. According to 8.4 this is not a defect but compression: the model stores more features than it has neurons, in non-basis directions. This is why the field turned from neurons to <em>learned dictionary directions</em> (SAEs, 8.5) — the MLP <em>behaves</em> like a key–value memory, but its dictionary is not the list of neurons.'
       },
       {
         id: 'out-logit',
         type: 'number',
         answer: 7,
         tol: 0.5,
-        hint: 'Egész számra kerekítve; e ≈ 2,718.',
-        q: 'Két token logitja között 2 egység a különbség. Hozzávetőleg hányszor valószínűbb a softmax után a nagyobb logitú token?',
-        why: 'A softmax a logit-<em>különbségeket</em> alakítja arányokká: a valószínűségek hányadosa <span class="math">e<sup>Δz</sup></span>, itt <span class="math">e<sup>2</sup></span> ≈ 7,39, tehát nagyjából <strong>hétszer</strong>. Két dolog következik ebből. Egyrészt a logitok skálája nem lineárisan viselkedik: +1 logit már ~2,7-szeres arány, +5 pedig ~150-szeres — ezért tud egy látszólag kis logit-eltolás gyakorlatilag eldönteni egy választást. Másrészt csak a különbség számít, az abszolút szint nem: minden logithoz ugyanazt a konstanst hozzáadva az eloszlás változatlan marad. A temperature pontosan ezen a ponton avatkozik be, a különbségeket nyújtva vagy zsugorítva (7. fejezet).'
+        hint: 'Rounded to a whole number; e ≈ 2.718.',
+        q: 'The logits of two tokens differ by 2 units. Roughly how many times more likely is the token with the larger logit after the softmax?',
+        why: 'The softmax turns logit <em>differences</em> into ratios: the ratio of the probabilities is <span class="math">e<sup>Δz</sup></span>, here <span class="math">e<sup>2</sup></span> ≈ 7.39, so roughly <strong>seven times</strong>. Two things follow. First, the logit scale does not behave linearly: +1 logit is already a ~2.7× ratio, +5 about 150× — which is why an apparently small shift in logits can effectively decide a choice. Second, only the difference matters, not the absolute level: adding the same constant to every logit leaves the distribution unchanged. Temperature intervenes at exactly this point, stretching or shrinking the differences (chapter 7).'
       },
       {
         id: 'rope-nyujtas',
         type: 'choice',
-        q: 'Egy 8k tokenre tanított, RoPE-ot használó modellt 32k kontextusra szeretnél kiterjeszteni, lehetőleg kevés utótanítással. Miért reális ez egyáltalán?',
+        q: 'You want to extend a RoPE-based model trained on 8k tokens to a 32k context, ideally with little post-training. Why is that realistic at all?',
         options: [
-          { t: 'Mert a RoPE-nál a pozíció csak a két token elforgatási szögének <em>különbségén</em> keresztül szól bele a pontszámba — így a forgatási frekvenciák átskálázásával a tanult viselkedés kinyújtható hosszabb távolságokra.', ok: true },
-          { t: 'Mert a RoPE nem használ pozícióinformációt, ezért a hossz közömbös a számára.' },
-          { t: 'Mert a kontextusablakot bármely modellnél szabadon át lehet állítani, a pozíciókódolás típusától függetlenül.' },
-          { t: 'Mert a RoPE minden lehetséges pozícióhoz előre tanult egy külön vektort, 32k-ig is.' }
+          { t: 'Because with RoPE position enters the score only through the <em>difference</em> of the two tokens\u2019 rotation angles — so rescaling the rotation frequencies stretches the learned behavior over longer distances.', ok: true },
+          { t: 'Because RoPE uses no positional information at all, so length is irrelevant to it.' },
+          { t: 'Because the context window of any model can be changed freely, regardless of the kind of positional encoding.' },
+          { t: 'Because RoPE pre-trained a separate vector for every possible position, up to 32k.' }
         ],
-        why: 'A RoPE nem hozzáad a tartalomhoz, hanem <em>elforgatja</em> a query- és key-vektorokat a pozícióval arányos szöggel. Mivel a forgatás ortogonális, a skalárszorzatba a pozíció kizárólag az <span class="math">m−n</span> különbségen át kerül be: az attention automatikusan relatív távolságot érzékel. Pontosan ezért nyújtható a skála — position interpolation, NTK-aware skálázás, YaRN mind a frekvenciákat módosítja, nem a modell tudását. A negyedik válasz a <em>tanult</em> pozíció-embeddingek világa: ott tényleg minden pozícióhoz külön vektor tartozik, és épp ezért nem lehet a tanított hosszon túllépni.'
+        why: 'RoPE does not add to the content but <em>rotates</em> the query and key vectors by an angle proportional to position. Since rotation is orthogonal, position enters the dot product solely through the difference <span class="math">m−n</span>: attention automatically senses relative distance. That is precisely why the scale can be stretched — position interpolation, NTK-aware scaling and YaRN all modify the frequencies, not the model\u2019s knowledge. The fourth answer describes the world of <em>learned</em> positional embeddings: there every position really does have its own vector, and that is exactly why you cannot go beyond the trained length.'
       },
       {
         id: 'norm-prenorm',
         type: 'choice',
-        q: 'A modern transzformerek a normalizálást az alegység <em>elé</em> teszik, nem a residual összeadás <em>után</em>. Mit nyernek ezzel?',
+        q: 'Modern transformers put normalization <em>before</em> the sub-layer rather than <em>after</em> the residual addition. What do they gain?',
         options: [
-          { t: 'A residual út érintetlen identitás marad — semmi nem skálázza át menet közben —, ezért a gradiens tisztán jut vissza a legmélyebb rétegig, és a mély modellek warmup-trükkök nélkül is stabilan tanulnak.', ok: true },
-          { t: 'Kevesebb paramétert használ, mert így a normalizálásnak nincs tanult erősítése.' },
-          { t: 'Így a normalizálás a pozícióinformációt is standardizálja, ami pontosabb attention-t ad.' },
-          { t: 'Gyorsabb, mert a normalizálás az alegység előtt kevesebb elemre fut.' }
+          { t: 'The residual path stays an untouched identity — nothing rescales it along the way — so the gradient reaches the deepest layer cleanly and deep models train stably even without warmup tricks.', ok: true },
+          { t: 'It uses fewer parameters, because this way the normalization has no learned gain.' },
+          { t: 'This way the normalization also standardizes the positional information, giving more accurate attention.' },
+          { t: 'It is faster, because normalization before the sub-layer runs on fewer elements.' }
         ],
-        why: 'A normalizálás célja az, hogy a vektorok nagysága ne szaladjon el rétegről rétegre. A <em>hol</em> viszont épp annyira számít, mint a <em>hogyan</em>: ha a normalizálás a residual összeadás után ül (post-norm), akkor a fő útvonalon is ott van, és minden réteg átskálázza a streamet — a gradiensnek pedig minden rétegnél át kell verekednie magát rajta. Pre-normnál a normalizálás a <em>mellékágban</em> van, a stream maga érintetlen összeadási lánc marad. Ez ugyanaz a gondolat, mint a 4. szint residual streamje, csak a másik irányból nézve: a fő út tisztán tartása az, ami a nagy mélységet egyáltalán taníthatóvá teszi.'
+        why: 'The purpose of normalization is to stop the magnitude of the vectors running away from layer to layer. But <em>where</em> it sits matters just as much as <em>how</em> it works: if normalization comes after the residual addition (post-norm), it sits on the main route as well, and every layer rescales the stream — the gradient then has to fight its way through it at every layer. With pre-norm, normalization is in the <em>side branch</em> and the stream itself remains a clean chain of additions. This is the same idea as the residual stream from level 4, seen from the other side: keeping the main path clean is what makes great depth trainable in the first place.'
       }
     ],
     6: [
@@ -2644,57 +2644,57 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
         type: 'number',
         answer: 3,
         tol: 0.5,
-        hint: 'Egész szám (szorzó).',
-        q: 'Egy előrefuttatás költsége legyen 1 egység. Nagyságrendileg hány egységbe kerül egy <em>teljes</em> tanítási lépés ugyanazon az adagon — vagyis az előrefuttatás <strong>és</strong> az összes paraméter gradiensének kiszámítása együtt?',
-        why: 'A visszafuttatás nagyjából <em>két</em> előrefuttatás ára (műveletenként két mátrixszorzás kell: egy a bemenet-, egy a súlygradienshez), tehát a teljes lépés körülbelül <strong>3-szoros</strong> — innen jön a tanítás klasszikus becslése is, <span class="math">C ≈ 6ND</span>, szemben az előrefuttatás <span class="math">2ND</span>-jével. A lényeg nem a pontos konstans, hanem hogy ez egy <em>kicsi</em> szám: az összes — akár több százmilliárd — parciális derivált együtt áll elő, néhányszoros áron. Ha paraméterenként külön kellene számolni, a tanítás elvi lehetőség maradna, nem iparág.'
+        hint: 'A whole number (a multiplier).',
+        q: 'Let the cost of one forward pass be 1 unit. Roughly how many units does a <em>complete</em> training step on the same batch cost — the forward pass <strong>and</strong> computing the gradients of all parameters together?',
+        why: 'The backward pass costs roughly <em>two</em> forward passes (two matrix products are needed per operation: one for the input gradient, one for the weight gradient), so the full step is about <strong>3×</strong> — which is also where the classic estimate of training cost comes from, <span class="math">C ≈ 6ND</span>, against the forward pass\u2019s <span class="math">2ND</span>. The point is not the exact constant but that it is a <em>small</em> number: all the partial derivatives — hundreds of billions of them — come out together at a few times the cost. If they had to be computed per parameter, training would have stayed a theoretical possibility rather than an industry.'
       },
       {
         id: 'bp-megosztas',
         type: 'choice',
-        q: 'Miért nem úgy számoljuk a gradienst, hogy minden paramétert külön-külön megpiszkálunk, és megnézzük, hogyan változik tőle a loss?',
+        q: 'Why do we not compute the gradient by nudging each parameter one at a time and seeing how the loss changes?',
         options: [
-          { t: 'Mert az paraméterenként egy külön lefuttatást igényelne — milliárd paraméternél milliárd lefuttatást. A backprop ehelyett visszafelé haladva megosztja a közös részszorzatokat, és egy menetben adja az összes gradienst.', ok: true },
-          { t: 'Mert a paraméterek megváltoztatása tönkretenné a modellt, és nem lehetne visszaállítani.' },
-          { t: 'Mert a loss nem differenciálható, ezért a különbségi módszer hibás eredményt adna.' },
-          { t: 'Mert a gradiens iránya a paraméterek megpiszkálásából elvileg sem állapítható meg.' }
+          { t: 'Because that would take one separate run per parameter — a billion runs for a billion parameters. Backpropagation instead moves backwards and shares the common partial products, delivering all the gradients in one sweep.', ok: true },
+          { t: 'Because changing the parameters would break the model and it could not be restored.' },
+          { t: 'Because the loss is not differentiable, so the difference method would give a wrong result.' },
+          { t: 'Because the direction of the gradient cannot in principle be determined by nudging parameters.' }
         ],
-        why: 'A leírt módszer (numerikus differenciálás) elvileg <em>működik</em> — és pontosan ez a baja: működik, csak reménytelenül drágán. A backprop zsenialitása nem a láncszabályban van, hiszen az középiskolás anyag, hanem a <strong>szervezésben</strong>: a loss és a mély paraméterek közti hosszú műveletláncok nagyrészt közösek, és ha visszafelé haladunk, minden csomópont gradiensét elég egyszer kiszámolni. Minden paraméter ott, a saját csomópontjánál veszi át a magáét. Ez fordítja át a költséget „paraméterenként egy futás”-ról „az egészre néhány futás”-ra.'
+        why: 'The method described (numerical differentiation) does <em>work</em> in principle — and that is precisely its problem: it works, just hopelessly expensively. The genius of backprop is not in the chain rule, which is school mathematics, but in the <strong>organization</strong>: the long chains of operations between the loss and deep parameters are largely shared, and moving backwards, the gradient at each node needs to be computed only once. Every parameter picks up its own right there, at its own node. That is what turns the cost from “one run per parameter” into “a few runs for the whole thing”.'
       },
       {
         id: 'bp-gradiens',
         type: 'choice',
-        q: 'A kimeneti rétegben a gradiens pontosan <span class="math">p<sub>i</sub> − y<sub>i</sub></span> — a jóslat és a valóság különbsége. Mit jelent ez a <em>helytelen</em> tokenek szempontjából?',
+        q: 'In the output layer the gradient is exactly <span class="math">p<sub>i</sub> − y<sub>i</sub></span> — the difference between the prediction and reality. What does this mean for the <em>incorrect</em> tokens?',
         options: [
-          { t: 'Mindegyik pontosan akkora lefelé tolást kap, amekkora valószínűséget kapott: amelyikre a modell sok valószínűséget pazarolt, azt nyomja le erősen, amelyiket eleve nullának hitte, azt békén hagyja.', ok: true },
-          { t: 'Mindegyik ugyanakkora lefelé tolást kap, hiszen mindegyik egyformán hibás.' },
-          { t: 'A helytelen tokenek nem kapnak gradienst, csak a helyes kap felfelé tolást.' },
-          { t: 'A helytelen tokenek felfelé tolást kapnak, hogy az eloszlás simább maradjon.' }
+          { t: 'Each gets exactly as much downward push as the probability it received: the one the model wasted a lot of probability on is pushed down hard, the one it already thought was zero is left alone.', ok: true },
+          { t: 'They all get the same downward push, since they are all equally wrong.' },
+          { t: 'Incorrect tokens receive no gradient; only the correct one gets an upward push.' },
+          { t: 'Incorrect tokens receive an upward push, to keep the distribution smoother.' }
         ],
-        why: 'A képlet meglepően kevés dolgot mond, és épp ez a lényege: a tanítójel nem azt közli, hogy „ez lett volna a helyes válasz és a többi rossz”, hanem hogy <em>hova mennyi valószínűség került feleslegesen</em>. Egy 0,51-et kapó helyes token gradiense −0,49 („tolj még felfelé”), miközben egy 0,3-at kapó téves token 0,3-as lenyomást kap, egy 0,001-es pedig gyakorlatilag semmit. Ezért „olcsó” a modellnek az, amit már eleve kizárt, és ezért a tanítás energiája oda megy, ahol a modell magabiztosan téved. Numerikusan is kegyes a képlet: nincs benne osztás közel-nulla számmal.'
+        why: 'The formula says surprisingly little, and that is exactly the point: the training signal does not say “this would have been the right answer and the rest are wrong”, but rather <em>where probability was spent unnecessarily</em>. A correct token at 0.51 has gradient −0.49 (“push further up”), while a wrong token at 0.3 gets a 0.3 push down and one at 0.001 gets practically nothing. This is why what the model has already ruled out is “cheap” for it, and why the energy of training goes where the model is confidently wrong. The formula is numerically kind as well: no division by a near-zero number.'
       },
       {
         id: 'bp-entropia',
         type: 'choice',
-        q: 'A tanítás során a loss szépen csökken, majd megáll egy határozottan nulla fölötti értéken, és onnan már nem megy lejjebb. Baj ez?',
+        q: 'During training the loss falls nicely, then stops at a clearly non-zero value and goes no lower. Is that a problem?',
         options: [
-          { t: 'Nem: magának a szövegnek is van entrópiája — a következő token gyakran valóban nem kiszámítható —, és a loss elvileg sem mehet ez alá. A nulla loss tökéletes jóslást jelentene, ami a nyelvnél értelmetlen elvárás.', ok: true },
-          { t: 'Igen: ez biztos jele annak, hogy a modell alultanított, és több lépés kellene neki.' },
-          { t: 'Igen: a jól működő tanítás a lossot mindig nullához viszi.' },
-          { t: 'Nem, de csak azért nem, mert a cross-entropy technikai okokból sosem tud nullát adni.' }
+          { t: 'No: the text itself has entropy — the next token often genuinely is not deducible — and the loss cannot go below that even in principle. Zero loss would mean perfect prediction, which is a meaningless demand for language.', ok: true },
+          { t: 'Yes: it is a sure sign that the model is undertrained and needs more steps.' },
+          { t: 'Yes: well-functioning training always drives the loss to zero.' },
+          { t: 'No, but only because cross-entropy can never technically return zero.' }
         ],
-        why: 'A loss a modell eloszlása és a valóság közti KL-divergenciát csökkenti, <em>plusz egy konstanst</em>: az adat saját entrópiáját. Ez a konstans nem tüntethető el, mert nem a modellről szól, hanem a szövegről: sok helyen több folytatás is teljesen legitim. Innen érthető a tömörítéses olvasat is — a cross-entropy azt méri, hány bittel tudná a modell tömöríteni a szöveget, és a tömörítésnek is van elvi alsó határa. A perplexitás (a loss exponenciálisa) ugyanezt mondja emberi léptékben: a 20-as perplexitás nagyjából azt jelenti, mintha pozíciónként húsz egyenlően valószínű folytatás közül kellene választani.'
+        why: 'The loss reduces the KL divergence between the model\u2019s distribution and reality, <em>plus a constant</em>: the data\u2019s own entropy. That constant cannot be removed, because it is not about the model but about the text: in many places several continuations are entirely legitimate. This also makes the compression reading intelligible — cross-entropy measures how many bits the model could compress the text into, and compression too has a theoretical floor. Perplexity (the exponential of the loss) says the same thing on a human scale: a perplexity of 20 means roughly having to choose between twenty equally likely continuations at each position.'
       },
       {
         id: 'bp-memoria',
         type: 'choice',
-        q: 'Egy modell kényelmesen elfut inferenciában a GPU-don, tanítani viszont ugyanazon a hardveren nem tudod: elfogy a memória. Mi ennek a fő oka?',
+        q: 'A model runs comfortably in inference on your GPU, but you cannot train it on the same hardware: you run out of memory. What is the main reason?',
         options: [
-          { t: 'Az előrefuttatásnak meg kell őriznie a köztes értékeket, mert a visszafuttatás épp ezekből számol — inferenciakor viszont minden köztes érték eldobható, amint felhasználtuk.', ok: true },
-          { t: 'A tanításhoz a modell két példányban van a memóriában: egy az előre-, egy a visszafuttatáshoz.' },
-          { t: 'A tanítás nagyobb pontosságú számábrázolást igényel, ezért minden súly kétszer annyi helyet foglal.' },
-          { t: 'A gradiensek több helyet foglalnak, mint maguk a paraméterek.' }
+          { t: 'The forward pass has to keep its intermediate values, because the backward pass computes from exactly those — whereas in inference every intermediate value can be discarded as soon as it has been used.', ok: true },
+          { t: 'Training keeps two copies of the model in memory: one for the forward and one for the backward pass.' },
+          { t: 'The description of the computational graph\u2019s structure, which grows with the number of parameters.' },
+          { t: 'The training data, all of which has to be held in GPU memory.' }
         ],
-        why: 'A számítási gráf nem absztrakció, hanem konkrét memóriaigény: a visszafuttatás minden csomóponton a saját lokális deriváltjával szoroz, ahhoz pedig ismernie kell, milyen értékekkel dolgozott ott az előrefuttatás. Ezért kell az aktivációkat végig megőrizni — és ezért nő a memóriaigény a batch-mérettel, a szekvenciahosszal és a mélységgel együtt, miközben a paraméterek száma változatlan. Az optimalizáló állapota és a gradiensek is fogyasztanak (erről a 7. szinten lesz szó), de a tipikusan domináns tétel az aktivációk. Innen a gradient checkpointing ötlete: nem tároljuk mindet, hanem egy részüket visszafuttatáskor újraszámoljuk — memóriát cserélünk számításra.'
+        why: 'The computational graph is not an abstraction but a concrete memory requirement: at every node the backward pass multiplies by its own local derivative, and to do that it must know what values the forward pass worked with there. This is why activations have to be kept throughout — and why memory grows with batch size, sequence length and depth, while the number of parameters stays the same. The optimizer state and the gradients consume memory too (level 7 covers that), but the typically dominant item is the activations. Hence the idea of gradient checkpointing: rather than storing them all, some are recomputed during the backward pass — trading memory for compute.'
       }
     ],
     7: [
