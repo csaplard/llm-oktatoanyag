@@ -1828,30 +1828,30 @@ According to information theory, the optimal code length for an event of probabi
 </section>
 <section id="inferencia" data-level="9">
 <div class="chapter-kicker">Chapter 7</div>
-<h2>Inferencia: a kész modell futtatása</h2>
+<h2>Inference: running the finished model</h2>
 
-<p>A tanítás megadta a súlyokat — de a modell <em>használata</em> saját mérnöki világ. A generálás két, gyökeresen eltérő karakterű fázisból áll. A <strong>prefill</strong> a prompt egyszeri feldolgozása: minden token párhuzamosan megy át a hálón, a GPU számolókapacitása a korlát. A <strong>dekódolás</strong> ezután tokenenként halad: minden új tokenhez egy teljes előrefuttatás kell, amely az <em>összes</em> súly memóriából való beolvasásával jár — itt nem a számolás, hanem a <strong>memória-sávszélesség</strong> a szűk keresztmetszet. Ezért mérünk külön „első token késleltetést” és „token/másodperc” ütemet, és ezért szól az inferencia-optimalizálás nagy része a memóriaforgalom csökkentéséről.</p>
+<p>Training gave us the weights — but <em>using</em> the model is an engineering world of its own. Generation consists of two phases of radically different character. <strong>Prefill</strong> is the one-off processing of the prompt: every token passes through the network in parallel, and the GPU's compute capacity is the limit. <strong>Decoding</strong> then proceeds token by token: each new token requires a full forward pass, which involves reading <em>all</em> the weights from memory — here the bottleneck is not computation but <strong>memory bandwidth</strong>. This is why we measure “time to first token” and “tokens per second” separately, and why most of inference optimization is about reducing memory traffic.</p>
 
-<h3>Mintavételezés: az eloszlásból token</h3>
-<p>A modell kimenete eloszlás — de konkrét tokent kell választani. A <strong>mohó</strong> választás (mindig a legvalószínűbb) determinisztikus, de gyakran laposan ismétlődő szöveget ad. A gyakorlatban az eloszlásból <em>mintát veszünk</em>, és a mintavétel élességét a <strong>temperature</strong> paraméter szabályozza: a logitokat elosztjuk T-vel a softmax előtt. T&lt;1 az eloszlást a csúcs felé élesíti (konzervatívabb, ismétlésre hajlamosabb), T&gt;1 lapítja (kreatívabb, hibára hajlamosabb). Kiegészítésként a <strong>top-p</strong> (nucleus) szűrés levágja az eloszlás hosszú, zajos farkát: csak a legkisebb olyan tokenhalmazból mintázunk, amelynek együttes valószínűsége eléri p-t.</p>
+<h3>Sampling: from a distribution to a token</h3>
+<p>The model's output is a distribution — but a concrete token has to be chosen. The <strong>greedy</strong> choice (always the most likely) is deterministic, but often produces flat, repetitive text. In practice we <em>sample</em> from the distribution, and the sharpness of the sampling is governed by the <strong>temperature</strong> parameter: the logits are divided by T before the softmax. T&lt;1 sharpens the distribution toward the peak (more conservative, more prone to repetition), T&gt;1 flattens it (more creative, more prone to error). As a complement, <strong>top-p</strong> (nucleus) filtering cuts off the long, noisy tail of the distribution: we sample only from the smallest set of tokens whose combined probability reaches p.</p>
 
 <div class="demo">
-<div class="demo-title">Interaktív demó · a temperature hatása</div>
-<label>„A macska felmászott a …” — következő token eloszlása &nbsp;·&nbsp; T = <b id="tval">1.0</b></label><br>
+<div class="demo-title">Interactive demo · the effect of temperature</div>
+<label>“The cat climbed up the …” — distribution over the next token &nbsp;·&nbsp; T = <b id="tval">1.0</b></label><br>
 <input type="range" id="tslider" min="0.2" max="3" step="0.1" value="1">
 <div class="bars" id="tbars"></div>
-<p style="font-size:13px; color:var(--ink-2); margin-top:12px;">Húzd a csúszkát: alacsony T-nél az eloszlás a legjobb jelöltre koncentrálódik, magas T-nél kiegyenlítődik. A P(i) ∝ exp(z<sub>i</sub>/T) képlet fut élőben, rögzített példa-logitokkal.</p>
+<p style="font-size:13px; color:var(--ink-2); margin-top:12px;">Drag the slider: at low T the distribution concentrates on the best candidate, at high T it levels out. The formula P(i) ∝ exp(z<sub>i</sub>/T) runs live, on fixed example logits.</p>
 </div>
 
-<h3>KV-cache: hogy ne számoljunk mindent újra</h3>
-<p>Az autoregresszív hurok naiv megvalósítása minden új tokennél a <em>teljes</em> szekvenciát újraszámolná. Ez felesleges: a korábbi tokenek key- és value-vektorai nem változnak — az attention kauzális, a múlt nem függ a jövőtől. A megoldás a <strong>KV-cache</strong>: minden réteg minden fejének key/value-vektorait eltároljuk, és az új token query-je csak hozzájuk illeszkedik. A dekódolás lépésenkénti költsége így a szekvenciahossznak nem négyzetes, hanem lineáris függvénye — cserébe a cache maga válik a GPU-memória fő fogyasztójává, hosszú kontextusnál a súlyokat is meghaladhatja.</p>
+<h3>The KV cache: so we do not recompute everything</h3>
+<p>A naive implementation of the autoregressive loop would recompute the <em>entire</em> sequence at every new token. That is unnecessary: the key and value vectors of earlier tokens do not change — attention is causal, and the past does not depend on the future. The solution is the <strong>KV cache</strong>: the key/value vectors of every head of every layer are stored, and the new token's query simply matches against them. The per-step cost of decoding thus becomes a linear rather than quadratic function of sequence length — in exchange, the cache itself becomes the main consumer of GPU memory, and at long contexts it can exceed even the weights.</p>
 
 <figure class="diagram">
 <svg viewBox="0 0 900 272" role="img" aria-label="How the KV cache works">
-  <text x="20" y="26" font-size="13" font-weight="700" class="svg-ink">Dekódolás KV-cache-sel: csak az új token számítódik</text>
+  <text x="20" y="26" font-size="13" font-weight="700" class="svg-ink">Decoding with a KV cache: only the new token is computed</text>
   <!-- cache doboz -->
   <rect x="30" y="60" width="470" height="120" rx="12" fill="var(--wash-green)" stroke="var(--s2)" stroke-width="1.4"/>
-  <text x="46" y="84" font-size="12" font-weight="700" fill="var(--s2)">KV-cache (rétegenként, fejenként)</text>
+  <text x="46" y="84" font-size="12" font-weight="700" fill="var(--s2)">KV cache (per layer, per head)</text>
   <g class="svg-mono" font-size="10.5">
     <g transform="translate(50,100)">
       <rect width="76" height="26" rx="5" class="svg-box"/><text x="38" y="17" text-anchor="middle" class="svg-ink2">k₁ v₁</text>
@@ -1860,39 +1860,39 @@ According to information theory, the optimal code length for an event of probabi
       <rect x="252" width="76" height="26" rx="5" class="svg-box"/><text x="290" y="17" text-anchor="middle" class="svg-ink2">k₄ v₄</text>
       <rect x="336" width="76" height="26" rx="5" fill="var(--wash-orange)" stroke="var(--s6)" stroke-width="1.4"/><text x="374" y="17" text-anchor="middle" class="svg-ink">k₅ v₅</text>
     </g>
-    <text x="50" y="152" font-size="10.5" class="svg-muted">tárolt — egyszer számolt, többé nem érintett</text>
-    <text x="386" y="152" font-size="10.5" fill="var(--s6)">új ↑</text>
+    <text x="50" y="152" font-size="10.5" class="svg-muted">stored — computed once, never touched again</text>
+    <text x="386" y="152" font-size="10.5" fill="var(--s6)">new ↑</text>
   </g>
-  <!-- új token -->
+  <!-- new token -->
   <rect x="580" y="72" width="130" height="40" rx="10" fill="var(--wash-blue)" stroke="var(--s1)" stroke-width="1.5"/>
-  <text x="645" y="97" text-anchor="middle" font-size="12" class="svg-ink">új token: q₅</text>
+  <text x="645" y="97" text-anchor="middle" font-size="12" class="svg-ink">new token: q₅</text>
   <path d="M 576 92 C 540 92, 530 110, 504 118" fill="none" stroke="var(--s1)" stroke-width="1.6" marker-end="url(#arrB)"/>
-  <text x="560" y="130" font-size="10.5" fill="var(--s1)">attention a teljes cache-re</text>
-  <!-- képlet -->
+  <text x="560" y="130" font-size="10.5" fill="var(--s1)">attention over the whole cache</text>
+  <!-- formula -->
   <rect x="580" y="140" width="290" height="76" rx="10" class="svg-box" stroke-width="1.1"/>
-  <text x="596" y="163" font-size="11.5" class="svg-ink" font-weight="600">cache-méret (bájt) =</text>
+  <text x="596" y="163" font-size="11.5" class="svg-ink" font-weight="600">cache size (bytes) =</text>
   <text x="596" y="183" font-size="11.5" class="svg-ink">2 · L · H<tspan baseline-shift="sub" font-size="8.5">kv</tspan> · d<tspan baseline-shift="sub" font-size="8.5">fej</tspan> · T · b</text>
-  <text x="596" y="205" font-size="10" class="svg-muted">K és V · réteg · KV-fej · fejdim · token · bájt</text>
-  <text x="30" y="240" font-size="11" class="svg-muted">Példa: 32 réteg, 8 KV-fej, d=128, 128k token, FP16 → 2·32·8·128·131072·2 B ≈ 17 GB — egyetlen beszélgetésre.</text>
-  <text x="30" y="256" font-size="11" class="svg-muted">Ezért kell a GQA (4.8), a kvantált cache és a lapozott memóriakezelés (PagedAttention).</text>
+  <text x="596" y="205" font-size="10" class="svg-muted">K and V · layers · KV heads · head dim · tokens · bytes</text>
+  <text x="30" y="240" font-size="11" class="svg-muted">Example: 32 layers, 8 KV heads, d=128, 128k tokens, FP16 → 2·32·8·128·131072·2 B ≈ 17 GB — for a single conversation.</text>
+  <text x="30" y="256" font-size="11" class="svg-muted">Hence the need for GQA (4.8), a quantized cache and paged memory management (PagedAttention).</text>
 </svg>
-<figcaption><span class="fig-num">10. ábra.</span> A KV-cache. A már látott tokenek key/value-vektorai rétegenként tárolódnak; új tokennél csak egy query számítódik, amely a cache egészére figyel. Az ára memória: a cache mérete a kontextushosszal lineárisan nő, és a kiszolgáló-rendszerek tervezésének központi kényszere.</figcaption>
+<figcaption><span class="fig-num">Figure 10.</span> The KV cache. The key/value vectors of tokens already seen are stored per layer; for a new token only one query is computed, which attends over the whole cache. The price is memory: the size of the cache grows linearly with context length, and it is the central constraint in the design of serving systems.</figcaption>
 </figure>
 
 <details class="level l2">
-<summary><span class="badge b2">2. szint</span> Kvantálás és spekulatív dekódolás</summary>
+<summary><span class="badge b2">Level 2</span> Quantization and speculative decoding</summary>
 <div class="body">
-<p><strong>Kvantálás.</strong> Ha a dekódolást a súlyok beolvasása korlátozza, a leghatásosabb gyorsítás a súlyok <em>kisebbre tömörítése</em>: a 16 bites számok 8, 4, sőt 2 bites egészekre képezése. A recept: a súlycsoportokat (pl. 64-es blokkokban) egy skálafaktorral normáljuk és rácsra kerekítjük — <span class="math">w ≈ s · q</span>, ahol q kis egész. A minőségvesztés meglepően kicsi (a 4 bit a gyakorlati édespont), mert a hálók súlyeloszlása redundáns; a kényes részek (kiugró aktiváció-csatornák, „outlierek”) kezelésére születtek a finomabb sémák (GPTQ, AWQ, aktiváció-kvantálás FP8-ban). A KV-cache ugyanígy kvantálható.</p>
-<p><strong>Spekulatív dekódolás.</strong> A dekódolás soros — de az <em>ellenőrzés</em> párhuzamos. Egy kis, gyors „vázlatmodell” előre generál k tokent, majd a nagy modell <em>egyetlen</em> párhuzamos futtatásban ellenőrzi őket: az egyező prefixet elfogadja, az első eltérésnél a saját eloszlásából javít. Egy elutasítás-mintavételi trükkel az eljárás <em>egzaktul</em> a nagy modell eloszlását adja — tehát ingyen gyorsítás (jellemzően 2–3×), amikor a szöveg könnyen jósolható. Rokon irány a multi-token-prediction fejekkel való öndraftolás (Medusa, EAGLE).</p>
-<p><strong>Kiszolgálás.</strong> Éles rendszerben sok kérés fut együtt: a <em>continuous batching</em> a dekódló lépéseket több kérés közt köti kötegbe (a GPU-t a súlybeolvasáson osztoztatja), a <em>PagedAttention</em> (vLLM) a KV-cache-t lapokra tördelve gazdálkodik a memóriával, a prefix-cache a közös promptkezdeteket (rendszerprompt!) osztja meg. A prefill és a dekódolás eltérő profilja miatt a nagy rendszerek a kettőt gyakran külön gépcsoportra bontják.</p>
+<p><strong>Quantization.</strong> If decoding is limited by reading the weights, the most effective speedup is <em>compressing the weights</em>: mapping 16-bit numbers to 8-, 4-, or even 2-bit integers. The recipe: groups of weights (in blocks of 64, say) are normalized by a scale factor and rounded to a grid — <span class="math">w ≈ s · q</span>, where q is a small integer. The loss of quality is surprisingly small (4 bits is the practical sweet spot), because the weight distribution of networks is redundant; finer schemes (GPTQ, AWQ, activation quantization in FP8) exist to handle the delicate parts (outlier activation channels). The KV cache can be quantized in the same way.</p>
+<p><strong>Speculative decoding.</strong> Decoding is serial — but <em>verification</em> is parallel. A small, fast “draft model” generates k tokens ahead, and the large model checks them in a <em>single</em> parallel run: it accepts the matching prefix and, at the first divergence, corrects from its own distribution. With a rejection-sampling trick the procedure yields <em>exactly</em> the large model's distribution — so the speedup (typically 2–3×) is free, whenever the text is easy to predict. A related direction is self-drafting with multi-token-prediction heads (Medusa, EAGLE).</p>
+<p><strong>Serving.</strong> In a production system many requests run together: <em>continuous batching</em> groups decoding steps across requests (sharing the GPU on the weight reads), <em>PagedAttention</em> (vLLM) manages memory by breaking the KV cache into pages, and a prefix cache shares common prompt prefixes (the system prompt!). Because prefill and decoding have different profiles, large systems often split the two onto separate machine pools.</p>
 </div>
 </details>
 
 <details class="level l3">
-<summary><span class="badge b3">3. szint</span> Mintavétel-kutatás: miért pont top-p, és mi romlik el?</summary>
+<summary><span class="badge b3">Level 3</span> Sampling research: why top-p, and what goes wrong?</summary>
 <div class="body">
-<p>A mintavételi stratégia látszólag apróság, valójában a kimenet minőségének erős szabályozója. A tiszta mintavétel (T=1, szűrés nélkül) hosszú szövegben megbízhatóan „kisiklik”: a farokból húzott egy-egy rossz token után a modell a saját hibáján kondicionálódik, és a hiba öngerjesztővé válik (exposure bias — a tanításkor mindig <em>valódi</em> prefixet látott, generáláskor a sajátját). A mohó/alacsony-T dekódolás ellenkező patológiája a degenerált ismétlés: egy-egy ciklus valószínűsége lépésről lépésre nő, ha egyszer elindult. A top-p e kettő közti pragmatikus kompromisszum; finomabb rokonai (min-p, typical sampling, mirostat) a küszöböt a lokális bizonytalansághoz igazítják.</p>
-<p>Érdemes látni, hogy a „legvalószínűbb szöveg” <em>nem</em> a legjobb szöveg: a globálisan maximális valószínűségű folytatás (amit a beam search közelít) természetes nyelvre jellemzően rövid, ismétlődő, semmitmondó — az emberi szöveg tipikus, nem pedig maximális valószínűségű. A reasoning-modellek korszakában új szempont is belépett: a hosszú gondolatmenetek alatt a mintavétel diverzitása felfedezést szolgál (több próbálkozás, öngyógyítás), a végső válasznál viszont az élesebb dekódolás kifizetődő — a T tehát fázisonként is hangolható.</p>
+<p>The sampling strategy looks like a detail but is in fact a strong regulator of output quality. Pure sampling (T=1, no filtering) reliably “derails” in long text: after a bad token drawn from the tail, the model conditions on its own mistake and the error becomes self-amplifying (exposure bias — during training it always saw a <em>real</em> prefix, during generation it sees its own). The opposite pathology of greedy/low-T decoding is degenerate repetition: once a loop has started, its probability grows step by step. Top-p is the pragmatic compromise between the two; finer relatives (min-p, typical sampling, mirostat) adapt the threshold to the local uncertainty.</p>
+<p>It is worth seeing that the “most likely text” is <em>not</em> the best text: the globally maximum-probability continuation (which beam search approximates) is, for natural language, typically short, repetitive and bland — human text is typical, not maximal, in probability. In the era of reasoning models a new consideration has entered: during long chains of thought, diversity in sampling serves exploration (more attempts, self-correction), whereas for the final answer sharper decoding pays off — so T can be tuned per phase.</p>
 </div>
 </details>
 
@@ -2819,58 +2819,58 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       {
         id: 'inf-savszelesseg',
         type: 'choice',
-        q: 'Egy erősebb, több számolókapacitású GPU-ra váltasz, de a generálás token/másodperc üteme alig javul — miközben a prompt feldolgozása (az első token késleltetése) érezhetően gyorsult. Mi ennek az oka?',
+        q: 'You switch to a more powerful GPU with more compute, but the tokens-per-second rate barely improves — while prompt processing (time to first token) got noticeably faster. What causes this?',
         options: [
-          { t: 'A két fázis szűk keresztmetszete más: a prefill számolásigényes, a tokenenkénti dekódolást viszont a memória-sávszélesség korlátozza, mert minden egyes tokenhez az összes súlyt be kell olvasni.', ok: true },
-          { t: 'A dekódolás a CPU-n fut, ezért a GPU cseréje nem hat rá.' },
-          { t: 'A dekódolás sebességét a szótár mérete határozza meg, nem a hardver.' },
-          { t: 'A KV-cache miatt a dekódolás mindig fix sebességű, a hardvertől függetlenül.' }
+          { t: 'The two phases have different bottlenecks: prefill is compute-bound, whereas per-token decoding is limited by memory bandwidth, because every single token requires reading all the weights.', ok: true },
+          { t: 'Decoding runs on the CPU, so changing the GPU does not affect it.' },
+          { t: 'The speed of decoding is determined by the size of the vocabulary, not by the hardware.' },
+          { t: 'Because of the KV cache, decoding always runs at a fixed speed, independent of hardware.' }
         ],
-        why: 'A generálás két, gyökeresen eltérő karakterű fázisból áll, és ezt a különbséget külön is mérjük: „első token késleltetés” és „token/másodperc”. A prefillben a prompt minden tokenje párhuzamosan megy át a hálón — sok számolás, jó GPU-kihasználtság. A dekódolásban viszont tokenenként egyetlen pozíciót számolunk, miközben ugyanúgy be kell olvasni <em>minden</em> súlyt a memóriából: a szorzóegységek nagyrészt várakoznak. Ezért szól az inferencia-optimalizálás nagy része nem a számolás gyorsításáról, hanem a memóriaforgalom csökkentéséről — innen a kvantálás, a GQA és a köteges kiszolgálás logikája is.'
+        why: 'Generation consists of two phases of radically different character, and we measure that difference separately: “time to first token” and “tokens per second”. In prefill, every token of the prompt passes through the network in parallel — lots of computation, good GPU utilization. In decoding we compute a single position per token, while still having to read <em>every</em> weight from memory: the multiply units mostly wait. This is why most of inference optimization is not about speeding up computation but about reducing memory traffic — and it is the logic behind quantization, GQA and batched serving too.'
       },
       {
         id: 'inf-kvcache',
         type: 'choice',
-        q: 'A KV-cache bekapcsolásával a generálás sokkal gyorsabb lesz, hosszú beszélgetésnél viszont elfogy a GPU memóriája — pedig a modell súlyai bőven elférnek. Mi történik?',
+        q: 'Turning on the KV cache makes generation much faster, but in a long conversation the GPU runs out of memory — even though the model\u2019s weights fit comfortably. What is happening?',
         options: [
-          { t: 'A cache maga válik a fő memóriafogyasztóvá: rétegenként és fejenként tárolja minden eddigi token key/value-vektorát, így a mérete a kontextushosszal lineárisan nő, és hosszú kontextusnál meghaladhatja a súlyokét.', ok: true },
-          { t: 'A cache a teljes attention-mátrixot tárolja, amely a kontextushosszban négyzetesen nő.' },
-          { t: 'A cache a modell súlyainak másolatát tartja minden rétegre külön.' },
-          { t: 'A cache a generált szöveget tárolja tokenizált formában, ami hosszú beszélgetésnél hatalmasra nő.' }
+          { t: 'The cache itself becomes the main memory consumer: it stores the key/value vectors of every token so far, per layer and per head, so its size grows linearly with context length and at long contexts can exceed the weights.', ok: true },
+          { t: 'The cache stores the full attention matrix, which grows quadratically with context length.' },
+          { t: 'The cache keeps a copy of the model weights for every layer.' },
+          { t: 'The cache stores the generated text in tokenized form, which becomes enormous in a long conversation.' }
         ],
-        why: 'A KV-cache egy csere: a lépésenkénti költséget a szekvenciahossz négyzetesből lineárisra viszi, cserébe memóriát követel. Hogy mennyit, az pontosan látszik a szerkezetéből — rétegek × fejek × eddigi tokenek × fej-dimenzió × 2 (key és value) —, tehát minden új token fix mennyiséggel növeli. A második válasz azért csábító, mert a T×T-es pontszám-mátrix tényleg négyzetes, csakhogy azt nem tároljuk: menet közben keletkezik és eltűnik. Ez a lineáris növekedés a kiszolgáló-rendszerek tervezésének központi kényszere — innen a PagedAttention lapkezelése, a KV-cache kvantálása és a GQA, amely eleve kevesebb key/value-fejjel dolgozik.'
+        why: 'The KV cache is a trade: it takes the per-step cost from quadratic to linear in sequence length, and demands memory in return. How much is visible from its structure — layers × heads × tokens so far × head dimension × 2 (key and value) — so every new token adds a fixed amount. The second answer is tempting because the T×T score matrix really is quadratic; but we do not store it: it comes into being and disappears in the course of the computation. This linear growth is the central constraint in designing serving systems — hence PagedAttention\u2019s page management, KV-cache quantization, and GQA, which works with fewer key/value heads in the first place.'
       },
       {
         id: 'inf-spekulativ',
         type: 'choice',
-        q: 'A spekulatív dekódolásban egy kicsi, gyengébb modell találgatja meg előre a következő néhány tokent. Miért nem romlik ettől a kimenet minősége?',
+        q: 'In speculative decoding, a small, weaker model guesses the next few tokens in advance. Why does this not degrade output quality?',
         options: [
-          { t: 'Mert a nagy modell egyetlen párhuzamos futtatásban ellenőrzi a javaslatot, és az első eltérésnél a saját eloszlásából javít — egy elutasítás-mintavételi trükkel a végeredmény egzaktul a nagy modell eloszlása.', ok: true },
-          { t: 'Romlik, csak a gyorsulásért cserébe ezt elfogadjuk.' },
-          { t: 'Mert a vázlatmodellt ugyanazon az adaton tanították, ezért a javaslatai mindig egyeznek a nagy modelléivel.' },
-          { t: 'Mert a két modell kimenetét átlagoljuk, és az átlag jobb, mint bármelyik külön-külön.' }
+          { t: 'Because the large model verifies the proposal in a single parallel run and corrects from its own distribution at the first divergence — with a rejection-sampling trick the result is exactly the large model\u2019s distribution.', ok: true },
+          { t: 'It does degrade; we simply accept that in exchange for the speedup.' },
+          { t: 'Because the draft model was trained on the same data, so its proposals always match the large model\u2019s.' },
+          { t: 'Because the outputs of the two models are averaged, and the average is better than either alone.' }
         ],
-        why: 'A kulcs az aszimmetria: a generálás <em>soros</em>, az ellenőrzés viszont <em>párhuzamos</em>. A nagy modell ugyanannyi idő alatt tud k tokent leellenőrizni, mint egyet legenerálni — a vázlat tehát ingyen próbálkozás. Ami ezt korrektté teszi, az az elfogadási szabály: nem egyszerűen „ha egyezik, elfogadjuk”, hanem egy olyan elutasítás-mintavétel, amely bizonyíthatóan a nagy modell eredeti eloszlását állítja elő. A gyorsulás így nem minőség-kompromisszum, hanem tiszta nyereség — akkora, amennyire a szöveg épp könnyen jósolható, jellemzően 2–3×.'
+        why: 'The key is the asymmetry: generation is <em>serial</em>, but verification is <em>parallel</em>. The large model can check k tokens in the same time it takes to generate one — so the draft is a free attempt. What makes this correct is the acceptance rule: not simply “accept if it matches”, but a rejection-sampling scheme that provably reproduces the large model\u2019s original distribution. The speedup is therefore not a quality compromise but a clean gain — as large as the text happens to be easy to predict, typically 2–3×.'
       },
       {
         id: 'inf-temperature',
         type: 'number',
         answer: 1,
-        hint: 'Egész szám.',
-        q: 'Két token logitja 3 és 1. Mekkora lesz a kettő közti különbség a softmax bemenetén, ha <span class="math">T</span> = 2 temperature-rel mintavételezel?',
-        why: 'A temperature a logitokat osztja: (3 − 1) / 2 = <strong>1</strong>. Érdemes ezt összerakni azzal, amit az 5. szinten láttunk: a valószínűségek aránya <span class="math">e<sup>Δz</sup></span>, tehát az eredeti 2-es különbség ~7-szeres arányt jelentett, a felezett 1-es viszont már csak ~2,7-szereset. A temperature tehát nem „kreativitás-gomb”, hanem nagyon konkrét dolog: <em>zsugorítja vagy nyújtja a logit-különbségeket</em>, és ezzel az esélyek arányát. T &lt; 1 élesít (a csúcs felé húz, ismétlésre hajlamosít), T &gt; 1 lapít (kreatívabb, hibázósabb). A fejezet interaktív demója pontosan ezt a képletet futtatja élőben.'
+        hint: 'A whole number.',
+        q: 'The logits of two tokens are 3 and 1. What will the difference between them be at the input of the softmax if you sample with temperature <span class="math">T</span> = 2?',
+        why: 'Temperature divides the logits: (3 − 1) / 2 = <strong>1</strong>. It is worth putting this together with what we saw at level 5: the ratio of the probabilities is <span class="math">e<sup>Δz</sup></span>, so the original difference of 2 meant a ~7× ratio, while the halved difference of 1 means only about 2.7×. Temperature is therefore not a “creativity knob” but something very concrete: it <em>shrinks or stretches the logit differences</em>, and with them the ratio of the odds. T &lt; 1 sharpens (pulling toward the peak, inviting repetition), T &gt; 1 flattens (more creative, more error-prone). The chapter\u2019s interactive demo runs exactly this formula live.'
       },
       {
         id: 'inf-legvaloszinubb',
         type: 'choice',
-        q: 'Miért nem az a jó stratégia, hogy megkeressük a globálisan legnagyobb valószínűségű folytatást?',
+        q: 'Why is it not a good strategy to search for the globally most probable continuation?',
         options: [
-          { t: 'Mert az emberi szöveg <em>tipikus</em>, nem maximális valószínűségű: a globális optimumhoz közeli folytatás természetes nyelvre jellemzően rövid, ismétlődő és semmitmondó.', ok: true },
-          { t: 'Mert a globális optimum megkeresése ugyan a legjobb szöveget adná, de kiszámíthatatlanul drága.' },
-          { t: 'Mert a modell valószínűségei nem elég pontosak ahhoz, hogy a maximumot megbízhatóan megtaláljuk.' },
-          { t: 'Mert a legvalószínűbb folytatás mindig szó szerint a tanítóadatból másolna.' }
+          { t: 'Because human text is <em>typical</em>, not maximal in probability: a continuation near the global optimum is, for natural language, typically short, repetitive and bland.', ok: true },
+          { t: 'Because finding the global optimum would give the best text but is unpredictably expensive.' },
+          { t: 'Because the model\u2019s probabilities are not accurate enough for the maximum to be found reliably.' },
+          { t: 'Because the most probable continuation would always copy verbatim from the training data.' }
         ],
-        why: 'Ez a szint legfontosabb gondolata, mert szembemegy az intuícióval: a modell célja a valószínűség maximalizálása volt tanításkor, generáláskor mégsem a maximumot akarjuk. Az ok az, hogy a természetes szöveg statisztikailag <em>tipikus</em> mintája az eloszlásnak, nem a módusza — a maximum felé hajtva degenerált ismétlésbe futunk (egy elkezdett ciklus valószínűsége lépésről lépésre nő). A másik véglet, a szűrés nélküli mintavétel, az ellenkező patológiát adja: egy farokból húzott rossz token után a modell a saját hibáján kondicionálódik, és a hiba öngerjesztővé válik. A top-p e két patológia közti pragmatikus kompromisszum. A második válasz azért téves, mert nem a költség a fő baj: a beam search közelíti a maximumot, és épp a közelítés sikerén látszik, hogy az eredmény nem jó.'
+        why: 'This is the most important idea of the level, because it runs against intuition: the model\u2019s objective during training was to maximize probability, yet at generation time we do not want the maximum. The reason is that natural text is a statistically <em>typical</em> sample of the distribution, not its mode — pushing toward the maximum lands you in degenerate repetition (once a loop starts, its probability grows step by step). The other extreme, unfiltered sampling, gives the opposite pathology: after a bad token drawn from the tail, the model conditions on its own mistake and the error becomes self-amplifying. Top-p is the pragmatic compromise between these two pathologies. The second answer is wrong because cost is not the main problem: beam search approximates the maximum, and it is precisely the success of that approximation that shows the result is not good.'
       }
     ],
     10: [
