@@ -3,7 +3,7 @@
 Átfogó magyar nyelvű oktatóanyag az LLM-ekről — a tokenizációtól a
 backpropagationön át a mechanistic interpretability kutatási frontvonaláig.
 
-**➜ [Olvasd itt](https://csaplard.github.io/llm-oktatoanyag/)**
+**➜ [Olvasd itt](https://csaplard.github.io/llm-oktatoanyag/)** · **[Read it in English](https://csaplard.github.io/llm-oktatoanyag/en/)**
 
 ## Mi ez
 
@@ -77,6 +77,19 @@ számol. A kvízeredményedet nem látja senki.
 - 13 saját SVG-ábra, külső képfájl nélkül.
 - Világos és sötét mód külön tervezett palettával (a sötét nem a világos
   invertálása). Alapértelmezés: világos.
+
+## Nyelvek
+
+Az anyag magyarul és angolul is elérhető, ugyanazzal a szintrendszerrel és
+ugyanazokkal a kvízekkel. A két változat között a jobb alsó sarokban lévő
+`HU` / `EN` gombbal lehet váltani. A haladás közös: ha félúton nyelvet váltasz,
+nem kell elölről kezdened.
+
+Az angol kiadás nem szó szerinti fordítás ott, ahol az értelmetlen lett volna:
+a nyelvi példákat kicseréltük olyanokra, amelyek angolul is működnek — a BPE
+szótárépítés `play / playful / playtime`, a poliszémia `bank` (folyópart vagy
+pénzintézet), az attention-példa `crane` (madár vagy emelőgép). Az ábrák
+geometriája mindkét változatban azonos.
 
 ## Licenc
 
