@@ -1612,46 +1612,46 @@ According to information theory, the optimal code length for an event of probabi
 </div>
 </section>
 <section id="tanitas2" data-level="7">
-<h3 id="optim">5.4 · Optimalizálók: a gradienstől a lépésig</h3>
-<p>A gradiens megmondja, merre lejt a veszteségfelszín — de hogy <em>mekkorát és pontosan hogyan</em> lépjünk, az külön tudomány. A naiv recept, a sztochasztikus gradiensereszkedés (SGD) — „lépj a gradiens ellenében egy kis tanulási rátával” — nagy nyelvi modelleknél a gyakorlatban alig használható: a különböző paraméterek gradiensei nagyságrendekkel különböznek, a batch-ekből jövő gradiens zajos, a felszín pedig szurdokos. A standard megoldás az <strong>Adam(W)</strong>, amely két mozgó statisztikát tart karban paraméterenként: a gradiens átlagát (lendület — kisimítja a zajt) és a gradiens négyzetének átlagát (skála — minden paraméter a saját szokásos gradiensnagyságához mérten lép). Az eredmény: minden paraméter közelítőleg egységnyi, jól kondicionált lépéseket tesz.</p>
+<h3 id="optim">5.4 · Optimizers: from the gradient to the step</h3>
+<p>The gradient says which way the loss surface slopes — but <em>how far and exactly how</em> to step is a science of its own. The naive recipe, stochastic gradient descent (SGD) — “step against the gradient with a small learning rate” — is barely usable in practice for large language models: the gradients of different parameters differ by orders of magnitude, the gradient coming from batches is noisy, and the surface is full of ravines. The standard answer is <strong>Adam(W)</strong>, which maintains two running statistics per parameter: the mean of the gradient (momentum — smoothing the noise) and the mean of the squared gradient (scale — every parameter steps relative to its own usual gradient magnitude). The result: every parameter takes approximately unit-sized, well-conditioned steps.</p>
 
 <details class="level l2">
-<summary><span class="badge b2">2. szint</span> AdamW képletekkel, és a tanulásiráta-menetrend</summary>
+<summary><span class="badge b2">Level 2</span> AdamW with formulas, and the learning-rate schedule</summary>
 <div class="body">
-<p>Jelölje <span class="math"><b>g</b><sub>t</sub></span> a gradienst a t-edik lépésben. Az Adam frissítése:</p>
+<p>Let <span class="math"><b>g</b><sub>t</sub></span> denote the gradient at step t. Adam's update:</p>
 <div class="eq"><b>m</b><sub>t</sub> = β₁<b>m</b><sub>t−1</sub> + (1−β₁)<b>g</b><sub>t</sub> &nbsp;&nbsp;&nbsp; <b>v</b><sub>t</sub> = β₂<b>v</b><sub>t−1</sub> + (1−β₂)<b>g</b><sub>t</sub><sup>2</sup></div>
 <div class="eq"><b>m̂</b><sub>t</sub> = <b>m</b><sub>t</sub>/(1−β₁<sup>t</sup>), &nbsp; <b>v̂</b><sub>t</sub> = <b>v</b><sub>t</sub>/(1−β₂<sup>t</sup>) &nbsp;&nbsp;&nbsp; θ<sub>t</sub> = θ<sub>t−1</sub> − η · <span class="frac"><span><b>m̂</b><sub>t</sub></span><span>√<span style="border-top:1px solid currentColor"><b>v̂</b><sub>t</sub></span> + ε</span></span> − η·λ·θ<sub>t−1</sub></div>
-<p>Tipikus értékek: <span class="math">β₁ = 0,9</span>, <span class="math">β₂ = 0,95</span> (LLM-eknél a szokásos 0,999 helyett — a gyorsabb skála-adaptáció stabilabb), <span class="math">ε = 10⁻⁸</span>. Az utolsó tag a <strong>decoupled weight decay</strong> (a W az AdamW-ben): a súlyok enyhe, a gradienstől független zsugorítása — regularizáció. Az ár: paraméterenként két extra állapotvektor, azaz az optimalizáló-állapot a modell méretének kétszerese (ezért fáj a memória, 5.5).</p>
-<p>A tanulási ráta <span class="math">η</span> nem állandó: az elején <strong>warmup</strong> (lineáris felfutás nulláról néhány ezer lépésen át — amíg az Adam-statisztikák és a friss háló stabilizálódnak), utána hosszú <strong>koszinuszos lecsengés</strong> vagy újabban konstans szakasz + rövid, agresszív lehűtés (WSD-menetrend). A lecsengés alatti loss-zuhanás jellegzetes: a kisebb lépések engedik a finomszerkezet kicsiszolását.</p>
-<p>Újabb fejlemény: 2024–25-ben megjelentek az Adamot verő, másodrendű információt olcsón közelítő optimalizálók — leglátványosabban a <strong>Muon</strong>, amely a gradiensmátrixot ortogonalizálja (Newton–Schulz-iterációval) a lépés előtt; több nagy nyílt modellt már ezzel tanítottak, jellemzően az AdamW-vel kombinálva (Muon a mátrixokra, AdamW az embeddingre és normákra).</p>
+<p>Typical values: <span class="math">β₁ = 0.9</span>, <span class="math">β₂ = 0.95</span> (for LLMs, instead of the usual 0.999 — faster scale adaptation is more stable), <span class="math">ε = 10⁻⁸</span>. The last term is <strong>decoupled weight decay</strong> (the W in AdamW): a mild shrinking of the weights, independent of the gradient — regularization. The price: two extra state vectors per parameter, that is, an optimizer state twice the size of the model (which is why memory hurts, 5.5).</p>
+<p>The learning rate <span class="math">η</span> is not constant: at the start there is <strong>warmup</strong> (a linear ramp from zero over a few thousand steps — until the Adam statistics and the fresh network stabilize), then a long <strong>cosine decay</strong>, or more recently a constant phase plus a short, aggressive cooldown (the WSD schedule). The drop in loss during the decay is characteristic: smaller steps allow the fine structure to be polished.</p>
+<p>A more recent development: in 2024–25, optimizers appeared that beat Adam by cheaply approximating second-order information — most strikingly <strong>Muon</strong>, which orthogonalizes the gradient matrix (via Newton–Schulz iteration) before the step; several large open models have already been trained with it, typically combined with AdamW (Muon for the matrices, AdamW for the embedding and the norms).</p>
 </div>
 </details>
 
-<h3 id="infra">5.5 · Tanítás a gyakorlatban: adat, precizitás, párhuzamosítás</h3>
-<p>A fentiek egyetlen GPU-n is működnek — egy nagy modell tanítása azonban tíz- vagy százezer gyorsítón folyó, hónapokig tartó mérnöki művelet. A fő témák:</p>
+<h3 id="infra">5.5 · Training in practice: data, precision, parallelism</h3>
+<p>All of the above works on a single GPU — but training a large model is an engineering operation running on tens or hundreds of thousands of accelerators for months. The main topics:</p>
 
-<p><strong>Adat.</strong> A több billió tokenes korpusz (web-crawl, könyvek, kód, tudományos szöveg, egyre inkább szintetikus adat) minősége a végeredmény első számú meghatározója. A pipeline: nyelvfelismerés, minőségszűrés (heurisztikák és tanult osztályozók), <em>deduplikáció</em> (a duplikátumok memorizációt és képesség-torzulást okoznak), PII- és toxicitás-szűrés, majd a keverékarányok gondos megtervezése — a tanítás vége felé gyakran „curriculum”: a legjobb minőségű adat felülsúlyozása.</p>
+<p><strong>Data.</strong> The quality of the multi-trillion-token corpus (web crawl, books, code, scientific text, and increasingly synthetic data) is the number one determinant of the end result. The pipeline: language identification, quality filtering (heuristics and learned classifiers), <em>deduplication</em> (duplicates cause memorization and distorted capabilities), PII and toxicity filtering, and then careful design of the mixture ratios — toward the end of training often a “curriculum”: over-weighting the highest-quality data.</p>
 
-<p><strong>Precizitás.</strong> A számítás zöme 16 bites lebegőpontos formátumban fut (bfloat16 — a float32 dinamikatartománya fele akkora mantisszával), a legérzékenyebb akkumulációk float32-ben; az élvonal a 8 bites (FP8) tanítást is bevetette. A kevesebb bit = kétszeres-négyszeres áteresztőképesség, cserébe numerikus aknamező: a stabilitás-trükkök (loss scaling, QK-norm) részben ezt ellensúlyozzák.</p>
+<p><strong>Precision.</strong> Most of the computation runs in a 16-bit floating-point format (bfloat16 — the dynamic range of float32 with half the mantissa), with the most sensitive accumulations in float32; the frontier has also deployed 8-bit (FP8) training. Fewer bits = two to four times the throughput, at the cost of a numerical minefield: the stability tricks (loss scaling, QK-norm) partly offset this.</p>
 
-<p><strong>Párhuzamosítás.</strong> Egy nagy modell se súlyban, se aktivációban nem fér egyetlen GPU-ra, ezért a munkát három tengely mentén szeletelik, jellemzően egyszerre mindhárom mentén („3D parallelism”):</p>
+<p><strong>Parallelism.</strong> A large model fits on a single GPU neither in weights nor in activations, so the work is sliced along three axes, typically all three at once (“3D parallelism”):</p>
 
 <table>
-<tr><th>Tengely</th><th>Mit oszt szét?</th><th>Kommunikáció</th></tr>
-<tr><td><strong>Data parallel</strong></td><td>A batch példáit — minden replika a teljes modellt futtatja más adaton</td><td>Gradiens-összegzés (all-reduce) lépésenként; a ZeRO/FSDP a súlyokat és az optimalizáló-állapotot is szétosztja a replikák közt</td></tr>
-<tr><td><strong>Tensor parallel</strong></td><td>Az egyes mátrixokat vágja fel GPU-k között (a fejek, az MLP oszlopai szétoszthatók)</td><td>Rétegenként kétszer all-reduce — csak gyors, csomóponton belüli összeköttetésen éri meg</td></tr>
-<tr><td><strong>Pipeline parallel</strong></td><td>A rétegeket rakja különböző GPU-kra emeletekként</td><td>Aktivációk adogatása az emeletek közt; a „buborék” (üresjárat) mikrobatch-ütemezéssel csökkenthető</td></tr>
+<tr><th>Axis</th><th>What does it split?</th><th>Communication</th></tr>
+<tr><td><strong>Data parallel</strong></td><td>The examples of the batch — every replica runs the full model on different data</td><td>Gradient summation (all-reduce) at every step; ZeRO/FSDP also distributes the weights and the optimizer state across the replicas</td></tr>
+<tr><td><strong>Tensor parallel</strong></td><td>Individual matrices, cut between GPUs (heads and the columns of the MLP can be split)</td><td>Two all-reduces per layer — worth it only over a fast, within-node interconnect</td></tr>
+<tr><td><strong>Pipeline parallel</strong></td><td>The layers, placed on different GPUs as stages</td><td>Passing activations between stages; the “bubble” (idle time) can be reduced by micro-batch scheduling</td></tr>
 </table>
 
-<p><strong>Memória-trükkök.</strong> A backprophoz az előrefuttatás köztes aktivációit meg kell őrizni — hosszú szekvenciáknál ez dominálja a memóriát. A <em>gradient checkpointing</em> alkut köt: csak minden k-adik réteg aktivációit tárolja, a többit a visszafuttatáskor újraszámolja (~harmadával több számítás, töredék memória).</p>
+<p><strong>Memory tricks.</strong> Backprop requires keeping the intermediate activations of the forward pass — at long sequences this dominates memory. <em>Gradient checkpointing</em> strikes a bargain: it stores the activations of only every k-th layer and recomputes the rest during the backward pass (about a third more computation, a fraction of the memory).</p>
 
-<h3 id="scaling">5.6 · Skálázási törvények: a mezőny fizikája</h3>
-<p>A terület legmeglepőbb empirikus felfedezése, hogy a modellek végső loss-a <strong>sima, megjósolható hatványfüggvénye</strong> a ráfordításnak. Ha log-log skálán ábrázoljuk a loss-t a compute (vagy paraméterszám, vagy adatmennyiség) függvényében, közel egyenest kapunk — nagyságrendeken át. Ez tette az LLM-fejlesztést tervezhető iparrá: egy 100-szor kisebb kísérletsorozatból extrapolálható, mit fog tudni a nagy futtatás, és eldönthető, mire költsük a számítási keretet.</p>
+<h3 id="scaling">5.6 · Scaling laws: the physics of the field</h3>
+<p>The field's most surprising empirical discovery is that a model's final loss is a <strong>smooth, predictable power function</strong> of the resources spent. Plot the loss against compute (or parameter count, or amount of data) on a log-log scale and you get nearly a straight line — across orders of magnitude. This is what made LLM development a plannable industry: from a series of experiments 100× smaller you can extrapolate what the big run will be able to do, and decide what to spend the compute budget on.</p>
 
 <figure class="diagram">
 <svg viewBox="0 0 880 380" role="img" aria-label="Scaling law: loss versus compute on a log-log scale">
-  <text x="20" y="26" font-size="13" font-weight="700" class="svg-ink">Loss a tanítási compute függvényében (sematikus, log–log)</text>
-  <!-- rács -->
+  <text x="20" y="26" font-size="13" font-weight="700" class="svg-ink">Loss as a function of training compute (schematic, log–log)</text>
+  <!-- grid -->
   <g stroke="var(--grid)" stroke-width="1">
     <line x1="90" y1="60" x2="90" y2="300"/><line x1="230" y1="60" x2="230" y2="300"/>
     <line x1="370" y1="60" x2="370" y2="300"/><line x1="510" y1="60" x2="510" y2="300"/>
@@ -1669,55 +1669,56 @@ According to information theory, the optimal code length for an event of probabi
     <text x="510" y="318" text-anchor="middle">10²¹</text>
     <text x="650" y="318" text-anchor="middle">10²²</text>
     <text x="790" y="318" text-anchor="middle">10²³</text>
-    <text x="440" y="342" text-anchor="middle" font-size="11">tanítási compute, C (FLOP)</text>
-    <text x="78" y="304" text-anchor="end">2,4</text>
-    <text x="78" y="244" text-anchor="end">2,8</text>
-    <text x="78" y="184" text-anchor="end">3,4</text>
-    <text x="78" y="124" text-anchor="end">4,1</text>
-    <text x="78" y="64" text-anchor="end">5,0</text>
-    <text x="46" y="180" text-anchor="middle" font-size="11" transform="rotate(-90 46 180)">teszt-loss (nat/token)</text>
+    <text x="440" y="342" text-anchor="middle" font-size="11">training compute, C (FLOPs)</text>
+    <text x="78" y="304" text-anchor="end">2.4</text>
+    <text x="78" y="244" text-anchor="end">2.8</text>
+    <text x="78" y="184" text-anchor="end">3.4</text>
+    <text x="78" y="124" text-anchor="end">4.1</text>
+    <text x="78" y="64" text-anchor="end">5.0</text>
+    <text x="46" y="180" text-anchor="middle" font-size="11" transform="rotate(-90 46 180)">test loss (nats/token)</text>
   </g>
-  <!-- modellméret-görbék: mindegyik lehajlik, majd elszáll (adathiány), burkológörbe = törvény -->
+  <!-- model-size curves: each bends, then flattens out (data limit);
+       the envelope = optimum -->
   <path d="M 90 95 C 170 150, 220 195, 265 225 C 300 248, 340 252, 390 245" fill="none" stroke="var(--s5)" stroke-width="2"/>
   <path d="M 160 90 C 260 150, 330 210, 395 250 C 440 277, 490 280, 545 272" fill="none" stroke="var(--s3)" stroke-width="2"/>
   <path d="M 240 88 C 350 145, 450 225, 530 268 C 580 293, 640 297, 700 290" fill="none" stroke="var(--s4)" stroke-width="2"/>
   <path d="M 330 90 C 450 140, 570 230, 660 280 C 710 305, 760 310, 800 306" fill="none" stroke="var(--s1)" stroke-width="2"/>
-  <!-- burkoló egyenes -->
+  <!-- envelope line -->
   <line x1="90" y1="120" x2="790" y2="288" stroke="var(--ink-muted)" stroke-width="1.6" stroke-dasharray="7,5"/>
   <g>
     <line x1="110" y1="268" x2="150" y2="268" stroke="var(--ink-muted)" stroke-width="1.6" stroke-dasharray="7,5"/>
-    <text x="158" y="272" font-size="11.5" class="svg-ink2">burkoló: L(C) ∝ C<tspan baseline-shift="super" font-size="8.5">−α</tspan> — a skálázási törvény</text>
+    <text x="158" y="272" font-size="11.5" class="svg-ink2">envelope: L(C) ∝ C<tspan baseline-shift="super" font-size="8.5">−α</tspan> — the scaling law</text>
   </g>
-  <!-- jelmagyarázat -->
+  <!-- legend -->
   <g font-size="11">
     <rect x="620" y="66" width="190" height="92" rx="8" class="svg-box" stroke-width="1"/>
-    <text x="632" y="84" class="svg-ink2" font-weight="600">modellméret:</text>
+    <text x="632" y="84" class="svg-ink2" font-weight="600">model size:</text>
     <line x1="632" y1="98" x2="656" y2="98" stroke="var(--s5)" stroke-width="2.5"/><text x="662" y="102" class="svg-ink2">kicsi</text>
-    <line x1="632" y1="116" x2="656" y2="116" stroke="var(--s3)" stroke-width="2.5"/><text x="662" y="120" class="svg-ink2">közepes</text>
-    <line x1="632" y1="134" x2="656" y2="134" stroke="var(--s4)" stroke-width="2.5"/><text x="662" y="138" class="svg-ink2">nagy</text>
+    <line x1="632" y1="116" x2="656" y2="116" stroke="var(--s3)" stroke-width="2.5"/><text x="662" y="120" class="svg-ink2">medium</text>
+    <line x1="632" y1="134" x2="656" y2="134" stroke="var(--s4)" stroke-width="2.5"/><text x="662" y="138" class="svg-ink2">large</text>
     <line x1="632" y1="152" x2="656" y2="152" stroke="var(--s1)" stroke-width="2.5"/><text x="662" y="156" class="svg-ink2">nagyon nagy</text>
   </g>
-  <text x="20" y="360" font-size="11" class="svg-muted">Minden modellméretnek saját görbéje van: egy ponton túl a plusz compute már keveset segít (a kis modell „betelik”).</text>
-  <text x="20" y="376" font-size="11" class="svg-muted">Az optimális stratégia a burkolón haladás: a compute-tal együtt a modellt ÉS az adatot is növelni.</text>
+  <text x="20" y="360" font-size="11" class="svg-muted">Every model size has its own curve: past a point, extra compute helps little (the small model “fills up”).</text>
+  <text x="20" y="376" font-size="11" class="svg-muted">The optimal strategy is to stay on the envelope: grow the model AND the data along with the compute.</text>
 </svg>
-<figcaption><span class="fig-num">8. ábra.</span> A skálázási törvények sematikus képe. Rögzített modellméret mellett a loss egy padlóhoz konvergál; a különböző méretű modellek görbéinek alsó burkolója hatványfüggvény — log-log skálán egyenes. A Chinchilla-elemzés fő üzenete, hogy a burkolón maradáshoz a compute-ot nagyjából fele-fele arányban kell paraméterre és adatra költeni: az optimum ≈ 20 token/paraméter körül van.</figcaption>
+<figcaption><span class="fig-num">Figure 8.</span> A schematic picture of the scaling laws. At a fixed model size the loss converges to a floor; the lower envelope of the curves for different model sizes is a power function — a straight line on a log-log scale. The main message of the Chinchilla analysis is that staying on the envelope requires spending compute roughly half on parameters and half on data: the optimum is around 20 tokens per parameter.</figcaption>
 </figure>
 
 <details class="level l2">
-<summary><span class="badge b2">2. szint</span> Kaplan, Chinchilla és a „compute-optimális” recept</summary>
+<summary><span class="badge b2">Level 2</span> Kaplan, Chinchilla and the “compute-optimal” recipe</summary>
 <div class="body">
-<p>A törvények alakja (Hoffmann et al., 2022 — „Chinchilla” — parametrizálásában):</p>
+<p>The form of the laws (in the parametrization of Hoffmann et al., 2022 — “Chinchilla”):</p>
 <div class="eq">L(N, D) = E + <span class="frac"><span>A</span><span>N<sup>α</sup></span></span> + <span class="frac"><span>B</span><span>D<sup>β</sup></span></span></div>
-<p>ahol N a paraméterszám, D a tanítótokenek száma, E az adat irreducibilis entrópiája (a tökéletes modell loss-a), α és β illesztett kitevők (≈0,34 és ≈0,28 a Chinchilla-illesztésben). A <span class="math">C ≈ 6ND</span> compute-kényszer melletti minimalizálás adja az optimumot: <span class="math">N<sub>opt</sub> ∝ C<sup>0,5</sup></span>, <span class="math">D<sub>opt</sub> ∝ C<sup>0,5</sup></span> — a modellt és az adatot <em>együtt</em> kell skálázni, ökölszabályként ~20 token/paraméter. Ez felülírta a korábbi (Kaplan et al., 2020) gyakorlatot, amely a modellméretet hizlalta az adat rovására — a GPT-3 e mérce szerint jelentősen alultanított volt.</p>
-<p>Fontos finomság: a Chinchilla-optimum a <em>tanítási</em> compute-ot minimalizálja. Ha a modellt utána sokat futtatjuk, az inferencia-költség a kisebb modell felé tolja az optimumot: a gyakorlatban ezért tanítanak „túl” sok modellt messze 20 token/paraméter fölött (akár 100–1000×) — a tanításkor elvesztett hatékonyságot a kiszolgálásnál nyerik vissza. A törvények emellett az <em>adatfal</em> kérdését is kiélezték: a jó minőségű webszöveg véges, a folytatás a szintetikus adat, a több epochás újrafelhasználás és az adatminőség-kutatás.</p>
+<p>where N is the parameter count, D the number of training tokens, E the irreducible entropy of the data (the loss of a perfect model), and α and β are fitted exponents (≈0.34 and ≈0.28 in the Chinchilla fit). Minimizing subject to the compute constraint <span class="math">C ≈ 6ND</span> gives the optimum: <span class="math">N<sub>opt</sub> ∝ C<sup>0.5</sup></span>, <span class="math">D<sub>opt</sub> ∝ C<sup>0.5</sup></span> — the model and the data must be scaled <em>together</em>, as a rule of thumb ~20 tokens per parameter. This overturned the earlier practice (Kaplan et al., 2020) of fattening model size at the expense of data — by this measure GPT-3 was substantially undertrained.</p>
+<p>An important subtlety: the Chinchilla optimum minimizes <em>training</em> compute. If the model is then run a great deal, the cost of inference pushes the optimum toward the smaller model: this is why, in practice, many models are trained “too far”, well beyond 20 tokens per parameter (up to 100–1000×) — the efficiency lost in training is won back in serving. The laws also sharpened the question of the <em>data wall</em>: high-quality web text is finite, and the way forward is synthetic data, multi-epoch reuse, and research into data quality.</p>
 </div>
 </details>
 
 <details class="level l3">
-<summary><span class="badge b3">3. szint</span> Emergencia-vita és a tesztidejű skálázás</summary>
+<summary><span class="badge b3">Level 3</span> The emergence debate and test-time scaling</summary>
 <div class="body">
-<p><strong>Emergens képességek?</strong> A benchmark-teljesítmények gyakran nem simán, hanem látszólag ugrásszerűen jelennek meg a méret növelésével (pl. többlépéses aritmetika, bizonyos következtetési feladatok). Vitatott, mennyi ebből a mérés műterméke: Schaeffer et al. (2023) megmutatta, hogy sok „ugrás” eltűnik, ha a diszkrét, éles metrikát (pontos egyezés) simára (token-szintű log-likelihood) cseréljük — a mögöttes képesség folyamatosan épül, csak a küszöbös mérce ugrik. Ugyanakkor a loss-térben is dokumentáltak valódi töréspontokat (pl. az induction headek kialakulásához kötődő fázisátmenet a tanítás során, 8.3), tehát a kép árnyalt: a skálázás simasága az <em>átlagos</em> loss-ra igaz, az egyes áramkörök szintjén lehetnek éles átmenetek.</p>
-<p><strong>A skálázás új tengelye: tesztidejű compute.</strong> 2024-től a mezőny a <em>gondolkodási idő</em> skálázását nyitotta meg: a modell hosszú belső gondolatmenetet (chain of thought) generál a válasz előtt, és ezt megerősítéses tanulással (ellenőrizhető feladatokon: matek, kód) tanítják hatékonnyá. Az empirikus kép itt is törvényszerű: a válaszidőben elköltött compute logaritmusával a pontosság közel lineárisan nő bizonyos feladatosztályokon. A „scaling” tehát ma háromtengelyű: paraméter × adat × gondolkodási idő.</p>
+<p><strong>Emergent abilities?</strong> Benchmark performance often appears not smoothly but seemingly in jumps as size grows (multi-step arithmetic, certain reasoning tasks). How much of this is an artifact of measurement is disputed: Schaeffer et al. (2023) showed that many “jumps” disappear if the discrete, sharp metric (exact match) is replaced by a smooth one (token-level log-likelihood) — the underlying ability builds continuously, and only the thresholded measure jumps. At the same time, genuine breakpoints have also been documented in loss space (for example the phase transition during training tied to the formation of induction heads, 8.3), so the picture is nuanced: the smoothness of scaling holds for the <em>average</em> loss, while at the level of individual circuits there can be sharp transitions.</p>
+<p><strong>A new axis of scaling: test-time compute.</strong> From 2024 the field opened up the scaling of <em>thinking time</em>: the model generates a long internal chain of thought before answering, and this is made efficient through reinforcement learning (on verifiable tasks: math, code). The empirical picture here is lawful too: accuracy grows nearly linearly with the logarithm of the compute spent at answer time, on certain classes of task. “Scaling” today therefore has three axes: parameters × data × thinking time.</p>
 </div>
 </details>
 
@@ -2701,59 +2702,59 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       {
         id: 'opt-adam',
         type: 'choice',
-        q: 'Miért nem elég egyetlen, globális tanulási rátával lépni a gradiens ellenében — miért tart karban az Adam <em>paraméterenként</em> külön skálát?',
+        q: 'Why is a single, global learning rate not enough — why does Adam maintain a separate scale <em>per parameter</em>?',
         options: [
-          { t: 'Mert a különböző paraméterek gradiensei nagyságrendekkel eltérnek: ugyanaz a ráta az egyiknek túl nagy, a másiknak túl kicsi lépés. Az Adam mindenkit a saját szokásos gradiensnagyságához mér, így közelítőleg egységnyi lépéseket kapunk.', ok: true },
-          { t: 'Mert a gradiens iránya paraméterenként más, és a rátának ezt kell korrigálnia.' },
-          { t: 'Mert a globális tanulási ráta megsértené a láncszabályt.' },
-          { t: 'Mert így minden paraméter külön szálon számolható, ami gyorsítja a tanítást.' }
+          { t: 'Because the gradients of different parameters differ by orders of magnitude: the same rate is too large a step for one and too small for another. Adam measures each against its own usual gradient magnitude, giving approximately unit-sized steps.', ok: true },
+          { t: 'Because the direction of the gradient differs per parameter, and the rate has to correct for that.' },
+          { t: 'Because a global learning rate would violate the chain rule.' },
+          { t: 'Because this way every parameter can be computed on a separate thread, which speeds up training.' }
         ],
-        why: 'Két dolog rontja el a naiv SGD-t egy nagy modellben: a gradiensek nagyságrendi szórása a rétegek és a paramétertípusok között, és a batchekből érkező zaj. Az Adam mindkettőre válaszol, két mozgó statisztikával: a gradiens átlaga <em>lendületként</em> kisimítja a zajt, a gradiens négyzetének átlaga pedig <em>skálaként</em> normalizálja a lépést. A hatás az, hogy a jól kondicionált lépéshossz nem egy kézzel belőtt ráta szerencséjén múlik. Az ár közvetlen és mérhető: paraméterenként két extra állapotvektor.'
+        why: 'Two things spoil naive SGD in a large model: the orders-of-magnitude spread of gradients across layers and parameter types, and the noise coming from batches. Adam answers both, with two running statistics: the mean of the gradient acts as <em>momentum</em> and smooths the noise, while the mean of the squared gradient acts as a <em>scale</em> and normalizes the step. The effect is that a well-conditioned step size no longer depends on the luck of a hand-tuned rate. The price is direct and measurable: two extra state vectors per parameter.'
       },
       {
         id: 'opt-memoria',
         type: 'choice',
-        q: 'Egy 7 milliárd paraméteres modell súlyai bőven elférnek a GPU-n, a tanítás mégis elszáll memóriahiánnyal — az aktivációkat már optimalizáltad. Mi a másik nagy tétel?',
+        q: 'The weights of a 7-billion-parameter model fit comfortably on your GPU, yet training runs out of memory — and you have already optimized the activations. What is the other large item?',
         options: [
-          { t: 'Az optimalizáló állapota: az Adam paraméterenként két statisztikát tárol, ami önmagában a modell méretének nagyjából kétszerese — a gradiensek mellett.', ok: true },
-          { t: 'A tanítás a modellt két példányban tartja: egyet az előre-, egyet a visszafuttatáshoz.' },
-          { t: 'A számítási gráf szerkezetének leírása, amely a paraméterek számával arányosan nő.' },
-          { t: 'A tanítóadat, amelyet teljes egészében a GPU memóriájában kell tartani.' }
+          { t: 'The optimizer state: Adam stores two statistics per parameter, which by itself is about twice the size of the model — on top of the gradients.', ok: true },
+          { t: 'Training keeps the model in two copies: one for the forward and one for the backward pass.' },
+          { t: 'The description of the computational graph\u2019s structure, which grows with the parameter count.' },
+          { t: 'The training data, all of which must be kept in GPU memory.' }
         ],
-        why: 'Egy tanítási lépés memóriája négy nagy tételből áll: a súlyok, a gradiensek, az <strong>optimalizáló-állapot</strong> és az aktivációk. Az AdamW-nél a harmadik tétel paraméterenként két vektor — vagyis a súlyok kétszerese —, tehát már a súly + gradiens + optimalizáló-állapot hármas is a modellméret négyszerese körül van, mielőtt egyetlen aktivációt eltároltunk volna. Ezért oszlik szét a ZeRO/FSDP a replikák között éppen a súlyokon és az optimalizáló-állapoton, és ezért nem old meg mindent önmagában a gradient checkpointing: az csak az aktivációkra hat.'
+        why: 'The memory of a training step consists of four large items: the weights, the gradients, the <strong>optimizer state</strong> and the activations. With AdamW the third item is two vectors per parameter — twice the weights — so weights + gradients + optimizer state alone come to about four times the model size before a single activation has been stored. This is why ZeRO/FSDP distributes precisely the weights and the optimizer state across replicas, and why gradient checkpointing does not solve everything on its own: it acts only on the activations.'
       },
       {
         id: 'scale-chinchilla',
         type: 'number',
         answer: 140,
         tol: 0.5,
-        hint: 'Egész szám, milliárd tokenben.',
-        q: 'A Chinchilla-ökölszabály szerint a compute-optimális tanításhoz nagyjából 20 token jut egy paraméterre. Hány <strong>milliárd</strong> tanítótoken kell eszerint egy 7 milliárd paraméteres modellhez?',
-        why: '7 × 20 = <strong>140 milliárd</strong> token. A Chinchilla-elemzés lényege nem ez a konkrét szám, hanem az arány: a modellt és az adatot <em>együtt</em> kell skálázni, mert a <span class="math">C ≈ 6ND</span> keret mellett az optimum nagyjából fele-fele elosztást kíván. Ez felülírta a korábbi gyakorlatot, amely a paraméterszámot hizlalta az adat rovására — a GPT-3 e mérce szerint jelentősen alultanított volt. Innen nézve a „mekkora a modell?” kérdés önmagában nem is válaszol arra, hogy mit tud: a token/paraméter arány nélkül a paraméterszám félrevezető.'
+        hint: 'A whole number, in billions of tokens.',
+        q: 'By the Chinchilla rule of thumb, compute-optimal training uses roughly 20 tokens per parameter. How many <strong>billion</strong> training tokens does that imply for a 7-billion-parameter model?',
+        why: '7 × 20 = <strong>140 billion</strong> tokens. The point of the Chinchilla analysis is not this particular number but the ratio: the model and the data have to be scaled <em>together</em>, because under the constraint <span class="math">C ≈ 6ND</span> the optimum calls for roughly an even split. This overturned the earlier practice of fattening the parameter count at the expense of data — by this measure GPT-3 was substantially undertrained. Seen this way, the question “how big is the model?” does not by itself answer what it can do: without the tokens-per-parameter ratio, the parameter count is misleading.'
       },
       {
         id: 'scale-inferencia',
         type: 'choice',
-        q: 'Ha a compute-optimum 20 token/paraméter, miért tanítanak a gyakorlatban rendszeresen ennek a sokszorosával — akár 100–1000 token/paraméterrel?',
+        q: 'If the compute optimum is 20 tokens per parameter, why do practitioners routinely train with many times that — up to 100–1000 tokens per parameter?',
         options: [
-          { t: 'Mert a Chinchilla-optimum csak a <em>tanítási</em> compute-ot minimalizálja. Ha a modellt utána sokat futtatják, az inferencia költsége a kisebb, tovább tanított modell felé tolja az összoptimumot.', ok: true },
-          { t: 'Mert a Chinchilla-elemzésről kiderült, hogy hibás volt, és az arány valójában sokkal nagyobb.' },
-          { t: 'Mert a több adat mindig jobb modellt ad, korlát nélkül.' },
-          { t: 'Mert a nagyobb adatmennyiség csökkenti a tanítás memóriaigényét.' }
+          { t: 'Because the Chinchilla optimum minimizes only the <em>training</em> compute. If the model is then served a great deal, the cost of inference pushes the overall optimum toward a smaller, longer-trained model.', ok: true },
+          { t: 'Because the Chinchilla analysis turned out to be wrong, and the true ratio is much larger.' },
+          { t: 'Because more data always gives a better model, without limit.' },
+          { t: 'Because a larger amount of data reduces the memory requirement of training.' }
         ],
-        why: 'A skálázási törvény egy jól meghatározott kérdésre válaszol: adott <em>tanítási</em> budget mellett hogyan osszuk el a compute-ot. A valóságos gazdasági kérdés viszont a teljes életciklus. Egy sokat kiszolgált modellnél az inferencia dominál, ott pedig a kisebb modell olcsóbb minden egyes lekérdezésnél — ezért éri meg a tanításnál „pazarolni”, hogy utána milliószor spóroljunk. A tanulság általánosabb az LLM-eknél: egy optimum mindig csak a saját célfüggvényére optimum, és érdemes tudni, mit hagy ki belőle.'
+        why: 'A scaling law answers a well-defined question: given a <em>training</em> budget, how should the compute be divided? The real economic question, however, is the whole lifecycle. For a heavily served model, inference dominates, and there the smaller model is cheaper on every single request — which is why it pays to “waste” at training time in order to save a million times over afterwards. The lesson generalizes beyond LLMs: an optimum is only ever an optimum for its own objective, and it is worth knowing what that objective leaves out.'
       },
       {
         id: 'scale-emergencia',
         type: 'choice',
-        q: 'Egy benchmarkon egy képesség „hirtelen megjelenik” egy bizonyos modellméretnél: a kisebb modellek nullához közel teljesítenek, a nagyobbak jól. Mit érdemes először ellenőrizni?',
+        q: 'On a benchmark, an ability “appears suddenly” at a certain model size: smaller models score near zero, larger ones do well. What should you check first?',
         options: [
-          { t: 'Hogy nem a mérőszám élessége csinálja-e az ugrást: éles, küszöbös metrikánál (pontos egyezés) sok „ugrás” eltűnik, ha folytonos mércére (token-szintű log-likelihood) váltunk.', ok: true },
-          { t: 'Semmit — az ugrás önmagában bizonyítja, hogy a modellben új belső mechanizmus keletkezett.' },
-          { t: 'Hogy a kisebb modelleket nem rontotta-e el egy tanítási hiba.' },
-          { t: 'Hogy a benchmark nem szerepelt-e a tanítóadatban.' }
+          { t: 'Whether the jump is an artifact of the sharpness of the metric: under a sharp, thresholded metric (exact match) many “jumps” vanish when you switch to a continuous measure (token-level log-likelihood).', ok: true },
+          { t: 'Nothing — the jump by itself proves that a new internal mechanism has formed in the model.' },
+          { t: 'Whether a training error spoiled the smaller models.' },
+          { t: 'Whether the benchmark was present in the training data.' }
         ],
-        why: 'A látszólagos ugrás gyakran a mérés műterméke: ha egy feladatnál csak a tökéletes választ fogadjuk el, akkor a fokozatosan javuló képesség sokáig nullát ad, majd egyszer csak átlépi a küszöböt. Sima mércén nézve ugyanaz a folyamat folyamatos. Ettől még a kép árnyalt — a loss-térben is dokumentáltak <em>valódi</em> töréspontokat, például az induction headek kialakulásához kötődő fázisátmenetet a tanítás során (8.3). A helyes következtetés tehát nem az, hogy „nincs emergencia”, hanem hogy az ugrás önmagában nem bizonyíték: előbb a mérőszámot kell kizárni gyanúsítottként.'
+        why: 'An apparent jump is often an artifact of measurement: if only a perfect answer counts, a gradually improving ability gives zero for a long time and then crosses the threshold all at once. Viewed on a smooth measure, the same process is continuous. That said, the picture is nuanced — <em>genuine</em> breakpoints have also been documented in loss space, for example the phase transition tied to the formation of induction heads during training (8.3). The right conclusion is therefore not “there is no emergence” but that a jump is not evidence by itself: the metric has to be ruled out as the suspect first.'
       }
     ],
     8: [
