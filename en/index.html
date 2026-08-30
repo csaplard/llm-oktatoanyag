@@ -1973,13 +1973,13 @@ According to information theory, the optimal code length for an event of probabi
 </div>
 </section>
 <section id="interpretability2" data-level="11">
-<h3 id="superpozicio">8.4 · Szuperpozíció: több fogalom, mint dimenzió</h3>
-<p>Miért nem elég a neuronokat nézegetni? Mert a modell <strong>többet akar reprezentálni, mint ahány dimenziója van</strong>. A világ jellemzőinek száma gyakorlatilag korlátlan, a residual stream dimenziója néhány ezer. A megoldás, amit a tanítás megtalál: a jellemzők <em>ritkák</em> — egyszerre csak kevés aktív —, és a magas dimenziós térben exponenciálisan sok <em>közel</em> merőleges irány fér el. A modell tehát a jellemzőket nem ortogonális bázisirányokba, hanem egymást enyhén átfedő irányok sokaságába tömöríti: ez a <strong>szuperpozíció</strong>. Az ár: interferencia-zaj (az egyszerre aktív jellemzők kicsit „belebeszélnek” egymásba) — és az, hogy az egyes neuronok poliszemantikussá válnak, hiszen egy neuron sok jellemző-irány vetületét látja.</p>
+<h3 id="superpozicio">8.4 · Superposition: more concepts than dimensions</h3>
+<p>Why is it not enough to look at neurons? Because the model <strong>wants to represent more than it has dimensions</strong>. The number of features in the world is practically unlimited, while the residual stream has a few thousand dimensions. The solution training finds: features are <em>sparse</em> — only a few are active at any time — and a high-dimensional space has room for exponentially many <em>nearly</em> orthogonal directions. The model therefore compresses features not into orthogonal basis directions but into a multitude of slightly overlapping ones: this is <strong>superposition</strong>. The price: interference noise (simultaneously active features “talk into” one another a little) — and the fact that individual neurons become polysemantic, since a neuron sees the projection of many feature directions.</p>
 
 <figure class="diagram">
 <svg viewBox="0 0 900 322" role="img" aria-label="Superposition: five features in two dimensions">
-  <text x="20" y="26" font-size="13" font-weight="700" class="svg-ink">Játékpélda: 5 ritka jellemző elfér 2 dimenzióban</text>
-  <!-- bal: 2 feature, ortogonális -->
+  <text x="20" y="26" font-size="13" font-weight="700" class="svg-ink">Toy example: 5 sparse features fit into 2 dimensions</text>
+  <!-- left: 2 features, orthogonal -->
   <g transform="translate(120,170)">
     <line x1="-85" y1="0" x2="85" y2="0" stroke="var(--grid)"/>
     <line x1="0" y1="85" x2="0" y2="-85" stroke="var(--grid)"/>
@@ -1987,10 +1987,10 @@ According to information theory, the optimal code length for an event of probabi
     <line x1="0" y1="0" x2="0" y2="-70" stroke="var(--s2)" stroke-width="2.4" marker-end="url(#arrI2)"/>
     <text x="52" y="18" font-size="10.5" fill="var(--s1)">f₁</text>
     <text x="8" y="-56" font-size="10.5" fill="var(--s2)">f₂</text>
-    <text x="0" y="112" text-anchor="middle" font-size="11.5" class="svg-ink2">2 jellemző — tiszta bázis,</text>
-    <text x="0" y="127" text-anchor="middle" font-size="11.5" class="svg-ink2">nincs interferencia</text>
+    <text x="0" y="112" text-anchor="middle" font-size="11.5" class="svg-ink2">2 features — a clean basis,</text>
+    <text x="0" y="127" text-anchor="middle" font-size="11.5" class="svg-ink2">no interference</text>
   </g>
-  <!-- jobb: 5 feature szuperpozícióban -->
+  <!-- right: 5 features in superposition -->
   <g transform="translate(430,170)">
     <line x1="-95" y1="0" x2="95" y2="0" stroke="var(--grid)"/>
     <line x1="0" y1="95" x2="0" y2="-95" stroke="var(--grid)"/>
@@ -2004,39 +2004,39 @@ According to information theory, the optimal code length for an event of probabi
     <text x="-76" y="-42" font-size="10.5" fill="var(--s6)">f₃</text>
     <text x="-76" y="52" font-size="10.5" fill="var(--s7)">f₄</text>
     <text x="30" y="66" font-size="10.5" fill="var(--s8)">f₅</text>
-    <text x="0" y="122" text-anchor="middle" font-size="11.5" class="svg-ink2">5 jellemző 2D-ben — közel egyenletes</text>
-    <text x="0" y="137" text-anchor="middle" font-size="11.5" class="svg-ink2">szétosztás, kis átfedésekkel (interferencia)</text>
+    <text x="0" y="122" text-anchor="middle" font-size="11.5" class="svg-ink2">5 features in 2D — nearly even</text>
+    <text x="0" y="137" text-anchor="middle" font-size="11.5" class="svg-ink2">spacing, with small overlaps (interference)</text>
   </g>
-  <!-- magyarázat -->
+  <!-- explanation -->
   <g font-size="11.5" class="svg-ink2">
-    <text x="620" y="90">Ha a jellemzők ritkán aktívak,</text>
-    <text x="620" y="108">az átfedés ritkán okoz hibát —</text>
-    <text x="620" y="126">a tömörítés megéri.</text>
-    <text x="620" y="156">Valódi modellben: sok ezer</text>
-    <text x="620" y="174">dimenzió, sok millió jellemző —</text>
-    <text x="620" y="192">az irányok „majdnem merőleges”</text>
-    <text x="620" y="210">sokasága.</text>
-    <text x="620" y="240" fill="var(--s7)" font-weight="600">Következmény: a természetes</text>
-    <text x="620" y="258" fill="var(--s7)" font-weight="600">egység nem a neuron, hanem</text>
-    <text x="620" y="276" fill="var(--s7)" font-weight="600">az irány. → SAE (8.5)</text>
+    <text x="620" y="90">If features are rarely active,</text>
+    <text x="620" y="108">the overlap rarely causes an error —</text>
+    <text x="620" y="126">the compression is worth it.</text>
+    <text x="620" y="156">In a real model: many thousands of</text>
+    <text x="620" y="174">dimensions, many millions of features —</text>
+    <text x="620" y="192">a multitude of “almost orthogonal”</text>
+    <text x="620" y="210">directions.</text>
+    <text x="620" y="240" fill="var(--s7)" font-weight="600">Consequence: the natural unit</text>
+    <text x="620" y="258" fill="var(--s7)" font-weight="600">is not the neuron but the</text>
+    <text x="620" y="276" fill="var(--s7)" font-weight="600">direction. → SAE (8.5)</text>
   </g>
 </svg>
-<figcaption><span class="fig-num">12. ábra.</span> A szuperpozíció-hipotézis játékmodellje (Elhage et al., 2022, „Toy Models of Superposition” nyomán). Ha a jellemzők száma meghaladja a dimenziót, de aktivációik ritkák, az optimalizálás geometrikus elrendezésekbe tömöríti őket — a rekonstrukciós haszon meghaladja az interferencia-költséget. A jelenség a toy-modellekben fázisátmenetekkel, meglepő poliéder-geometriákkal jár, és jól magyarázza a valódi hálók poliszemantikus neuronjait.</figcaption>
+<figcaption><span class="fig-num">Figure 12.</span> The toy model of the superposition hypothesis (after Elhage et al., 2022, “Toy Models of Superposition”). When the number of features exceeds the number of dimensions but their activations are sparse, optimization packs them into geometric arrangements — the gain in reconstruction outweighs the cost of interference. In toy models the phenomenon comes with phase transitions and surprising polyhedral geometries, and it explains the polysemantic neurons of real networks well.</figcaption>
 </figure>
 
-<h3 id="sae">8.5 · Sparse autoencoderek: szótár a gondolatokhoz</h3>
-<p>Ha a jellemzők átfedő irányokban rejtőznek, kell egy eszköz, amely <em>szétszálazza</em> őket. Ez a <strong>sparse autoencoder</strong> (SAE): egy segéd-háló, amelyet arra tanítunk, hogy a modell aktivációit egy jóval bővebb, de <em>ritka</em> kódra bontsa — minden aktiváció álljon elő kevés „szótárelem” összegeként. A tanult szótárelemek meglepően gyakran <strong>monoszemantikusak</strong>: egy-egy emberi fogalomnak felelnek meg — a „gyakran" szó itt hangsúlyos, a módszer ismert korlátaira (rekonstrukciós maradék, feature splitting, seedfüggés) a fejezet 3. szintje tér ki. Nagy modellekből milliós szótárakkal olyan feature-öket emeltek ki, mint „Golden Gate híd”, „kódbeli biztonsági rés”, „hízelgés”, „belső konfliktus” — és a feature-ök <em>okságilag is működnek</em>: aktivációjuk mesterséges felerősítésével a viselkedés megjósolhatóan eltolható (a híres demó, a „Golden Gate Claude”, minden beszélgetést a hídra terelt).</p>
+<h3 id="sae">8.5 · Sparse autoencoders: a dictionary for thoughts</h3>
+<p>If features hide in overlapping directions, we need a tool that <em>disentangles</em> them. That is the <strong>sparse autoencoder</strong> (SAE): an auxiliary network trained to decompose the model's activations into a much wider but <em>sparse</em> code — every activation should be expressible as the sum of a few “dictionary elements”. The learned dictionary elements are surprisingly often <strong>monosemantic</strong>: they correspond to individual human concepts — the word “often” carries weight here; the known limitations of the method (reconstruction residual, feature splitting, seed dependence) are covered in this chapter's level 3. From large models, with dictionaries of a million entries, features have been extracted such as “Golden Gate Bridge”, “security vulnerability in code”, “flattery”, “inner conflict” — and the features <em>work causally too</em>: artificially amplifying their activation shifts behavior predictably (the famous demo, “Golden Gate Claude”, steered every conversation to the bridge).</p>
 
 <figure class="diagram">
 <svg viewBox="0 0 900 300" role="img" aria-label="How a sparse autoencoder works">
   <defs>
     <marker id="arrS" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--ink-muted)"/></marker>
   </defs>
-  <text x="20" y="26" font-size="13" font-weight="700" class="svg-ink">SAE: sűrű aktiváció → ritka, értelmezhető kód → rekonstrukció</text>
-  <!-- bemenő aktiváció -->
+  <text x="20" y="26" font-size="13" font-weight="700" class="svg-ink">SAE: dense activation → sparse, interpretable code → reconstruction</text>
+  <!-- incoming activation -->
   <g transform="translate(40,90)">
-    <text x="60" y="-14" text-anchor="middle" font-size="11.5" class="svg-ink2">residual stream aktiváció</text>
-    <text x="60" y="2" text-anchor="middle" font-size="10.5" class="svg-muted">d dimenzió, sűrű</text>
+    <text x="60" y="-14" text-anchor="middle" font-size="11.5" class="svg-ink2">residual stream activation</text>
+    <text x="60" y="2" text-anchor="middle" font-size="10.5" class="svg-muted">d dimensions, dense</text>
     <g>
       <rect y="14" width="120" height="16" rx="4" fill="var(--s1)" opacity="0.85"/>
       <rect y="34" width="120" height="16" rx="4" fill="var(--s1)" opacity="0.5"/>
@@ -2046,10 +2046,10 @@ According to information theory, the optimal code length for an event of probabi
     </g>
   </g>
   <line x1="205" y1="150" x2="255" y2="150" stroke="var(--ink-muted)" stroke-width="1.5" marker-end="url(#arrS)"/>
-  <text x="230" y="136" text-anchor="middle" font-size="10.5" class="svg-muted">enkóder</text>
-  <!-- ritka kód -->
+  <text x="230" y="136" text-anchor="middle" font-size="10.5" class="svg-muted">encoder</text>
+  <!-- sparse code -->
   <g transform="translate(280,50)">
-    <text x="130" y="6" text-anchor="middle" font-size="11.5" class="svg-ink2">feature-aktivációk (F ≫ d, ritka)</text>
+    <text x="130" y="6" text-anchor="middle" font-size="11.5" class="svg-ink2">feature activations (F ≫ d, sparse)</text>
     <g font-size="10.5">
       <rect y="18" width="14" height="14" rx="3" fill="var(--grid)"/>
       <rect x="18" y="18" width="14" height="14" rx="3" fill="var(--grid)"/>
@@ -2068,20 +2068,20 @@ According to information theory, the optimal code length for an event of probabi
       <text x="260" y="30" class="svg-muted">…</text>
     </g>
     <g font-size="10.5">
-      <text x="43" y="58" fill="var(--s6)">„híd / nevezetes építmény”</text>
-      <text x="133" y="80" fill="var(--s2)">„San Francisco”</text>
-      <text x="200" y="124" text-anchor="middle" fill="var(--s7)">„turisztikai látványosság”</text>
+      <text x="43" y="58" fill="var(--s6)">“bridge / landmark structure”</text>
+      <text x="133" y="80" fill="var(--s2)">“San Francisco”</text>
+      <text x="200" y="124" text-anchor="middle" fill="var(--s7)">“tourist attraction”</text>
       <line x1="43" y1="36" x2="43" y2="46" stroke="var(--s6)"/>
       <line x1="133" y1="36" x2="133" y2="68" stroke="var(--s2)"/>
       <line x1="223" y1="36" x2="200" y2="108" stroke="var(--s7)"/>
     </g>
   </g>
   <line x1="580" y1="150" x2="630" y2="150" stroke="var(--ink-muted)" stroke-width="1.5" marker-end="url(#arrS)"/>
-  <text x="605" y="136" text-anchor="middle" font-size="10.5" class="svg-muted">dekóder</text>
-  <!-- rekonstrukció -->
+  <text x="605" y="136" text-anchor="middle" font-size="10.5" class="svg-muted">decoder</text>
+  <!-- reconstruction -->
   <g transform="translate(655,90)">
-    <text x="60" y="-14" text-anchor="middle" font-size="11.5" class="svg-ink2">rekonstrukció</text>
-    <text x="60" y="2" text-anchor="middle" font-size="10.5" class="svg-muted">≈ eredeti aktiváció</text>
+    <text x="60" y="-14" text-anchor="middle" font-size="11.5" class="svg-ink2">reconstruction</text>
+    <text x="60" y="2" text-anchor="middle" font-size="10.5" class="svg-muted">≈ the original activation</text>
     <g>
       <rect y="14" width="120" height="16" rx="4" fill="var(--s5)" opacity="0.85"/>
       <rect y="34" width="120" height="16" rx="4" fill="var(--s5)" opacity="0.5"/>
@@ -2090,32 +2090,32 @@ According to information theory, the optimal code length for an event of probabi
       <rect y="94" width="120" height="16" rx="4" fill="var(--s5)" opacity="0.6"/>
     </g>
   </g>
-  <text x="20" y="256" font-size="11" class="svg-muted">Tanítási cél: rekonstrukciós hiba + ritkasági büntetés (L1 vagy top-k kényszer). A dekóder oszlopai a tanult „szótárirányok” —</text>
-  <text x="20" y="272" font-size="11" class="svg-muted">a hipotézis szerint ezek közelítik a modell valódi jellemzőit. Az értelmezés a feature-t maximálisan aktiváló szövegek vizsgálatából jön.</text>
+  <text x="20" y="256" font-size="11" class="svg-muted">Training objective: reconstruction error + a sparsity penalty (L1 or a top-k constraint). The decoder's columns are the learned “dictionary directions” —</text>
+  <text x="20" y="272" font-size="11" class="svg-muted">on the hypothesis, these approximate the model's true features. The interpretation comes from examining the texts that maximally activate a feature.</text>
 </svg>
-<figcaption><span class="fig-num">13. ábra.</span> A sparse autoencoder. Az aktivációt egy nagyságrendekkel bővebb, ritka reprezentációba kódoljuk vissza-rekonstruálható módon; a ritkasági kényszer arra nyomja a szótárat, hogy a szuperpozícióban összecsomagolt irányokat különálló, gyakran ember számára értelmes feature-ökké bontsa szét.</figcaption>
+<figcaption><span class="fig-num">Figure 13.</span> The sparse autoencoder. The activation is encoded into an orders-of-magnitude wider, sparse representation in a way that can be reconstructed; the sparsity constraint pushes the dictionary to break the directions packed together in superposition into separate features, often meaningful to a human.</figcaption>
 </figure>
 
-<h3 id="modszerek">8.6 · Módszertan: honnan tudjuk, hogy igazunk van?</h3>
-<p>A mech interp módszertani gerince az <strong>oksági beavatkozás</strong>: nem elég korrelációt látni („ez a fej nagy súlyt ad X-re”), meg kell mutatni, hogy a komponens <em>okozza</em> a viselkedést. A szerszámkészlet:</p>
+<h3 id="modszerek">8.6 · Methodology: how do we know we are right?</h3>
+<p>The methodological backbone of mech interp is <strong>causal intervention</strong>: seeing a correlation is not enough (“this head gives a large weight to X”), one has to show that the component <em>causes</em> the behavior. The toolkit:</p>
 
 <ul>
-<li><strong>Abláció:</strong> kapcsold ki (nullázd vagy átlagra cseréld) a komponenst — mi romlik el? Ha semmi, a komponens a vizsgált viselkedésben nem kritikus (vagy redundánsan tartalékolt).</li>
-<li><strong>Activation patching:</strong> futtasd a modellt két bemeneten (pl. „A Colosseum városa:” / „az Eiffel-torony városa:”), és <em>ültesd át</em> egyetlen komponens aktivációját az egyik futásból a másikba. Ha a válasz Rómáról Párizsra vált, megtaláltad, hol utazik az információ. Szisztematikus végigpásztázással az információáramlás feltérképezhető.</li>
-<li><strong>Attribúciós gráfok / circuit tracing:</strong> a legújabb generációs eszközök (2025) a modellt lokálisan egy értelmezhető „helyettesítő modellel” közelítik, és konkrét promptra megrajzolják a feature→feature hatásgráfot: melyik jellemző melyiket aktiválta a válaszig vezető úton. Ezzel vált először láthatóvá például, hogy a modell versírás közben <em>előre megtervezi a rímszót</em>, vagy hogy a fejben-összeadásnál párhuzamos közelítő- és pontos-számjegy-utak futnak.</li>
+<li><strong>Ablation:</strong> switch the component off (zero it out or replace it with the mean) — what breaks? If nothing, the component is not critical to the behavior under study (or it is redundantly backed up).</li>
+<li><strong>Activation patching:</strong> run the model on two inputs (for example “The city of the Colosseum:” / “The city of the Eiffel Tower:”) and <em>transplant</em> the activation of a single component from one run into the other. If the answer switches from Rome to Paris, you have found where the information travels. Scanning systematically maps out the flow of information.</li>
+<li><strong>Attribution graphs / circuit tracing:</strong> the latest generation of tools (2025) locally approximates the model with an interpretable “replacement model” and draws, for a concrete prompt, the feature→feature influence graph: which feature activated which along the path to the answer. This is how it first became visible that a model <em>plans the rhyming word ahead</em> while writing verse, or that mental addition runs parallel approximate and exact-digit paths.</li>
 </ul>
 
 <details class="level l3">
-<summary><span class="badge b3">3. szint</span> A kutatási frontvonal és a nyitott problémák</summary>
+<summary><span class="badge b3">Level 3</span> The research frontier and the open problems</summary>
 <div class="body">
-<p><strong>Hűség (faithfulness).</strong> A modell kiírt gondolatmenete (chain of thought) nem megbízható ablak a tényleges számításra: kimutatták, hogy a modell néha utólag racionalizál — a választ más úton számolja, mint amit leír, sőt elhallgatja a valódi befolyásoló tényezőt (pl. egy promptba rejtett tippet). Ez az interp egyik fő motivációja: a <em>belső</em> számítás auditja nem helyettesíthető a modell önbeszámolójával. Az attribúciós gráfok e „hűtlen CoT” eseteket kísérletileg is elkapják.</p>
-<p><strong>A szótár-hipotézis határai.</strong> Az SAE-k ereje ellenére nyitott, hogy a feature-ök a modell „valódi” változói-e, vagy csak hasznos közelítés: a rekonstrukció sosem tökéletes (a maradék a „dark matter”), a szótárméret növelésével a feature-ök tovább hasadnak (feature splitting), és a különböző seedekkel tanított SAE-k szótárai csak részben fedik egymást. Alternatív és kiegészítő irányok: crosscoderek (rétegek/modellek közti közös szótár), transcoderek (az MLP-k helyettesítése értelmezhető ritka modullal), valamint a nemlineáris, többdimenziós reprezentációk (körök, rácsok) kutatása.</p>
-<p><strong>Skálázhatóság és automatizálás.</strong> Egy frontier-modell milliónyi feature-ének és áramkörének kézi elemzése reménytelen — a terület ezért az <em>automatizált</em> értelmezés felé megy: modellek magyarázzák modellek feature-eit, ellenőrző kísérleteket generálnak és pontoznak. A távlati cél egyfajta „mikroszkóp-pipeline”: adott viselkedésről (megtévesztés, jailbreak-fogékonyság, célkövetés) gombnyomásra oksági áramköri diagnózist adni. Ettől a terület még messze van — a mai eszközök a számítás töredékét magyarázzák —, de a haladás üteme az elmúlt néhány évben látványos: a 2021-es kétrétegű játékmodellektől 2025-re a frontier-modellek konkrét viselkedéseinek áramköri szintű eseteiig jutott a mezőny.</p>
+<p><strong>Faithfulness.</strong> A model's written chain of thought is not a reliable window onto the actual computation: models have been shown to rationalize after the fact — computing the answer by a different route than the one they describe, and even concealing the true influencing factor (a hint hidden in the prompt, say). This is one of interpretability's main motivations: an audit of the <em>internal</em> computation cannot be replaced by the model's self-report. Attribution graphs catch these “unfaithful CoT” cases experimentally.</p>
+<p><strong>The limits of the dictionary hypothesis.</strong> For all the power of SAEs, it remains open whether features are the model's “true” variables or merely a useful approximation: the reconstruction is never perfect (the residual is the “dark matter”), features keep splitting as the dictionary grows (feature splitting), and the dictionaries of SAEs trained with different seeds only partly overlap. Alternative and complementary directions: crosscoders (a shared dictionary across layers or models), transcoders (replacing MLPs with an interpretable sparse module), and research into nonlinear, multidimensional representations (circles, lattices).</p>
+<p><strong>Scalability and automation.</strong> Analyzing a frontier model's millions of features and circuits by hand is hopeless — so the field is moving toward <em>automated</em> interpretation: models explaining other models' features, generating and scoring verification experiments. The long-term goal is a kind of “microscope pipeline”: given a behavior (deception, susceptibility to jailbreaks, goal pursuit), produce a causal circuit-level diagnosis at the press of a button. The field is still far from that — today's tools explain a fraction of the computation — but the pace of progress over the past few years is striking: from two-layer toy models in 2021 to circuit-level case studies of concrete behaviors in frontier models by 2025.</p>
 </div>
 </details>
 
 <div class="note"><span class="label">Kulcsgondolat</span>
-A mech interp tétele: a tanult háló nem fekete doboz, hanem <em>ismeretlen</em> doboz — és a residual stream additív szerkezete, a lineáris reprezentációk és az oksági beavatkozások együtt valódi visszafejtést tesznek lehetővé. Amit ma tudunk: a modellben emberi fogalmakra képezhető feature-ök és felismerhető algoritmusok élnek. Amit még nem: hogy a teljes számítás mekkora hányada írható le így.
+The thesis of mech interp: a trained network is not a black box but an <em>unknown</em> box — and the additive structure of the residual stream, linear representations and causal interventions together make genuine reverse engineering possible. What we know today: features mappable onto human concepts, and recognizable algorithms, live inside the model. What we do not yet know: what fraction of the total computation can be described this way.
 </div>
 
 <div class="quiz" id="quiz-11" data-level="11">
@@ -2935,58 +2935,58 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       {
         id: 'sp-ritkasag',
         type: 'choice',
-        q: 'A szuperpozíciónak ára van: az egymást átfedő irányok interferencia-zajt okoznak. Milyen feltétel mellett éri meg mégis a modellnek?',
+        q: 'Superposition has a price: overlapping directions cause interference noise. Under what condition is it nevertheless worth it for the model?',
         options: [
-          { t: 'Ha a jellemzők <em>ritkák</em> — egyszerre csak kevés aktív —, mert akkor az átfedő irányok ritkán szólalnak meg együtt, és a több fogalom tárolásából jövő haszon meghaladja az interferencia költségét.', ok: true },
-          { t: 'Ha a jellemzők száma kisebb, mint a dimenziók száma, mert akkor nincs is valódi átfedés.' },
-          { t: 'Ha a modell elég mély, mert a későbbi rétegek kiszűrik az interferenciát.' },
-          { t: 'Ha a jellemzők egyenletesen és folyamatosan aktívak, mert így a zaj kiátlagolódik.' }
+          { t: 'When the features are <em>sparse</em> — only a few active at once — because then the overlapping directions rarely speak at the same time, and the gain from storing more concepts outweighs the cost of interference.', ok: true },
+          { t: 'When the number of features is smaller than the number of dimensions, because then there is no real overlap.' },
+          { t: 'When the model is deep enough, because later layers filter out the interference.' },
+          { t: 'When the features are active evenly and continuously, so the noise averages out.' }
         ],
-        why: 'A szuperpozíció alkumérleg, és a ritkaság billenti a javára. Ha egyszerre sok jellemző lenne aktív, az átfedő irányok folyamatosan belebeszélnének egymásba, és a zaj felemésztené a nyereséget — a negyedik válasz épp ezért téves, noha az „kiátlagolódik” intuitívan megnyugtatóan hangzik. Ritka aktiváció mellett viszont az ütközés ritka esemény, a rekonstrukciós haszon pedig folyamatos. Ezért nem tehetetlenségből poliszemantikusak a neuronok: a szuperpozíció <em>tanult tömörítési stratégia</em>, amelyet az optimalizálás azért talál meg, mert megéri.'
+        why: 'Superposition is a bargain, and sparsity is what tips it in favor. If many features were active at once, the overlapping directions would constantly talk into one another and the noise would eat the gain — which is exactly why the fourth answer is wrong, however reassuring “averages out” sounds. With sparse activation, collisions are rare events while the reconstruction gain is continuous. Neurons are therefore not polysemantic out of inertia: superposition is a <em>learned compression strategy</em>, one that optimization finds because it pays.'
       },
       {
         id: 'sae-szotar',
         type: 'number',
         answer: 65536,
-        hint: 'Egész szám.',
-        q: 'Egy 4&nbsp;096 dimenziós aktivációt sparse autoencoderrel kódolsz, 16-szoros bővítési tényezővel. Hány elemű lesz a tanult szótár?',
-        why: '4&nbsp;096 × 16 = <strong>65&nbsp;536</strong>. A lényeg az, hogy a szótárnak <em>jóval bővebbnek</em> kell lennie, mint a kódolt tér — és ez nem tervezési szeszély, hanem közvetlenül a szuperpozícióból következik: éppen azért nem olvashatók ki a jellemzők a 4&nbsp;096 dimenzióból közvetlenül, mert több van belőlük, mint ahány dimenzió. Az SAE tehát azt a bővebb teret állítja helyre, amelyben a jellemzők külön tengelyeken ülhetnek — a ritkasági kényszer pedig arra hajtja, hogy tényleg szétszálazza őket, ne csak átforgassa a bázist. Nagy modelleknél ezért dolgoznak milliós nagyságrendű szótárakkal.'
+        hint: 'A whole number.',
+        q: 'You encode a 4,096-dimensional activation with a sparse autoencoder at an expansion factor of 16. How many entries will the learned dictionary have?',
+        why: '4,096 × 16 = <strong>65,536</strong>. The point is that the dictionary has to be <em>much wider</em> than the space being encoded — and this is not a design whim but a direct consequence of superposition: the reason the features cannot be read straight off the 4,096 dimensions is precisely that there are more of them than there are dimensions. The SAE therefore restores the wider space in which features can sit on separate axes — and the sparsity constraint pushes it to genuinely disentangle them rather than merely rotate the basis. This is why large models are worked on with dictionaries in the millions.'
       },
       {
-        id: 'mi-abláció',
+        id: 'mi-ablacio',
         type: 'choice',
-        q: 'Ablálsz egy attention-fejet — kikapcsolod —, és a vizsgált viselkedés egyáltalán nem romlik el. Következik ebből, hogy a fej nem vesz részt benne?',
+        q: 'You ablate an attention head — switch it off — and the behavior under study does not degrade at all. Does it follow that the head plays no part in it?',
         options: [
-          { t: 'Nem feltétlenül: a viselkedés lehet redundánsan tartalékolt, vagyis más komponensek átveszik a szerepet. A negatív ablációs eredmény önmagában nem bizonyítja a részvétel hiányát.', ok: true },
-          { t: 'Igen: ha a kikapcsolása nem változtat semmin, a fej bizonyítottan nem vesz részt a viselkedésben.' },
-          { t: 'Igen, feltéve hogy a fej attention-súlyai is alacsonyak voltak az adott tokenre.' },
-          { t: 'Nem, mert az abláció mindig tönkreteszi a modellt, így az eredmény sosem értelmezhető.' }
+          { t: 'Not necessarily: the behavior may be redundantly backed up, meaning other components take over the role. A negative ablation result does not on its own prove the absence of involvement.', ok: true },
+          { t: 'Yes: if switching it off changes nothing, the head is proven not to participate in the behavior.' },
+          { t: 'Yes, provided the head\u2019s attention weights were also low on that token.' },
+          { t: 'No, because ablation always destroys the model, so the result is never interpretable.' }
         ],
-        why: 'Az abláció erős eszköz, de aszimmetrikus a bizonyító ereje. Ha a kikapcsolás <em>elrontja</em> a viselkedést, az komoly jel: a komponens kritikus. Ha viszont nem történik semmi, az kétféleképpen is előállhat — vagy tényleg nem vesz részt benne, vagy a hálóban van tartalék, amely átveszi a feladatot. A redundancia nem ritka: az áramkörök gyakran több párhuzamos úton is futnak. Ezért használnak a gyakorlatban több, egymást kiegészítő beavatkozást — például activation patchinget, amely nem kikapcsol, hanem <em>átültet</em> egy aktivációt egy másik futásból, és így pozitív irányból mutatja meg, hol utazik az információ.'
+        why: 'Ablation is a powerful tool, but its evidential force is asymmetric. If switching a component off <em>breaks</em> the behavior, that is serious evidence: the component is critical. If nothing happens, however, that can arise in two ways — either it truly plays no part, or the network has a reserve that takes over. Redundancy is not rare: circuits often run along several parallel routes. This is why practitioners use several complementary interventions — activation patching, for instance, which does not switch off but <em>transplants</em> an activation from another run, showing from the positive side where the information travels.'
       },
       {
         id: 'sae-oksag',
         type: 'choice',
-        q: 'Egy SAE-feature-re ránézve azt mondjuk: „ez a Golden Gate híd jellemzője”. Mi különbözteti meg ezt egy tetszőlegesen ráaggatott címkétől?',
+        q: 'Looking at an SAE feature we say: “this is the Golden Gate Bridge feature”. What distinguishes that from an arbitrarily attached label?',
         options: [
-          { t: 'Hogy okságilag is működik: a feature aktivációjának mesterséges felerősítésével a modell viselkedése megjósolhatóan eltolható — a címke tehát beavatkozással ellenőrizhető állítás.', ok: true },
-          { t: 'Hogy a feature nevét maga a modell adja meg, amikor rákérdezünk.' },
-          { t: 'Hogy a feature pontosan egyetlen neuronnak felel meg, amelyet meg lehet nézni.' },
-          { t: 'Hogy a rekonstrukció hibája nulla, tehát a feature bizonyítottan a modell valódi változója.' }
+          { t: 'That it works causally too: artificially amplifying the feature\u2019s activation shifts the model\u2019s behavior predictably — so the label is a claim checkable by intervention.', ok: true },
+          { t: 'That the model itself supplies the feature\u2019s name when asked.' },
+          { t: 'That the feature corresponds to exactly one neuron, which can be inspected.' },
+          { t: 'That the reconstruction error is zero, so the feature is proven to be a real variable of the model.' }
         ],
-        why: 'Ez a mech interp módszertani gerince: nem elég korrelációt látni, oksági beavatkozással kell megmutatni a szerepet. Egy feature esetében ez azt jelenti, hogy ha felerősítjük, a viselkedés a várt irányba mozdul — a híres demó, a „Golden Gate Claude” minden beszélgetést a hídra terelt. A negyedik válasz azért téves, mert a rekonstrukció épp hogy <em>sosem</em> tökéletes: a maradék („dark matter”) a módszer ismert korlátja, ahogy a feature splitting és a seedfüggés is. A feature-ök tehát hasznos és kísérletileg igazolható közelítések — nem pedig bizonyítottan a modell „valódi” változói.'
+        why: 'This is the methodological backbone of mech interp: seeing a correlation is not enough, the role has to be demonstrated by causal intervention. For a feature this means that if we amplify it, behavior moves in the expected direction — the famous demo, “Golden Gate Claude”, steered every conversation to the bridge. The fourth answer is wrong because the reconstruction is precisely <em>never</em> perfect: the residual (“dark matter”) is a known limitation of the method, as are feature splitting and seed dependence. Features are therefore useful and experimentally verifiable approximations — not proven to be the model\u2019s “true” variables.'
       },
       {
         id: 'mi-huseg',
         type: 'choice',
-        q: 'Egy modell leírja a gondolatmenetét, és a végén helyes választ ad. Miért nem elég ez ahhoz, hogy tudjuk, hogyan jutott el odáig?',
+        q: 'A model writes out its reasoning and gives the correct answer at the end. Why is that not enough to know how it got there?',
         options: [
-          { t: 'Mert a kiírt gondolatmenet nem megbízható ablak a tényleges számításra: kimutatták, hogy a modell néha utólag racionalizál, más úton számol, mint amit leír, és elhallgathatja a valódi befolyásoló tényezőt.', ok: true },
-          { t: 'Mert a gondolatmenet tokenjeit a modell más rétegekben számolja, mint a választ.' },
-          { t: 'Mert a gondolatmenet mindig csak a válasz utólagos átfogalmazása, sosem valódi számítás.' },
-          { t: 'Mert a mintavételezés miatt a gondolatmenet minden futásnál más, így nem elemezhető.' }
+          { t: 'Because the written chain of thought is not a reliable window onto the actual computation: models have been shown to rationalize after the fact, to compute by a different route than the one they describe, and to conceal the true influencing factor.', ok: true },
+          { t: 'Because the model computes the tokens of the reasoning in different layers than the answer.' },
+          { t: 'Because the chain of thought is always a post-hoc rephrasing of the answer, never real computation.' },
+          { t: 'Because sampling makes the reasoning different on every run, so it cannot be analyzed.' }
         ],
-        why: 'A „hűtlen CoT” az interpretability egyik legfőbb létjogosultsága. Kísérletekben elrejtettek egy tippet a promptban, a modell felhasználta, de a leírt gondolatmenetében meg sem említette — a beszámoló tehát nem hazugság a szó emberi értelmében, egyszerűen nem a számítás naplója. A harmadik válasz azért téves, mert túl erőset állít: a gondolatmenet gyakran <em>valódi</em> munkát végez, hiszen a leírt köztes lépések visszakerülnek a bemenetre (1. szint). A helyes következtetés az, hogy az önbeszámoló nem helyettesíti a belső számítás auditját — és pontosan ezt ígérik az attribúciós gráfok, amelyek az ilyen eseteket kísérletileg is elkapják.'
+        why: '“Unfaithful CoT” is one of interpretability\u2019s main justifications. In experiments a hint was hidden in the prompt, the model used it, and its written reasoning never mentioned it — the report is therefore not a lie in the human sense, it simply is not a log of the computation. The third answer is wrong because it claims too much: the chain of thought often does <em>real</em> work, since the written intermediate steps go back into the input (level 1). The right conclusion is that self-report does not substitute for an audit of the internal computation — and that is exactly what attribution graphs promise, catching such cases experimentally.'
       }
     ],
     12: [
