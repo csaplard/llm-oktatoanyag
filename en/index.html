@@ -818,7 +818,7 @@ details.level > summary:focus-visible, main a:focus-visible {
 <p>What the definition hides is this: to predict the next token <em>well</em>, you implicitly need to know a great deal. Continuing “Paris is the capital of France, and Berlin is …” takes geographical facts; continuing “if 3 apples cost $6, then 7 apples …” takes arithmetic; continuing a half-finished Python function takes programming. Next-token prediction is therefore not a narrow task but a <strong>pressure that rewards modeling the world which produced the text</strong>. Over the course of training, the model's parameters gradually organize into internal machinery that represents grammar, facts, style and patterns of inference — purely because without them the prediction would be worse.</p>
 
 <figure class="diagram">
-<svg viewBox="0 0 960 250" role="img" aria-label="Az LLM teljes feldolgozási folyamata">
+<svg viewBox="0 0 960 250" role="img" aria-label="The complete LLM processing pipeline">
   <defs>
     <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
       <path d="M0,0 L8,4 L0,8 z" fill="var(--ink-muted)"/>
@@ -934,7 +934,7 @@ An LLM is neither a database nor a rule system: it is a single enormous differen
 <p>A BPE alapötlete tömörítési elv: <em>ami gyakran fordul elő együtt, azt vonjuk össze egy szimbólummá</em>. A szótárat nem kézzel írjuk, hanem adatból tanuljuk: karakterekből (pontosabban bájtokból) indulunk, és ismételten összeolvasztjuk a korpuszban leggyakrabban szomszédos párokat, amíg a szótár el nem éri a kívánt méretet — jellemzően 32&nbsp;000 és 260&nbsp;000 közötti elemszámot.</p>
 
 <figure class="diagram">
-<svg viewBox="0 0 880 300" role="img" aria-label="BPE összevonási lépések">
+<svg viewBox="0 0 880 300" role="img" aria-label="BPE merge steps">
   <text x="20" y="28" font-size="13" font-weight="700" class="svg-ink">A BPE szótárépítés menete — példa: „alma almás almafa”</text>
   <!-- 0. lépés -->
   <text x="20" y="62" font-size="11.5" class="svg-muted">0. kiindulás (bájtok):</text>
@@ -1047,7 +1047,7 @@ while |szótár| &lt; V:
 <p>A döntő pont: az embeddingeket <strong>nem kézzel tervezzük, hanem a modell tanulja</strong>, ugyanazzal a gradiens-módszerrel, mint minden más paraméterét. A tanítás nyomása alatt a geometria jelentést kezd hordozni: azok a tokenek, amelyek hasonló környezetekben fordulnak elő — és ezért hasonló jóslásokhoz kell hasonlóan hozzájárulniuk —, egymáshoz közeli vektorokat kapnak. A „kutya” és a „macska” vektora közel kerül egymáshoz; a „kutya” és az „integrál” távol. Sőt, az <em>irányok</em> is jelentést hordoznak: bizonyos irányba elmozdulva a nyelvtani szám, a nem, az idő vagy éppen a formalitás változik.</p>
 
 <figure class="diagram">
-<svg viewBox="0 0 860 340" role="img" aria-label="Embedding-vektortér kétdimenziós vetülete">
+<svg viewBox="0 0 860 340" role="img" aria-label="A two-dimensional projection of the embedding vector space">
   <!-- tengelyek -->
   <line x1="70" y1="300" x2="820" y2="300" stroke="var(--baseline)" stroke-width="1.2"/>
   <line x1="70" y1="300" x2="70" y2="30" stroke="var(--baseline)" stroke-width="1.2"/>
@@ -1131,7 +1131,7 @@ Az embedding-réteg után minden nyelvi kérdés geometriává válik: hasonlós
 <p>A transzformer a modern LLM-ek motorja. Szerkezete meglepően ismétlődő: ugyanaz a <strong>blokk</strong> ismétlődik egymás után néhány tucatszor vagy százszor. Minden blokk két alegységből áll: egy <strong>attention</strong> (figyelem) rétegből, amely a tokenek <em>közötti</em> információáramlásért felel — ez az egyetlen hely, ahol a pozíciók „beszélgethetnek” egymással —, és egy <strong>MLP</strong>-rétegből, amely minden pozíciót <em>önmagában</em>, de nagy kapacitással dolgoz fel. A kettő munkamegosztása az egész architektúra veleje: az attention <em>mozgatja</em> az információt, az MLP <em>feldolgozza</em>.</p>
 
 <figure class="diagram">
-<svg viewBox="0 0 900 560" role="img" aria-label="A transzformer blokk felépítése">
+<svg viewBox="0 0 900 560" role="img" aria-label="The structure of a transformer block">
   <defs>
     <marker id="arrB" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
       <path d="M0,0 L8,4 L0,8 z" fill="var(--s1)"/>
@@ -1213,7 +1213,7 @@ A residual stream <em>kommunikációs csatorna</em>: a korai rétegek üzeneteke
 <p>A mechanizmus: a token query-vektorát összevetjük az összes korábbi token key-vektorával (skalárszorzattal — emlékezzünk, a hasonlóság szög kérdése). Ahol nagy az egyezés, oda nagy súly kerül; a súlyokat softmax normálja eloszlássá; végül a token a value-vektorok <em>súlyozott átlagát</em> kapja meg és adja hozzá a saját streamjéhez. Nem egy címzettől olvas tehát, hanem mindenkitől egyszerre, a relevancia arányában.</p>
 
 <figure class="diagram">
-<svg viewBox="0 0 920 430" role="img" aria-label="Az attention mechanizmus lépései">
+<svg viewBox="0 0 920 430" role="img" aria-label="The steps of the attention mechanism">
   <text x="20" y="26" font-size="13" font-weight="700" class="svg-ink">Egy fej, egy query-pozíció: „ült” — honnan olvasson?</text>
   <!-- tokenek felül -->
   <g font-size="12.5">
@@ -1296,7 +1296,7 @@ A residual stream <em>kommunikációs csatorna</em>: a korai rétegek üzeneteke
 <p>Másodszor: nem egy attention fut, hanem párhuzamosan sok — ez a <strong>multi-head attention</strong>. Minden <em>fej</em> (head) saját query/key/value-vetítésekkel dolgozik egy kisebb altérben, így különböző fejek különböző relációkra szakosodhatnak: az egyik a közvetlen előző tokenre figyel, a másik a mondat alanyára, a harmadik az azonos szó korábbi előfordulásaira (ez lesz a 8.3 induction headje). A fejek kimenetei egymás mellé fűzve, egy közös kimeneti vetítésen át kerülnek vissza a streambe.</p>
 
 <figure class="diagram">
-<svg viewBox="0 0 640 400" role="img" aria-label="Kauzális attention-mátrix">
+<svg viewBox="0 0 640 400" role="img" aria-label="Causal attention matrix">
   <text x="20" y="24" font-size="13" font-weight="700" class="svg-ink">Attention-súlymátrix kauzális maszkkal (egy fej)</text>
   <!-- címkék -->
   <g font-size="11.5" class="svg-ink2">
@@ -1510,7 +1510,7 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 <p>A gradiens kiszámításához vegyük észre: a loss a paraméterek <em>függvénye</em> — egy irdatlanul összetett, de elemi lépésekből (mátrixszorzás, összeadás, softmax…) felépülő függvény. A modern keretrendszerek (PyTorch, JAX) az előrefuttatás közben feljegyzik ezt a felépítést egy <strong>számítási gráfba</strong>: minden csomópont egy művelet, minden él egy adatfüggés. A gradiens számítása ezután gépies: a gráfon <em>visszafelé</em> haladva minden művelet a saját (ismert, egyszerű) deriváltjával szorozza tovább a mögötte érkező gradienst. Ez az <strong>automatikus differenciálás</strong> (reverse-mode autodiff) — a backpropagation ennek a neurális hálós neve.</p>
 
 <figure class="diagram">
-<svg viewBox="0 0 920 330" role="img" aria-label="Számítási gráf előre- és visszafelé irányú áramlással">
+<svg viewBox="0 0 920 330" role="img" aria-label="Computational graph with forward and backward flow">
   <defs>
     <marker id="arrF" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--s2)"/></marker>
     <marker id="arrV" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--s7)"/></marker>
@@ -1649,7 +1649,7 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 <p>A terület legmeglepőbb empirikus felfedezése, hogy a modellek végső loss-a <strong>sima, megjósolható hatványfüggvénye</strong> a ráfordításnak. Ha log-log skálán ábrázoljuk a loss-t a compute (vagy paraméterszám, vagy adatmennyiség) függvényében, közel egyenest kapunk — nagyságrendeken át. Ez tette az LLM-fejlesztést tervezhető iparrá: egy 100-szor kisebb kísérletsorozatból extrapolálható, mit fog tudni a nagy futtatás, és eldönthető, mire költsük a számítási keretet.</p>
 
 <figure class="diagram">
-<svg viewBox="0 0 880 380" role="img" aria-label="Skálázási törvény: loss a compute függvényében log-log skálán">
+<svg viewBox="0 0 880 380" role="img" aria-label="Scaling law: loss versus compute on a log-log scale">
   <text x="20" y="26" font-size="13" font-weight="700" class="svg-ink">Loss a tanítási compute függvényében (sematikus, log–log)</text>
   <!-- rács -->
   <g stroke="var(--grid)" stroke-width="1">
@@ -1736,7 +1736,7 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 <p>Az előtanított „alapmodell” (base model) félelmetes tudású, de nem asszisztens: a „Hogyan süssek kenyeret?” kérdésre könnyen egy <em>további kérdéslistával</em> válaszol — mert a weben a kérdések gyakran így folytatódnak. A base model azt folytatja, ami <em>valószínű</em>, nem azt, ami <em>hasznos</em>. Az utótanítás (post-training) feladata ezt a rést bezárni: a modell viselkedését hasznossá, őszintévé és ártalmatlanná formálni — anélkül, hogy a nyers képességek sérülnének.</p>
 
 <figure class="diagram">
-<svg viewBox="0 0 920 330" role="img" aria-label="Az alignment-pipeline lépései">
+<svg viewBox="0 0 920 330" role="img" aria-label="The steps of the alignment pipeline">
   <defs>
     <marker id="arrP" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--ink-muted)"/></marker>
   </defs>
@@ -1846,7 +1846,7 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 <p>Az autoregresszív hurok naiv megvalósítása minden új tokennél a <em>teljes</em> szekvenciát újraszámolná. Ez felesleges: a korábbi tokenek key- és value-vektorai nem változnak — az attention kauzális, a múlt nem függ a jövőtől. A megoldás a <strong>KV-cache</strong>: minden réteg minden fejének key/value-vektorait eltároljuk, és az új token query-je csak hozzájuk illeszkedik. A dekódolás lépésenkénti költsége így a szekvenciahossznak nem négyzetes, hanem lineáris függvénye — cserébe a cache maga válik a GPU-memória fő fogyasztójává, hosszú kontextusnál a súlyokat is meghaladhatja.</p>
 
 <figure class="diagram">
-<svg viewBox="0 0 900 272" role="img" aria-label="A KV-cache működése">
+<svg viewBox="0 0 900 272" role="img" aria-label="How the KV cache works">
   <text x="20" y="26" font-size="13" font-weight="700" class="svg-ink">Dekódolás KV-cache-sel: csak az új token számítódik</text>
   <!-- cache doboz -->
   <rect x="30" y="60" width="470" height="120" rx="12" fill="var(--wash-green)" stroke="var(--s2)" stroke-width="1.4"/>
@@ -1920,7 +1920,7 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 <p>A legszebb tankönyvi példa arra, hogy a „circuit” nem metafora. A jelenség: minden transzformer megtanul egy egyszerű, de mindenütt hasznos algoritmust — <em>„ha az [A][B] minta korábban előfordult, és most megint [A]-t látok, jósoljak [B]-t”</em>. Ezt egy <strong>két fejből álló, két rétegen átívelő áramkör</strong> valósítja meg: egy korábbi rétegbeli <em>előző-token-fej</em> minden pozícióra rámásolja az őt megelőző token azonosítóját; erre építve egy későbbi rétegbeli <em>induction head</em> query-je az aktuális [A] tokennel megkeresi azt a pozíciót, amelynek „előző tokenje A volt” — vagyis a korábbi [B]-t —, és a talált token tartalmát a kimenet felé továbbítja. Két tanult fej kompozíciója = egy keresés-és-másolás algoritmus.</p>
 
 <figure class="diagram">
-<svg viewBox="0 0 920 330" role="img" aria-label="Az induction head áramkör">
+<svg viewBox="0 0 920 330" role="img" aria-label="The induction head circuit">
   <defs>
     <marker id="arrI" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--s7)"/></marker>
     <marker id="arrI2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--s2)"/></marker>
@@ -1976,7 +1976,7 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 <p>Miért nem elég a neuronokat nézegetni? Mert a modell <strong>többet akar reprezentálni, mint ahány dimenziója van</strong>. A világ jellemzőinek száma gyakorlatilag korlátlan, a residual stream dimenziója néhány ezer. A megoldás, amit a tanítás megtalál: a jellemzők <em>ritkák</em> — egyszerre csak kevés aktív —, és a magas dimenziós térben exponenciálisan sok <em>közel</em> merőleges irány fér el. A modell tehát a jellemzőket nem ortogonális bázisirányokba, hanem egymást enyhén átfedő irányok sokaságába tömöríti: ez a <strong>szuperpozíció</strong>. Az ár: interferencia-zaj (az egyszerre aktív jellemzők kicsit „belebeszélnek” egymásba) — és az, hogy az egyes neuronok poliszemantikussá válnak, hiszen egy neuron sok jellemző-irány vetületét látja.</p>
 
 <figure class="diagram">
-<svg viewBox="0 0 900 322" role="img" aria-label="Szuperpozíció: öt jellemző két dimenzióban">
+<svg viewBox="0 0 900 322" role="img" aria-label="Superposition: five features in two dimensions">
   <text x="20" y="26" font-size="13" font-weight="700" class="svg-ink">Játékpélda: 5 ritka jellemző elfér 2 dimenzióban</text>
   <!-- bal: 2 feature, ortogonális -->
   <g transform="translate(120,170)">
@@ -2027,7 +2027,7 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 <p>Ha a jellemzők átfedő irányokban rejtőznek, kell egy eszköz, amely <em>szétszálazza</em> őket. Ez a <strong>sparse autoencoder</strong> (SAE): egy segéd-háló, amelyet arra tanítunk, hogy a modell aktivációit egy jóval bővebb, de <em>ritka</em> kódra bontsa — minden aktiváció álljon elő kevés „szótárelem” összegeként. A tanult szótárelemek meglepően gyakran <strong>monoszemantikusak</strong>: egy-egy emberi fogalomnak felelnek meg — a „gyakran" szó itt hangsúlyos, a módszer ismert korlátaira (rekonstrukciós maradék, feature splitting, seedfüggés) a fejezet 3. szintje tér ki. Nagy modellekből milliós szótárakkal olyan feature-öket emeltek ki, mint „Golden Gate híd”, „kódbeli biztonsági rés”, „hízelgés”, „belső konfliktus” — és a feature-ök <em>okságilag is működnek</em>: aktivációjuk mesterséges felerősítésével a viselkedés megjósolhatóan eltolható (a híres demó, a „Golden Gate Claude”, minden beszélgetést a hídra terelt).</p>
 
 <figure class="diagram">
-<svg viewBox="0 0 900 300" role="img" aria-label="Sparse autoencoder működése">
+<svg viewBox="0 0 900 300" role="img" aria-label="How a sparse autoencoder works">
   <defs>
     <marker id="arrS" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--ink-muted)"/></marker>
   </defs>
