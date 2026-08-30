@@ -2,7 +2,7 @@
 <!--
   How do large language models work? — a comprehensive guide
   © 2026 Dániel Csaplár
-  Licence: CC BY-NC-SA 4.0 (Attribution · NonCommercial · ShareAlike)
+  License: CC BY-NC-SA 4.0 (Attribution · NonCommercial · ShareAlike)
   https://creativecommons.org/licenses/by-nc-sa/4.0/
   v1.0 · last updated: 30 August 2026
   Hungarian original: https://csaplard.github.io/llm-oktatoanyag/
@@ -19,7 +19,7 @@
 <link rel="canonical" href="https://csaplard.github.io/llm-oktatoanyag/en/">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230F5C52'/><line x1='16' y1='11' x2='16' y2='6' stroke='%23FCFCFA' stroke-width='1.8' stroke-linecap='round'/><circle cx='16' cy='4.6' r='1.7' fill='none' stroke='%23FCFCFA' stroke-width='1.6'/><rect x='8.5' y='11' width='15' height='13.5' rx='4' fill='none' stroke='%23FCFCFA' stroke-width='1.9'/><line x1='12' y1='18' x2='14.6' y2='18' stroke='%23FCFCFA' stroke-width='2' stroke-linecap='round'/><line x1='17.4' y1='18' x2='20' y2='18' stroke='%23FCFCFA' stroke-width='2' stroke-linecap='round'/></svg>">
 <meta property="og:type" content="article">
-<meta property="og:locale" content="en_GB">
+<meta property="og:locale" content="en_US">
 <meta property="og:site_name" content="Katedra">
 <meta property="og:url" content="https://csaplard.github.io/llm-oktatoanyag/en/">
 <meta property="og:title" content="How do large language models work?">
@@ -779,7 +779,7 @@ details.level > summary:focus-visible, main a:focus-visible {
   <a href="#alignment" data-level="8"><span class="st"></span>6 · Fine-tuning, alignment</a>
   <a href="#inferencia" data-level="9"><span class="st"></span>7 · Inference</a>
   <a href="#interpretability" data-level="10"><span class="st"></span>8 · Mechanistic interpretability</a>
-  <a class="sub" href="#mi-program">8.1 · The programme</a>
+  <a class="sub" href="#mi-program">8.1 · The program</a>
   <a class="sub" href="#mi-residual">8.2 · The residual stream view</a>
   <a class="sub" href="#induction">8.3 · Induction heads</a>
   <a class="sub" href="#superpozicio" data-level="11"><span class="st"></span>8.4 · Superposition</a>
@@ -815,7 +815,7 @@ details.level > summary:focus-visible, main a:focus-visible {
 
 <p>On the surface, a large language model (LLM) does something deceptively simple: <strong>given the beginning of a text, it predicts the next piece of it</strong>. It receives a sequence of tokens — “The cat climbed up the” — and returns a probability distribution over every possible next token in its vocabulary: “tree” 62%, “stairs” 11%, “fence” 7%, and so on across tens of thousands of further options. Generating text is nothing but the repetition of that single operation: the model draws a token from the distribution, appends it to the text, then runs itself again on the whole thing. This is called <strong>autoregressive</strong> generation.</p>
 
-<p>What the definition hides is this: to predict the next token <em>well</em>, you implicitly need to know a great deal. Continuing “Paris is the capital of France, and Berlin is …” takes geographical facts; continuing “if 3 apples cost £6, then 7 apples …” takes arithmetic; continuing a half-finished Python function takes programming. Next-token prediction is therefore not a narrow task but a <strong>pressure that rewards modelling the world which produced the text</strong>. Over the course of training, the model's parameters gradually organise into internal machinery that represents grammar, facts, style and patterns of inference — purely because without them the prediction would be worse.</p>
+<p>What the definition hides is this: to predict the next token <em>well</em>, you implicitly need to know a great deal. Continuing “Paris is the capital of France, and Berlin is …” takes geographical facts; continuing “if 3 apples cost $6, then 7 apples …” takes arithmetic; continuing a half-finished Python function takes programming. Next-token prediction is therefore not a narrow task but a <strong>pressure that rewards modeling the world which produced the text</strong>. Over the course of training, the model's parameters gradually organize into internal machinery that represents grammar, facts, style and patterns of inference — purely because without them the prediction would be worse.</p>
 
 <figure class="diagram">
 <svg viewBox="0 0 960 250" role="img" aria-label="Az LLM teljes feldolgozási folyamata">
@@ -888,7 +888,7 @@ details.level > summary:focus-visible, main a:focus-visible {
 </figure>
 
 <h3>Why “large”?</h3>
-<p>“Large” refers to the number of parameters: the learned numbers that determine the model's behaviour. A modern LLM has billions of them — open models typically range from ~1 billion to several hundred billion, and the largest systems go beyond that. The overwhelming majority of parameters sit in a handful of enormous matrices (embedding, attention and MLP weights; see chapter 4). The size is not an end in itself: in section 5.6 we will see that performance follows surprisingly regular <em>scaling laws</em> — more parameters and more data give predictably better prediction.</p>
+<p>“Large” refers to the number of parameters: the learned numbers that determine the model's behavior. A modern LLM has billions of them — open models typically range from ~1 billion to several hundred billion, and the largest systems go beyond that. The overwhelming majority of parameters sit in a handful of enormous matrices (embedding, attention and MLP weights; see chapter 4). The size is not an end in itself: in section 5.6 we will see that performance follows surprisingly regular <em>scaling laws</em> — more parameters and more data give predictably better prediction.</p>
 
 <h3>The life cycle of a model</h3>
 <p>A modern LLM is built in two large stages. During <strong>pretraining</strong> the model learns next-token prediction on an enormous corpus of trillions of tokens — this is where the raw capability comes from (chapter 5). <strong>Post-training</strong> then shapes it into a usable assistant: supervised fine-tuning, preference-based training (RLHF, DPO) and safety training (chapter 6). Running the finished model — <em>inference</em> — is an engineering field of its own, with its own tricks (chapter 7). Finally, chapter 8 is about what researchers still understand only partly: <em>what actually happens inside</em>.</p>
@@ -896,9 +896,9 @@ details.level > summary:focus-visible, main a:focus-visible {
 <details class="level l2">
 <summary><span class="badge b2">Level 2</span> The model as a probability distribution — stated precisely</summary>
 <div class="body">
-<p>Formally, a language model is a parameterised distribution over token sequences. By the chain rule, the joint probability of any sequence <span class="math">x<sub>1</sub>, …, x<sub>T</sub></span> factorises into a product of conditional probabilities:</p>
+<p>Formally, a language model is a parameterized distribution over token sequences. By the chain rule, the joint probability of any sequence <span class="math">x<sub>1</sub>, …, x<sub>T</sub></span> factorizes into a product of conditional probabilities:</p>
 <div class="eq">P<sub>θ</sub>(x<sub>1</sub>, …, x<sub>T</sub>) = <span class="rm">∏</span><sub>t=1</sub><sup>T</sup> P<sub>θ</sub>(x<sub>t</sub> | x<sub>1</sub>, …, x<sub>t−1</sub>)</div>
-<p>The model — with parameters <span class="math">θ</span> — computes exactly these conditional terms: at every position it produces a distribution over the vocabulary of size <span class="math">V</span>, conditioned on the <em>context</em> (the prefix) so far. This factorisation is exact, not an approximation; the modelling decision is that a neural network represents the conditional distribution, taking the prefix as input and returning a <span class="math">V</span>-dimensional probability vector.</p>
+<p>The model — with parameters <span class="math">θ</span> — computes exactly these conditional terms: at every position it produces a distribution over the vocabulary of size <span class="math">V</span>, conditioned on the <em>context</em> (the prefix) so far. This factorization is exact, not an approximation; the modeling decision is that a neural network represents the conditional distribution, taking the prefix as input and returning a <span class="math">V</span>-dimensional probability vector.</p>
 <p>Two consequences matter. First, the training objective follows naturally: maximise the log-probability of the training corpus (this becomes the cross-entropy loss, 5.1). Second, generation is <em>sampling</em> from this distribution, and the sampling strategy (temperature, top-p) is a separate degree of freedom that is not part of the model at all (chapter 7).</p>
 </div>
 </details>
@@ -906,13 +906,13 @@ details.level > summary:focus-visible, main a:focus-visible {
 <details class="level l3">
 <summary><span class="badge b3">Level 3</span> A historical arc: why did the transformer win?</summary>
 <div class="body">
-<p>Several generations of architecture competed to represent that conditional distribution. <strong>N-gram models</strong> (dominant until the 2000s) simply counted how often a word follows the previous <span class="math">n−1</span> words — but the context length is fixed and short, and there is no generalisation to combinations never seen. <strong>Recurrent networks</strong> (RNN, LSTM; ~2014–2017) compressed the entire history into a fixed-size hidden state: unlimited context in principle, with two fatal weaknesses in practice. Information has to “survive” many steps inside the hidden state (the gradient vanishes or explodes, 5.3), and processing is inherently sequential — step <span class="math">t</span> cannot begin before step <span class="math">t−1</span>, which runs against the parallel nature of GPUs.</p>
+<p>Several generations of architecture competed to represent that conditional distribution. <strong>N-gram models</strong> (dominant until the 2000s) simply counted how often a word follows the previous <span class="math">n−1</span> words — but the context length is fixed and short, and there is no generalization to combinations never seen. <strong>Recurrent networks</strong> (RNN, LSTM; ~2014–2017) compressed the entire history into a fixed-size hidden state: unlimited context in principle, with two fatal weaknesses in practice. Information has to “survive” many steps inside the hidden state (the gradient vanishes or explodes, 5.3), and processing is inherently sequential — step <span class="math">t</span> cannot begin before step <span class="math">t−1</span>, which runs against the parallel nature of GPUs.</p>
 <p>The transformer (Vaswani et al., 2017, “Attention Is All You Need”) solved both problems at once. Attention creates a <em>direct</em> connection between any two positions — information does not have to travel step by step, and the gradient path between any two tokens is O(1) long. And because during training the prediction at every position can be computed simultaneously and independently (using the causal mask, 4.3), the entire sequence runs as one huge matrix operation on the GPU. The victory was therefore not merely a “better inductive bias” but <strong>a fit to the hardware</strong>: the transformer is the architecture that converts available compute into learning most efficiently. That consideration — compute efficiency as the primary design principle — has driven architectural progress ever since (4.8).</p>
 </div>
 </details>
 
 <div class="note"><span class="label">Key idea</span>
-An LLM is neither a database nor a rule system: it is a single enormous differentiable function, shaped by gradient-based optimisation of the task “predict the next token”. Every capability it has — and every limitation — follows from that one fact.
+An LLM is neither a database nor a rule system: it is a single enormous differentiable function, shaped by gradient-based optimization of the task “predict the next token”. Every capability it has — and every limitation — follows from that one fact.
 </div>
 
 <div class="quiz" id="quiz-1" data-level="1">
