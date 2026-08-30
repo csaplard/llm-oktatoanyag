@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   How do large language models work? — a comprehensive guide
-  © 2026 Dániel Csaplár
+  © 2026 Dániel Csaplár · csaplar.d@gmail.com
   License: CC BY-NC-SA 4.0 (Attribution · NonCommercial · ShareAlike)
   https://creativecommons.org/licenses/by-nc-sa/4.0/
   v1.0 · last updated: 30 August 2026
@@ -649,7 +649,7 @@ section.locked > h2 { color: var(--ink-2); }
 .cert .quiz-btn { margin-top: var(--sp5); padding: 0 28px; }
 .cert-again { display: block; margin: var(--sp3) auto 0; }
 
-/* — footer, changelog, badge fine print — */
+/* — footer, changelog, fine print — */
 .hero-meta { margin-top: var(--sp3); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
 .hero-meta .dot { color: var(--border-strong); margin: 0 4px; }
 dl.changelog dt { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-ink); margin-top: var(--sp4); }
@@ -1128,7 +1128,7 @@ After the embedding layer, every question about language becomes geometry: simil
 
 <h3 id="blokk">4.1 · The block: attention and MLP</h3>
 
-<p>The transformer is the engine of modern LLMs. Its structure is surprisingly repetitive: the same <strong>block</strong> repeats one after another, a few dozen or a few hundred times. Every block consists of two sub-layers: an <strong>attention</strong> layer, responsible for the flow of information <em>between</em> tokens — the only place where positions can “talk” to one another — and an <strong>MLP</strong> layer, which processes every position <em>on its own</em>, but with large capacity. The division of labor between them is the heart of the whole architecture: attention <em>moves</em> information, the MLP <em>processes</em> it.</p>
+<p>The transformer is the engine of modern LLMs. Its structure is surprisingly repetitive: the same <strong>block</strong> repeats one after another, a few dozen or a few hundred times. Every block consists of two sub-layers: an <strong>attention</strong> layer, responsible for the flow of information <em>between</em> tokens — the only place where positions of the same sequence can “talk” to one another — and an <strong>MLP</strong> layer, which processes every position <em>on its own</em>, but with large capacity. The division of labor between them is the heart of the whole architecture: attention <em>moves</em> information, the MLP <em>processes</em> it.</p>
 
 <figure class="diagram">
 <svg viewBox="0 0 900 560" role="img" aria-label="The structure of a transformer block">
@@ -1918,7 +1918,7 @@ According to information theory, the optimal code length for an event of probabi
 <p><strong>An important limitation:</strong> the raw logit lens easily misleads. The representations of early layers do not yet “live” in the space of the unembedding — applying the matrix <b>W</b><sub>U</sub> to them directly often yields uninterpretable noise or a systematically distorted prediction, and how far it remains usable varies strongly by model family. This is why the <strong>tuned lens</strong> variant was developed: an affine transformation is trained per layer to fit the intermediate state into the output space before the unembedding is applied. This gives a substantially smoother and more reliable layer trajectory. The logit lens is therefore best treated as a <em>fast, cheap probe</em> rather than a measuring instrument — and every conclusion drawn from it should be confirmed by causal intervention (8.6).</p>
 
 <h3 id="induction">8.3 · Induction heads: the first circuit we understood</h3>
-<p>The finest textbook example that “circuit” is not a metaphor. The phenomenon: every transformer learns a simple but universally useful algorithm — <em>“if the pattern [A][B] occurred earlier and I now see [A] again, predict [B]”</em>. It is implemented by a <strong>circuit of two heads spanning two layers</strong>: a <em>previous-token head</em> in an earlier layer copies onto every position the identity of the token preceding it; building on that, the query of an <em>induction head</em> in a later layer uses the current [A] token to find the position whose “previous token was A” — that is, the earlier [B] — and forwards the content of the token it found toward the output. The composition of two learned heads = a search-and-copy algorithm.</p>
+<p>The finest textbook example that “circuit” is not a metaphor. The phenomenon: in many transformers a simple but broadly useful algorithm can be observed — <em>“if the pattern [A][B] occurred earlier and I now see [A] again, predict [B]”</em>. It is implemented by a <strong>circuit of two heads spanning two layers</strong>: a <em>previous-token head</em> in an earlier layer copies onto every position the identity of the token preceding it; building on that, the query of an <em>induction head</em> in a later layer uses the current [A] token to find the position whose “previous token was A” — that is, the earlier [B] — and forwards the content of the token it found toward the output. The composition of two learned heads = a search-and-copy algorithm.</p>
 
 <figure class="diagram">
 <svg viewBox="0 0 920 330" role="img" aria-label="The induction head circuit">
@@ -2241,7 +2241,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
 <li><b>Greenblatt et al. (2024): Alignment Faking in Large Language Models</b>. (Chapter 6)</li>
 </ol>
 
-<p style="margin-top:36px; padding-top:18px; border-top:1px solid var(--border); font-size:13.5px; color:var(--ink-muted);">This material was written for teaching. Its subject matter reflects the state of the field as of <strong>July 2026</strong>; the last update to this edition was <strong>30 August 2026</strong> — the difference between the two is set out in the <a href="#valtozasnaplo">changelog</a>. The numerical examples (sizes, ratios) illustrate typical orders of magnitude, not the specifications of particular products. The figures are schematic. Corrections and suggestions are welcome. ◆</p>
+<p style="margin-top:36px; padding-top:18px; border-top:1px solid var(--border); font-size:13.5px; color:var(--ink-muted);">This material was written for teaching. Its subject matter reflects the state of the field as of <strong>July 2026</strong>; the last update to this edition was <strong>30 August 2026</strong> — the difference between the two is set out in the <a href="#valtozasnaplo">changelog</a>. The numerical examples (sizes, ratios) illustrate typical orders of magnitude, not the specifications of particular products. The figures are schematic. Corrections and suggestions are welcome: <a href="mailto:csaplar.d@gmail.com">csaplar.d@gmail.com</a>. ◆</p>
 </section>
 
 <section id="valtozasnaplo">
@@ -2255,7 +2255,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
 </dl>
 </section>
 <footer class="page-footer">
-  <p class="foot-line"><strong>© 2026 Dániel Csaplár.</strong> This work is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="license noopener noreferrer" target="_blank">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC&nbsp;BY-NC-SA&nbsp;4.0)</a>: credit the author, do not use it commercially, and share any derivative work under the same terms.</p>
+  <p class="foot-line"><strong>© 2026 Dániel Csaplár</strong> · <a href="mailto:csaplar.d@gmail.com">csaplar.d@gmail.com</a>. This work is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="license noopener noreferrer" target="_blank">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC&nbsp;BY-NC-SA&nbsp;4.0)</a>: credit the author, do not use it commercially, and share any derivative work under the same terms.</p>
   <p class="foot-line">v1.0 · last updated: 30 August 2026 · your progress is stored only in your own browser. · <a href="../" hreflang="hu">Hungarian version</a></p>
 </footer>
 <div class="reset-row">
@@ -3001,7 +3001,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
           { t: 'The model temporarily modifies its weights during the conversation and restores them at the end.' },
           { t: 'The examples in the prompt retune the tokenizer for the task at hand.' }
         ],
-        why: 'The source of the ability is architectural: attention is the only place where positions can exchange information, and it does so <em>at runtime</em>, without any weight update. The second answer is tempting, because the induction-head result (a strong co-occurrence between the formation of those heads and the abrupt appearance of the ability) reads easily as a complete explanation. The current picture is more nuanced, however: copying heads, MLP layers carrying task and format representations, and considerably more complex attention patterns take part as well. The induction circuit is the best <em>understood</em> component — which is not the same as the only one.'
+        why: 'The source of the ability is architectural: attention is the only place where positions of the same sequence can exchange information, and it does so <em>at runtime</em>, without any weight update. The second answer is tempting, because the induction-head result (a strong co-occurrence between the formation of those heads and the abrupt appearance of the ability) reads easily as a complete explanation. The current picture is more nuanced, however: copying heads, MLP layers carrying task and format representations, and considerably more complex attention patterns take part as well. The induction circuit is the best <em>understood</em> component — which is not the same as the only one.'
       },
       {
         id: 'cap-cot',

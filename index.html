@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Hogyan működnek a nagy nyelvi modellek? — átfogó oktatóanyag
-  © 2026 Csaplár Dániel
+  © 2026 Csaplár Dániel · csaplar.d@gmail.com
   Licenc: CC BY-NC-SA 4.0 (Nevezd meg! · Ne add el! · Így add tovább!)
   https://creativecommons.org/licenses/by-nc-sa/4.0/deed.hu
   v1.0 · utolsó frissítés: 2026. augusztus 30.
@@ -628,7 +628,7 @@ section.locked > h2 { color: var(--ink-2); }
 .quiz .quiz-btn.ghost:hover { background: var(--surface-1); border-color: var(--ink-2); }
 .quiz .quiz-msg { font-size: 13px; color: var(--ink-3); margin: var(--sp3) 0 0; max-width: none; }
 
-/* 07 · Szint teljesítve — teljesítés-jelvény */
+/* 07 · Szint teljesítve */
 .quiz .quiz-result { margin: 0 0 var(--sp4); }
 .quiz .quiz-result.fail {
   border: 1px solid var(--border); border-left: 3px solid var(--care);
@@ -648,7 +648,7 @@ section.locked > h2 { color: var(--ink-2); }
 .cert .quiz-btn { margin-top: var(--sp5); padding: 0 28px; }
 .cert-again { display: block; margin: var(--sp3) auto 0; }
 
-/* — lábléc, változásnapló, jelvény-lábszöveg — */
+/* — lábléc, változásnapló, apróbetűs sorok — */
 .hero-meta { margin-top: var(--sp3); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
 .hero-meta .dot { color: var(--border-strong); margin: 0 4px; }
 dl.changelog dt { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-ink); margin-top: var(--sp4); }
@@ -1127,7 +1127,7 @@ Az embedding-réteg után minden nyelvi kérdés geometriává válik: hasonlós
 
 <h3 id="blokk">4.1 · A blokk: attention és MLP</h3>
 
-<p>A transzformer a modern LLM-ek motorja. Szerkezete meglepően ismétlődő: ugyanaz a <strong>blokk</strong> ismétlődik egymás után néhány tucatszor vagy százszor. Minden blokk két alegységből áll: egy <strong>attention</strong> (figyelem) rétegből, amely a tokenek <em>közötti</em> információáramlásért felel — ez az egyetlen hely, ahol a pozíciók „beszélgethetnek” egymással —, és egy <strong>MLP</strong>-rétegből, amely minden pozíciót <em>önmagában</em>, de nagy kapacitással dolgoz fel. A kettő munkamegosztása az egész architektúra veleje: az attention <em>mozgatja</em> az információt, az MLP <em>feldolgozza</em>.</p>
+<p>A transzformer a modern LLM-ek motorja. Szerkezete meglepően ismétlődő: ugyanaz a <strong>blokk</strong> ismétlődik egymás után néhány tucatszor vagy százszor. Minden blokk két alegységből áll: egy <strong>attention</strong> (figyelem) rétegből, amely a tokenek <em>közötti</em> információáramlásért felel — ez az egyetlen hely, ahol ugyanazon szekvencia pozíciói „beszélgethetnek” egymással —, és egy <strong>MLP</strong>-rétegből, amely minden pozíciót <em>önmagában</em>, de nagy kapacitással dolgoz fel. A kettő munkamegosztása az egész architektúra veleje: az attention <em>mozgatja</em> az információt, az MLP <em>feldolgozza</em>.</p>
 
 <figure class="diagram">
 <svg viewBox="0 0 900 560" role="img" aria-label="A transzformer blokk felépítése">
@@ -1916,7 +1916,7 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 <p><strong>Fontos korlát:</strong> a nyers logit lens könnyen félrevezet. A korai rétegek reprezentációi még nem az unembedding terében „laknak" — a <b>W</b><sub>U</sub> mátrix közvetlen alkalmazása rájuk gyakran értelmezhetetlen zajt vagy szisztematikusan torzított jóslatot ad, és modellcsaládonként erősen eltér, hogy meddig használható. Ezért fejlesztették ki a <strong>tuned lens</strong> változatot: rétegenként tanítanak egy affin transzformációt, amely a köztes állapotot a kimeneti térbe illeszti, mielőtt az unembedding jönne. Ez lényegesen simább és megbízhatóbb rétegpályát ad. A logit lenst tehát <em>gyors, olcsó szondaként</em> érdemes kezelni, nem mérőműszerként — és minden belőle levont következtetést oksági beavatkozással (8.6) kell megerősíteni.</p>
 
 <h3 id="induction">8.3 · Induction headek: az első megértett áramkör</h3>
-<p>A legszebb tankönyvi példa arra, hogy a „circuit” nem metafora. A jelenség: minden transzformer megtanul egy egyszerű, de mindenütt hasznos algoritmust — <em>„ha az [A][B] minta korábban előfordult, és most megint [A]-t látok, jósoljak [B]-t”</em>. Ezt egy <strong>két fejből álló, két rétegen átívelő áramkör</strong> valósítja meg: egy korábbi rétegbeli <em>előző-token-fej</em> minden pozícióra rámásolja az őt megelőző token azonosítóját; erre építve egy későbbi rétegbeli <em>induction head</em> query-je az aktuális [A] tokennel megkeresi azt a pozíciót, amelynek „előző tokenje A volt” — vagyis a korábbi [B]-t —, és a talált token tartalmát a kimenet felé továbbítja. Két tanult fej kompozíciója = egy keresés-és-másolás algoritmus.</p>
+<p>A legszebb tankönyvi példa arra, hogy a „circuit” nem metafora. A jelenség: sok transzformerben megfigyelhető egy egyszerű, de mindenütt hasznos algoritmus — <em>„ha az [A][B] minta korábban előfordult, és most megint [A]-t látok, jósoljak [B]-t”</em>. Ezt egy <strong>két fejből álló, két rétegen átívelő áramkör</strong> valósítja meg: egy korábbi rétegbeli <em>előző-token-fej</em> minden pozícióra rámásolja az őt megelőző token azonosítóját; erre építve egy későbbi rétegbeli <em>induction head</em> query-je az aktuális [A] tokennel megkeresi azt a pozíciót, amelynek „előző tokenje A volt” — vagyis a korábbi [B]-t —, és a talált token tartalmát a kimenet felé továbbítja. Két tanult fej kompozíciója = egy keresés-és-másolás algoritmus.</p>
 
 <figure class="diagram">
 <svg viewBox="0 0 920 330" role="img" aria-label="Az induction head áramkör">
@@ -2239,7 +2239,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
 <li><b>Greenblatt et al. (2024): Alignment Faking in Large Language Models</b>. (6. fejezet)</li>
 </ol>
 
-<p style="margin-top:36px; padding-top:18px; border-top:1px solid var(--border); font-size:13.5px; color:var(--ink-muted);">Ez az anyag oktatási céllal készült. A szakmai tartalom a terület <strong>2026. júliusi</strong> állapotát tükrözi; a kiadás utolsó frissítése <strong>2026. augusztus 30.</strong> — a kettő közti különbség a <a href="#valtozasnaplo">változásnaplóban</a> olvasható. A számszerű példák (méretek, arányok) tipikus nagyságrendeket illusztrálnak, nem konkrét termékek specifikációit. Az ábrák sematikusak. Hibajelzést, kiegészítési ötletet szívesen fogad a szerkesztő. ◆</p>
+<p style="margin-top:36px; padding-top:18px; border-top:1px solid var(--border); font-size:13.5px; color:var(--ink-muted);">Ez az anyag oktatási céllal készült. A szakmai tartalom a terület <strong>2026. júliusi</strong> állapotát tükrözi; a kiadás utolsó frissítése <strong>2026. augusztus 30.</strong> — a kettő közti különbség a <a href="#valtozasnaplo">változásnaplóban</a> olvasható. A számszerű példák (méretek, arányok) tipikus nagyságrendeket illusztrálnak, nem konkrét termékek specifikációit. Az ábrák sematikusak. Hibajelzést, kiegészítési ötletet szívesen fogadok: <a href="mailto:csaplar.d@gmail.com">csaplar.d@gmail.com</a>. ◆</p>
 </section>
 <section id="valtozasnaplo">
 <div class="chapter-kicker">Függelék</div>
@@ -2251,7 +2251,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
 </dl>
 </section>
 <footer class="page-footer">
-  <p class="foot-line"><strong>© 2026 Csaplár Dániel.</strong> Ez a mű a <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.hu" rel="license noopener noreferrer" target="_blank">Creative Commons Nevezd meg! – Ne add el! – Így add tovább! 4.0 Nemzetközi (CC&nbsp;BY-NC-SA&nbsp;4.0)</a> licenc alatt érhető el: nevezd meg a szerzőt, ne használd kereskedelmi célra, és a származékos műveket ugyanilyen feltételekkel add tovább.</p>
+  <p class="foot-line"><strong>© 2026 Csaplár Dániel</strong> · <a href="mailto:csaplar.d@gmail.com">csaplar.d@gmail.com</a>. Ez a mű a <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.hu" rel="license noopener noreferrer" target="_blank">Creative Commons Nevezd meg! – Ne add el! – Így add tovább! 4.0 Nemzetközi (CC&nbsp;BY-NC-SA&nbsp;4.0)</a> licenc alatt érhető el: nevezd meg a szerzőt, ne használd kereskedelmi célra, és a származékos műveket ugyanilyen feltételekkel add tovább.</p>
   <p class="foot-line">v1.0 · utolsó frissítés: 2026. augusztus 30. · a haladásod kizárólag a saját böngésződben tárolódik.</p>
 </footer>
 <div class="reset-row">
@@ -2997,7 +2997,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: 'A modell a beszélgetés alatt ideiglenesen módosítja a súlyait, majd a végén visszaállítja őket.' },
           { t: 'A promptban lévő példák a tokenizálót hangolják át az adott feladatra.' }
         ],
-        why: 'A képesség forrása az architektúra: az attention az egyetlen hely, ahol a pozíciók információt cserélhetnek, és ezt <em>futásidőben</em> teszi — súlyfrissítés nélkül. A második válasz csábító, mert az induction headekről szóló eredmény (a fejek kialakulása és a képesség ugrásszerű megjelenése közti erős együttjárás) könnyen olvasható teljes magyarázatként. A mai kép azonban árnyaltabb: másoló fejek, feladat- és formátumreprezentációt hordozó MLP-rétegek és jóval összetettebb figyelem-mintázatok is részt vesznek benne. Az induction-áramkör a legjobban <em>megértett</em> összetevő — ami nem ugyanaz, mint az egyetlen.'
+        why: 'A képesség forrása az architektúra: az attention az egyetlen hely, ahol ugyanazon szekvencia pozíciói információt cserélhetnek, és ezt <em>futásidőben</em> teszi — súlyfrissítés nélkül. A második válasz csábító, mert az induction headekről szóló eredmény (a fejek kialakulása és a képesség ugrásszerű megjelenése közti erős együttjárás) könnyen olvasható teljes magyarázatként. A mai kép azonban árnyaltabb: másoló fejek, feladat- és formátumreprezentációt hordozó MLP-rétegek és jóval összetettebb figyelem-mintázatok is részt vesznek benne. Az induction-áramkör a legjobban <em>megértett</em> összetevő — ami nem ugyanaz, mint az egyetlen.'
       },
       {
         id: 'cap-cot',

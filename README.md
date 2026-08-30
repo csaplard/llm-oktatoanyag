@@ -1,100 +1,102 @@
-# Hogyan működnek a nagy nyelvi modellek?
+# How do large language models work?
 
-Átfogó magyar nyelvű oktatóanyag az LLM-ekről — a tokenizációtól a
-backpropagationön át a mechanistic interpretability kutatási frontvonaláig.
+A comprehensive guide to LLMs — from tokenization through backpropagation to the
+research frontier of mechanistic interpretability. Written in Hungarian, with a
+full English edition.
 
-**➜ [Olvasd itt](https://csaplard.github.io/llm-oktatoanyag/)** · **[Read it in English](https://csaplard.github.io/llm-oktatoanyag/en/)**
+**➜ [Read it in English](https://csaplard.github.io/llm-oktatoanyag/en/)** · **[Olvasd magyarul](https://csaplard.github.io/llm-oktatoanyag/)**
 
-## Mi ez
+## What this is
 
-Egyetlen, önálló HTML-fájl. Nincs build, nincs függőség, nincs keretrendszer —
-letöltöd, duplán kattintasz, működik. Offline is.
+A single, self-contained HTML file. No build, no dependencies, no framework —
+download it, double-click it, it works. Offline too.
 
-Az anyag **szintalapú tanulórendszer**: tizenkét szint, mindegyik végén ötkérdéses
-záró kvízzel. A következő fejezet akkor nyílik meg, ha a kvíz négy kérdését
-eltaláltad. Bukásnál korlátlanul újrapróbálható, és a magyarázat **helyes és
-helytelen válasz esetén is** megjelenik — a kvíz tanítani akar, nem vizsgáztatni.
+The material is a **level-based learning system**: twelve levels, each closing
+with a five-question quiz. The next chapter opens once you have answered four of
+the five correctly. On a fail you can retry without limit, and the explanation
+appears **for correct and incorrect answers alike** — the quiz is there to teach,
+not to examine.
 
-A kérdések szándékosan nem definíciókra kérdeznek rá, hanem következményekre:
-miért számolja el a modell a betűket egy szóban, miért lesz ugyanaz a magyar
-mondat több token, mint az angol, mi történik, ha egy token embeddingje tanulatlan
-marad.
+The questions deliberately ask about consequences rather than definitions: why
+the model miscounts the letters in a word, why the same sentence costs more
+tokens in Hungarian than in English, what happens when a token's embedding stays
+untrained.
 
-### Rétegzett mélység
+### Layered depth
 
-Minden téma háromszor van elmondva, egyre mélyebben:
+Every topic is told three times, each time deeper:
 
-| Szint | Hol | Mit |
+| Layer | Where | What |
 |---|---|---|
-| 1 · intuíció | a fő szöveg | mi történik és miért |
-| 2 · matematika | lenyitható blokk | a képletek, pontosan |
-| 3 · kutatói mélység | lenyitható blokk | nyitott kérdések, hivatkozásokkal |
+| 1 · intuition | the main text | what happens, and why |
+| 2 · mathematics | collapsible block | the formulas, precisely |
+| 3 · research depth | collapsible block | open questions, with references |
 
-Aki csak a fő szöveget olvassa, teljes és kerek anyagot kap.
+Read only the main text and you still get a complete, self-contained treatment.
 
-### A tizenkét szint
+### The twelve levels
 
-1. Mi az a nagy nyelvi modell?
-2. Tokenizáció
-3. Embeddingek
-4. Transzformer: residual stream, attention
-5. Transzformer: MLP, normalizálás, pozíciókódolás, kimeneti fej
-6. Tanítás: loss, számítási gráf, backpropagation
-7. Tanítás: optimalizálók, infrastruktúra, skálázási törvények
-8. Finomhangolás és alignment
-9. Inferencia
-10. Interpretability: residual stream nézet, induction headek
-11. Interpretability: szuperpozíció, sparse autoencoderek, módszertan
-12. Képességek és korlátok
+1. What is a large language model?
+2. Tokenization
+3. Embeddings
+4. Transformer: residual stream, attention
+5. Transformer: MLP, normalization, positional encoding, output head
+6. Training: loss, computation graph, backpropagation
+7. Training: optimizers, infrastructure, scaling laws
+8. Fine-tuning and alignment
+9. Inference
+10. Interpretability: the residual stream view, induction heads
+11. Interpretability: superposition, sparse autoencoders, methodology
+12. Capabilities and limits
 
-Ezenkívül: glosszárium, irodalomjegyzék és változásnapló — ezek végig szabadon
-elérhetők, nem esnek zár alá.
+Plus a glossary, a bibliography and a changelog — these stay open throughout and
+are never locked.
 
-## Adatkezelés
+## Data
 
-A **tanulási haladás kizárólag a saját böngésződben marad** (`localStorage`),
-szerverre semmi nem kerül. Ha letiltod a tárolást vagy privát ablakban olvasod,
-minden működik, csak nem emlékszik.
+Your **learning progress stays exclusively in your own browser**
+(`localStorage`); nothing is sent to a server. If you disable storage or read in
+a private window, everything still works — it just will not remember.
 
-Az oldalon süti nélküli, IP-tárolás nélküli látogatásszámláló
-([GoatCounter](https://www.goatcounter.com/)) fut, amely csak oldalletöltést
-számol. A kvízeredményedet nem látja senki.
+The page runs a cookie-free, IP-free visit counter
+([GoatCounter](https://www.goatcounter.com/)) that counts page views only. Nobody
+sees your quiz results.
 
-## Akadálymentesség
+## Accessibility
 
-- Minden szöveg/háttér páros megfelel a WCAG 2.1 AA kontrasztkövetelménynek,
-  világos és sötét módban egyaránt (28 mért páros).
-- Az állapotokat sosem csak a szín hordozza: ikon és szöveges címke is jelzi őket.
-- Billentyűzettel végigjárható; a zárolt fejezetek tartalma `inert`, tehát Tabbal
-  nem lehet beléjük tévedni.
-- `prefers-reduced-motion` mellett minden animáció leáll, de az állapotok
-  továbbra is megkülönböztethetők.
+- Every text/background pair meets the WCAG 2.1 AA contrast requirement, in both
+  light and dark mode (28 measured pairs).
+- State is never carried by color alone: an icon and a text label mark it too.
+- Fully keyboard-navigable; the content of locked chapters is `inert`, so Tab
+  cannot wander into it.
+- Under `prefers-reduced-motion` every animation stops, while the states remain
+  distinguishable.
 
-## Technikai jegyzet
+## Technical note
 
-- Egyetlen fájl, ~330 KB. Vanilla JS, IIFE, `var`/`function` — szándékosan
-  konzervatív, hogy bármilyen böngészőben elinduljon.
-- 13 saját SVG-ábra, külső képfájl nélkül.
-- Világos és sötét mód külön tervezett palettával (a sötét nem a világos
-  invertálása). Alapértelmezés: világos.
+- One file, ~330 KB. Vanilla JS, IIFE, `var`/`function` — deliberately
+  conservative, so it starts in any browser.
+- 13 hand-made SVG figures, no external image files.
+- Light and dark mode with separately designed palettes (dark is not an inversion
+  of light). Default: light.
 
-## Nyelvek
+## Languages
 
-Az anyag magyarul és angolul is elérhető, ugyanazzal a szintrendszerrel és
-ugyanazokkal a kvízekkel. A két változat között a jobb alsó sarokban lévő
-`HU` / `EN` gombbal lehet váltani. A haladás közös: ha félúton nyelvet váltasz,
-nem kell elölről kezdened.
+The material is available in Hungarian and English, with the same level system
+and the same quizzes. Switch between the two with the `HU` / `EN` button in the
+bottom-right corner. Progress is shared: change language halfway through and you
+do not have to start over.
 
-Az angol kiadás nem szó szerinti fordítás ott, ahol az értelmetlen lett volna:
-a nyelvi példákat kicseréltük olyanokra, amelyek angolul is működnek — a BPE
-szótárépítés `play / playful / playtime`, a poliszémia `bank` (folyópart vagy
-pénzintézet), az attention-példa `crane` (madár vagy emelőgép). Az ábrák
-geometriája mindkét változatban azonos.
+The English edition is not a literal translation where that would have been
+meaningless: the linguistic examples were replaced with ones that also work in
+English — BPE vocabulary building uses `play / playful / playtime`, polysemy uses
+`bank` (riverside or financial institution), the attention example uses `crane`
+(bird or lifting machine). The geometry of the figures is identical in both
+editions.
 
-## Licenc
+## License
 
-[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.hu) —
-nevezd meg a szerzőt · ne használd kereskedelmi célra · így add tovább.
-Részletek: [LICENSE](LICENSE).
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) —
+attribution · non-commercial · share alike. Details: [LICENSE](LICENSE).
 
-© 2026 Csaplár Dániel
+© 2026 Dániel Csaplár · csaplar.d@gmail.com
