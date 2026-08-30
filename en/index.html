@@ -925,19 +925,19 @@ An LLM is neither a database nor a rule system: it is a single enormous differen
 </section>
 <section id="tokenizacio" data-level="2">
 <div class="chapter-kicker">Chapter 2</div>
-<h2>Tokenizáció: a szövegből számsorozat</h2>
+<h2>Tokenization: from text to a sequence of numbers</h2>
 
-<p>A neurális háló nem betűket lát, hanem számokat. Az első lépés tehát a szöveg feldarabolása egy rögzített <strong>szótár</strong> (vocabulary) elemeire — ezek a <strong>tokenek</strong> —, majd minden darab lecserélése a szótárbeli sorszámára. A kérdés: mekkorák legyenek a darabok?</p>
+<p>A neural network does not see letters, it sees numbers. The first step is therefore to cut the text into the entries of a fixed <strong>vocabulary</strong> — these are the <strong>tokens</strong> — and then to replace each piece with its index in that vocabulary. The question is: how big should the pieces be?</p>
 
-<p>Két szélsőség kínálkozik, és mindkettő rossz. Ha <strong>karakterenként</strong> tokenizálunk, a szótár apró (néhány száz elem), de a sorozatok nagyon hosszúak lesznek, és a modellnek minden szó jelentését karakterekből kellene minden alkalommal összeraknia. Ha <strong>szavanként</strong>, a sorozatok rövidek, de a szótár robbanásszerűen nő (a magyar ragozás miatt a „ház, házam, házaimban, házaitokból…” mind külön elem lenne), és minden ismeretlen szó — új név, elgépelés, ritka összetétel — kezelhetetlen. A gyakorlati megoldás a kettő közötti <strong>rész-szó (subword) tokenizáció</strong>: a gyakori szavak egyetlen tokent kapnak, a ritkák értelmes darabokra esnek szét. A domináns algoritmus a <strong>byte-pair encoding (BPE)</strong>.</p>
+<p>Two extremes present themselves, and both are bad. If we tokenize <strong>character by character</strong>, the vocabulary is tiny (a few hundred entries), but the sequences become very long and the model would have to reassemble the meaning of every word from characters every single time. If we tokenize <strong>word by word</strong>, the sequences are short, but the vocabulary explodes (in an agglutinative language such as Hungarian, “ház, házam, házaimban, házaitokból…” would each be a separate entry), and every unfamiliar word — a new name, a typo, a rare compound — becomes unmanageable. The practical answer lies in between: <strong>subword tokenization</strong>, where frequent words get a single token and rare ones break into meaningful pieces. The dominant algorithm is <strong>byte-pair encoding (BPE)</strong>.</p>
 
-<p>A BPE alapötlete tömörítési elv: <em>ami gyakran fordul elő együtt, azt vonjuk össze egy szimbólummá</em>. A szótárat nem kézzel írjuk, hanem adatból tanuljuk: karakterekből (pontosabban bájtokból) indulunk, és ismételten összeolvasztjuk a korpuszban leggyakrabban szomszédos párokat, amíg a szótár el nem éri a kívánt méretet — jellemzően 32&nbsp;000 és 260&nbsp;000 közötti elemszámot.</p>
+<p>The core idea of BPE is a compression principle: <em>whatever frequently occurs together, merge into one symbol</em>. The vocabulary is not written by hand but learned from data: we start from characters (more precisely, bytes) and repeatedly merge the most frequently adjacent pair in the corpus until the vocabulary reaches the desired size — typically somewhere between 32,000 and 260,000 entries.</p>
 
 <figure class="diagram">
 <svg viewBox="0 0 880 300" role="img" aria-label="BPE merge steps">
-  <text x="20" y="28" font-size="13" font-weight="700" class="svg-ink">A BPE szótárépítés menete — példa: „alma almás almafa”</text>
+  <text x="20" y="28" font-size="13" font-weight="700" class="svg-ink">How BPE builds a vocabulary — example: “alma almás almafa”</text>
   <!-- 0. lépés -->
-  <text x="20" y="62" font-size="11.5" class="svg-muted">0. kiindulás (bájtok):</text>
+  <text x="20" y="62" font-size="11.5" class="svg-muted">0. start (bytes):</text>
   <g class="svg-mono" font-size="12">
     <g transform="translate(200,46)">
       <rect width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="13" y="16" text-anchor="middle" class="svg-ink">a</text>
@@ -954,7 +954,7 @@ An LLM is neither a database nor a rule system: it is a single enormous differen
     </g>
   </g>
   <!-- 1. lépés -->
-  <text x="20" y="122" font-size="11.5" class="svg-muted">1. leggyakoribb pár: (a,l) → „al”</text>
+  <text x="20" y="122" font-size="11.5" class="svg-muted">1. most frequent pair: (a,l) → “al”</text>
   <g class="svg-mono" font-size="12">
     <g transform="translate(230,106)">
       <rect width="42" height="24" rx="5" fill="var(--wash-green)" stroke="var(--s2)" stroke-width="1.3"/><text x="21" y="16" text-anchor="middle" class="svg-ink">al</text>
@@ -969,7 +969,7 @@ An LLM is neither a database nor a rule system: it is a single enormous differen
     </g>
   </g>
   <!-- 2. lépés -->
-  <text x="20" y="182" font-size="11.5" class="svg-muted">2. következő pár: (al,m) → „alm”</text>
+  <text x="20" y="182" font-size="11.5" class="svg-muted">2. next pair: (al,m) → “alm”</text>
   <g class="svg-mono" font-size="12">
     <g transform="translate(230,166)">
       <rect width="58" height="24" rx="5" fill="var(--wash-green)" stroke="var(--s2)" stroke-width="1.3"/><text x="29" y="16" text-anchor="middle" class="svg-ink">alm</text>
@@ -982,7 +982,7 @@ An LLM is neither a database nor a rule system: it is a single enormous differen
     </g>
   </g>
   <!-- 3. lépés -->
-  <text x="20" y="242" font-size="11.5" class="svg-muted">n. sok lépés után:</text>
+  <text x="20" y="242" font-size="11.5" class="svg-muted">n. after many steps:</text>
   <g class="svg-mono" font-size="12">
     <g transform="translate(230,226)">
       <rect width="74" height="24" rx="5" fill="var(--wash-green)" stroke="var(--s2)" stroke-width="1.3"/><text x="37" y="16" text-anchor="middle" class="svg-ink">alma</text>
@@ -991,42 +991,42 @@ An LLM is neither a database nor a rule system: it is a single enormous differen
       <rect x="266" width="42" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="287" y="16" text-anchor="middle" class="svg-ink">fa</text>
     </g>
   </g>
-  <text x="20" y="284" font-size="11" class="svg-muted">A gyakori egységek („alma”) önálló tokenné olvadnak; a ritkább összetétel („almafa”) darabokban marad: ␣alma + fa.</text>
+  <text x="20" y="284" font-size="11" class="svg-muted">Frequent units (“alma”) fuse into a single token; the rarer compound (“almafa”) stays in pieces: ␣alma + fa.</text>
 </svg>
-<figcaption><span class="fig-num">2. ábra.</span> BPE-szótárépítés vázlatosan. Bájtokból indulunk, és mindig a korpuszban leggyakoribb szomszédos párt olvasztjuk össze új tokenné. Az összevonások sorrendje maga a szótár: tokenizáláskor ugyanezeket a szabályokat játsszuk vissza ugyanebben a sorrendben. A ␣ a szóköz jelölése — a legtöbb tokenizálóban a szóköz a következő token elejéhez tapad.</figcaption>
+<figcaption><span class="fig-num">Figure 2.</span> Building a BPE vocabulary, schematically. We start from bytes and always merge the most frequent adjacent pair in the corpus into a new token. The order of the merges <em>is</em> the vocabulary: when tokenizing, we replay exactly these rules in exactly this order. The ␣ marks a space — in most tokenizers the space attaches to the beginning of the following token. (The example is Hungarian: <em>alma</em> = apple, <em>almás</em> = apple-flavoured, <em>almafa</em> = apple tree.)</figcaption>
 </figure>
 
-<div class="example"><span class="label">Példa</span>
-Miért számolja el sok modell az „r” betűket a <code>strawberry</code>-ben? Mert a modell nem betűket lát: a szó nála például <code>str</code>+<code>aw</code>+<code>berry</code> tokenekből áll, és a tokenek belső betűösszetétele csak közvetve, a tanítóadatból megtanulva hozzáférhető. Ugyanez az oka annak, hogy a számolás számjegyenként tokenizált modellekben megbízhatóbb: a <code>12345</code> egyetlen tokenként „atomi”, <code>1</code>+<code>2</code>+<code>3</code>+<code>4</code>+<code>5</code>-ként viszont a helyiérték-szerkezet láthatóvá válik.
+<div class="example"><span class="label">Example</span>
+Why do so many models miscount the letter “r” in <code>strawberry</code>? Because the model does not see letters: for it the word consists of tokens such as <code>str</code>+<code>aw</code>+<code>berry</code>, and the internal letter composition of a token is available only indirectly, learned from the training data. This is also why arithmetic is more reliable in models that tokenize digit by digit: <code>12345</code> as a single token is “atomic”, whereas as <code>1</code>+<code>2</code>+<code>3</code>+<code>4</code>+<code>5</code> the place-value structure becomes visible.
 </div>
 
-<h3>A szótár és a speciális tokenek</h3>
-<p>A kész szótár nagy része tanult rész-szó, de van néhány kézzel definiált <strong>speciális token</strong> is: a szöveg végét jelző <code>&lt;|endoftext|&gt;</code>, a párbeszéd szerepeit elválasztó jelölők (pl. <code>&lt;|user|&gt;</code>, <code>&lt;|assistant|&gt;</code>), eszközhívás-határolók. Ezek soha nem állhatnak elő normál szövegből — a chat-formátum integritása múlik ezen. A szótárméret kompromisszum: a nagyobb szótár rövidebb sorozatokat ad (kevesebb számítás soronként), de nagyobb embedding-mátrixot és ritkábban látott, ezért gyengébben tanult tokeneket.</p>
+<h3>The vocabulary and special tokens</h3>
+<p>Most of a finished vocabulary consists of learned subwords, but a handful of <strong>special tokens</strong> are defined by hand: <code>&lt;|endoftext|&gt;</code> marking the end of a text, the markers separating conversational roles (for example <code>&lt;|user|&gt;</code>, <code>&lt;|assistant|&gt;</code>), and tool-call delimiters. These must never be producible from ordinary text — the integrity of the chat format depends on it. Vocabulary size is a trade-off: a larger vocabulary gives shorter sequences (less computation per line) but a larger embedding matrix, and tokens that are seen more rarely and therefore learned less well.</p>
 
 <details class="level l2">
-<summary><span class="badge b2">2. szint</span> A BPE-algoritmus pontosan, és a fő alternatíva</summary>
+<summary><span class="badge b2">Level 2</span> The BPE algorithm precisely, and the main alternative</summary>
 <div class="body">
-<p><strong>Szótárépítés (tanítási idő):</strong></p>
-<pre><code># korpusz: bájtsorozatok; cél: V méretű szótár
-szótár = {mind a 256 bájt}
-merge_szabályok = []
-while |szótár| &lt; V:
-    pár = a korpuszban leggyakoribb szomszédos (x, y) tokenpár
-    új_token = concat(x, y)
-    szótár.add(új_token)
-    merge_szabályok.append((x, y) → új_token)
-    korpusz = minden (x, y) előfordulás cseréje új_token-re</code></pre>
-<p><strong>Tokenizálás (használati idő):</strong> a bemenetet bájtokra bontjuk, majd a merge-szabályokat <em>a tanult sorrendben</em> alkalmazzuk, amíg lehet. A sorrend determinisztikussá teszi az eredményt. A gyakorlatban a bontást egy reguláris kifejezéses előszegmentálás előzi meg (szavak, számok, írásjelek szétválasztása), hogy a merge-ek ne lépjenek át szóhatárokat.</p>
-<p>A <strong>bájt-szintű</strong> indulás (GPT-2 óta standard) garantálja, hogy <em>bármilyen</em> bemenet — emoji, kínai írásjegy, bináris szemét — tokenizálható, ismeretlen szimbólum nem létezhet. A fő alternatíva a <strong>unigram nyelvmodell</strong> alapú tokenizáció (SentencePiece): nagy jelölt-szótárból indul, és iteratívan dobja ki azokat az elemeket, amelyek elhagyása a legkevésbé rontja a korpusz valószínűségét — valószínűségi modellként több szegmentálást is tud pontozni. A végeredmény minőségben hasonló; az ökoszisztéma nagy része BPE-t használ.</p>
+<p><strong>Building the vocabulary (training time):</strong></p>
+<pre><code># corpus: byte sequences; goal: a vocabulary of size V
+vocab = {all 256 bytes}
+merge_rules = []
+while |vocab| &lt; V:
+    pair = the most frequent adjacent (x, y) token pair in the corpus
+    new_token = concat(x, y)
+    vocab.add(new_token)
+    merge_rules.append((x, y) → new_token)
+    corpus = replace every occurrence of (x, y) with new_token</code></pre>
+<p><strong>Tokenizing (use time):</strong> we break the input into bytes, then apply the merge rules <em>in the order they were learned</em>, for as long as they apply. That order is what makes the result deterministic. In practice the split is preceded by a regular-expression pre-segmentation (separating words, numbers and punctuation) so that merges cannot cross word boundaries.</p>
+<p>Starting at the <strong>byte level</strong> (standard since GPT-2) guarantees that <em>any</em> input — emoji, a Chinese character, binary garbage — can be tokenized; an unknown symbol cannot exist. The main alternative is tokenization based on a <strong>unigram language model</strong> (SentencePiece): it starts from a large candidate vocabulary and iteratively drops the entries whose removal degrades the corpus probability least — being a probabilistic model, it can also score several segmentations. The end result is of similar quality; most of the ecosystem uses BPE.</p>
 </div>
 </details>
 
 <details class="level l3">
-<summary><span class="badge b3">3. szint</span> Kutatói szempontok: glitch tokenek, nyelvi egyenlőtlenség, tokenmentes modellek</summary>
+<summary><span class="badge b3">Level 3</span> Research angles: glitch tokens, linguistic inequality, token-free models</summary>
 <div class="body">
-<p><strong>Glitch tokenek.</strong> A legvalószínűbb magyarázat szerint, ha egy token a szótárépítő korpuszban gyakori volt, de a modell tanítóadatából (más szűrés miatt) kimaradt, az embeddingje lényegében tanulatlan marad — közel az inicializálási zajhoz. Az ilyen „glitch tokenek” (híres példa a GPT-2/3 szótárából a <code>SolidGoldMagikarp</code>, egy Reddit-felhasználónév) bizarr viselkedést váltanak ki: a modell nem tudja kimondani, félreérti, vagy irreleváns választ ad rájuk. Az egyes esetek pontos ok-lánca nem bizonyított — a jelenség viszont reprodukálható. Tanulság: a tokenizáló és a modell <em>két külön tanított rendszer</em>, és az illesztetlenségük mérhető hibaforrás.</p>
-<p><strong>Fertilitás és nyelvi méltányosság.</strong> Egy főleg angol korpuszon épített szótár az angolt tömören, más nyelveket pazarlóan tokenizál — ugyanaz a tartalom magyarul lényegesen több tokent adhat (magasabb „fertilitás”), agglutináló morfológiánk ráadásul gyakran nem morfémahatárokon törik. Ez nem csak költségkérdés: a hosszabb tokensorozat kevesebb effektív kontextust és a per-token tanulási jel felhígulását jelenti. Az újabb, többnyelvű korpuszon épített, nagyobb szótárak (100k–260k) ezt jelentősen enyhítik.</p>
-<p><strong>Kell-e egyáltalán tokenizáló?</strong> Aktív kutatási irány a tokenizáció kiváltása: bájt-szintű modellek (ByT5), illetve dinamikus, tanult szegmentálás, ahol a modell maga dönti el, hol húz határt (pl. a Byte Latent Transformer az előrejelezhetőség — entrópia — alapján képez változó méretű „patcheket”). A motiváció elvi: a tokenizáló a rendszer egyetlen nem tanult, nem differenciálható komponense, és a fenti hibaosztályok mind belőle erednek. Az ár a hosszabb sorozatok miatti számításigény — a kérdés az, hogy a hierarchikus architektúrák ezt mikor hozzák be.</p>
+<p><strong>Glitch tokens.</strong> On the most likely explanation, if a token was frequent in the vocabulary-building corpus but was left out of the model's training data (because of different filtering), its embedding stays essentially untrained — close to initialization noise. Such “glitch tokens” (a famous example from the GPT-2/3 vocabulary is <code>SolidGoldMagikarp</code>, a Reddit username) provoke bizarre behavior: the model cannot say them, misreads them, or answers irrelevantly. The precise causal chain in individual cases is not established — the phenomenon, however, is reproducible. The lesson: the tokenizer and the model are <em>two separately trained systems</em>, and the mismatch between them is a measurable source of error.</p>
+<p><strong>Fertility and linguistic fairness.</strong> A vocabulary built mostly on English tokenizes English compactly and other languages wastefully — the same content in Hungarian can take substantially more tokens (higher “fertility”), and its agglutinative morphology is often broken at points that are not morpheme boundaries. This is not only a cost question: a longer token sequence means less effective context and a diluted per-token learning signal. Newer, larger vocabularies (100k–260k) built on multilingual corpora reduce this considerably.</p>
+<p><strong>Do we need a tokenizer at all?</strong> Replacing tokenization is an active research direction: byte-level models (ByT5), and dynamic, learned segmentation in which the model itself decides where to draw the boundaries (the Byte Latent Transformer, for instance, forms variable-sized “patches” based on predictability — entropy). The motivation is principled: the tokenizer is the one component of the system that is neither learned nor differentiable, and all the failure classes above originate in it. The price is the compute demanded by longer sequences — the open question is when hierarchical architectures will make that back.</p>
 </div>
 </details>
 
@@ -2351,116 +2351,116 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       {
         id: 'llm-sampling',
         type: 'choice',
-        q: 'Ugyanazt a promptot kétszer beküldöd ugyanannak a modellnek, és két különböző választ kapsz. Hogyan lehetséges ez, ha a modell paraméterei közben nem változtak?',
+        q: 'You send the same prompt to the same model twice and get two different answers. How is that possible if the model\u2019s parameters did not change in between?',
         options: [
-          { t: 'A modell csak egy eloszlást ad a következő tokenre; hogy melyik token lesz belőle, azt a mintavételezés dönti el — az pedig nem a modell része, hanem külön szabadságfok.', ok: true },
-          { t: 'A modell minden kérdés után tanul valamit az előző válaszából.' },
-          { t: 'A paraméterek futás közben véletlenszerűen módosulnak.' },
-          { t: 'A tokenizáló minden alkalommal máshogy darabolja fel a promptot.' }
+          { t: 'The model only produces a distribution over the next token; which token comes out of it is decided by sampling \u2014 and sampling is not part of the model, it is a separate degree of freedom.', ok: true },
+          { t: 'The model learns something from its previous answer after every question.' },
+          { t: 'The parameters change randomly while the model runs.' },
+          { t: 'The tokenizer splits the prompt differently each time.' }
         ],
-        why: 'A háló maga <strong>determinisztikus függvény</strong>: ugyanaz a prefix ugyanazt az eloszlást adja. A változatosság a következő lépésből jön — a tokent <em>mintavételezzük</em> az eloszlásból, és a mintavételi stratégia (temperature, top-p) az inferencia paramétere, nem a modellé. Ezért lehet ugyanazt a modellt determinisztikusan is futtatni (mindig a legvalószínűbb tokent véve), és ezért nem jelent a válasz megváltozása semmiféle „tanulást” két kérés között: a modell súlyai a beszélgetések között nem mozdulnak.'
+        why: 'The network itself is a <strong>deterministic function</strong>: the same prefix yields the same distribution. The variation comes from the next step \u2014 the token is <em>sampled</em> from that distribution, and the sampling strategy (temperature, top-p) is a parameter of inference, not of the model. That is why the same model can also be run deterministically (always taking the most likely token), and why a changed answer implies no \u201clearning\u201d between two requests: the weights do not move between conversations.'
       },
       {
         id: 'llm-autoregressziv',
         type: 'choice',
-        q: 'Egy hosszabb válasz generálása arányosan tovább tart, mint egy rövidé. Mi ennek a közvetlen oka az autoregresszív működésben?',
+        q: 'Generating a longer answer takes proportionally longer than a short one. What is the direct cause of this in autoregressive operation?',
         options: [
-          { t: 'Minden egyes token egy külön teljes lefuttatás: a modell kihúz egy tokent, hozzáfűzi a szöveghez, majd az egésszel újra lefut — 300 tokenhez 300 kör kell.', ok: true },
-          { t: 'A modell előre megtervezi a teljes választ, és a hosszabb terv több memóriát igényel.' },
-          { t: 'A hosszabb válasz nagyobb szótárat használ, ezért lassabb a keresés benne.' },
-          { t: 'A modell a válasz végén ellenőrzi is az egészet, és ez az ellenőrzés hosszal nő.' }
+          { t: 'Every single token is a separate full forward pass: the model draws a token, appends it to the text, then runs again on the whole thing \u2014 300 tokens take 300 rounds.', ok: true },
+          { t: 'The model plans the whole answer in advance, and a longer plan needs more memory.' },
+          { t: 'A longer answer uses a bigger vocabulary, so searching it is slower.' },
+          { t: 'The model checks the whole answer at the end, and that check grows with length.' }
         ],
-        why: 'A generálás <strong>egyetlen művelet ismétlése</strong>: egy lefutás = egy token. Ebből több minden következik, mint elsőre látszik. A válasz hossza lineárisan viszi a költséget, ezért drágább a hosszú kifejtés. A modell nem „látja előre” a saját válasza végét — minden tokent a már leírtak alapján választ, tehát amit egyszer leírt, azt a további döntéseinél adottnak veszi (ezért tud egy korai félrelépés végigfutni az egész válaszon). És ezért működik egyáltalán az, hogy a gondolatmenetet leíratjuk vele: a leírt köztes lépések visszakerülnek a bemenetre, és a további jóslás támaszkodhat rájuk.'
+        why: 'Generation is <strong>the repetition of a single operation</strong>: one forward pass, one token. More follows from this than first appears. The length of the answer carries the cost linearly, which is why long expositions are expensive. The model does not \u201csee ahead\u201d to the end of its own answer \u2014 it chooses every token from what has already been written, so whatever it has written once is taken as given for every later decision (which is how one early misstep can run through an entire answer). And it is why asking the model to write out its reasoning works at all: the intermediate steps go back into the input, and further prediction can lean on them.'
       },
       {
         id: 'llm-lancszabaly',
         type: 'number',
         answer: 20,
-        hint: 'Egész szám, százalékban.',
-        q: 'A modell egy kéttokenes folytatást ad. Az első tokenre 0,5, majd a következő lépésben a ténylegesen választott második tokenre 0,4 valószínűséget rendel. A láncszabály szerint hány százalék a kéttokenes folytatás együttes valószínűsége?',
-        why: 'A láncszabály szerint a sorozat együttes valószínűsége a feltételes tagok <strong>szorzata</strong>: 0,5 × 0,4 = 0,2, azaz <strong>20%</strong>. Ez nem csak számtan: a szorzás miatt egy hosszú kimenet együttes valószínűsége <em>exponenciálisan</em> csökken a hosszával — egy száz tokenes válasz „valószínűsége” csillagászatian kicsi, akkor is, ha minden egyes lépés magabiztos volt. Ezért értelmetlen a teljes válaszokat a valószínűségük alapján összehasonlítani hosszúság szerinti normálás nélkül, és ezért a loss is <em>tokenenkénti átlagként</em> van definiálva (5.1).'
+        hint: 'A whole number, in percent.',
+        q: 'The model produces a two-token continuation. It assigns probability 0.5 to the first token, and then, at the next step, 0.4 to the second token it actually chose. By the chain rule, what is the joint probability of the two-token continuation, in percent?',
+        why: 'By the chain rule the joint probability of a sequence is the <strong>product</strong> of the conditional terms: 0.5 \u00d7 0.4 = 0.2, that is <strong>20%</strong>. This is not merely arithmetic: because the terms multiply, the joint probability of a long output falls <em>exponentially</em> with its length \u2014 the \u201cprobability\u201d of a hundred-token answer is astronomically small even if every single step was confident. That is why it is meaningless to compare whole answers by their probability without normalizing for length, and why the loss is defined as a <em>per-token average</em> (5.1).'
       },
       {
         id: 'llm-halluc',
         type: 'choice',
-        q: 'A modell egy nem létező szakcikket idéz, hihető szerzőkkel és évszámmal, teljes magabiztossággal. Mi ennek a legpontosabb magyarázata?',
+        q: 'The model cites a paper that does not exist, with plausible authors and a plausible year, in complete confidence. What is the most precise explanation?',
         options: [
-          { t: 'A tanítási cél a folytatás valószínűségét jutalmazza, nem az igazságot: egy hihető formájú hivatkozás pontosan olyan, amilyet a korpusz alapján ezen a ponton várni lehet.', ok: true },
-          { t: 'A modell adatbázisában sérült a cikk rekordja.' },
-          { t: 'A cikk szerepelt a tanítóadatban, de a modell rosszul emlékszik rá.' },
-          { t: 'A tokenizáló rosszul kódolta a szerzők nevét.' }
+          { t: 'The training objective rewards the probability of the continuation, not the truth: a plausibly shaped citation is exactly what the corpus leads you to expect at that point.', ok: true },
+          { t: 'The record for that paper is corrupted in the model\u2019s database.' },
+          { t: 'The paper was in the training data, but the model misremembers it.' },
+          { t: 'The tokenizer encoded the authors\u2019 names incorrectly.' }
         ],
-        why: 'Az LLM <strong>nem adatbázis és nem szabályrendszer</strong>, hanem egyetlen differenciálható függvény, amelyet a „jósold meg a következő tokent” feladat formált. Egy hivatkozás <em>formája</em> — szerző, évszám, folyóiratnév — erősen megjósolható mintázat; hogy a mögötte álló cikk létezik-e, az a következő token szintjén nem jelenik meg kényszerként. A magabiztosság sem tudásjelző: a modell minden lépésben a legjobb folytatást adja, függetlenül attól, hogy volt-e mire támaszkodnia. Innen ered a gyakorlati szabály, hogy ellenőrizhető tényekhez külső forrást kell adni mellé, nem a memóriájára hagyatkozni.'
+        why: 'An LLM is <strong>neither a database nor a rule system</strong>, but a single differentiable function shaped by the task \u201cpredict the next token\u201d. The <em>form</em> of a citation \u2014 author, year, journal name \u2014 is a strongly predictable pattern; whether the paper behind it exists never appears as a constraint at the level of the next token. Confidence is not a sign of knowledge either: at every step the model gives the best continuation, whether or not it had anything to draw on. This is the origin of the practical rule that verifiable facts need an external source alongside the model, rather than trust in its memory.'
       },
       {
         id: 'llm-rnn',
         type: 'choice',
-        q: 'Az RNN-eknek elvben korlátlan hosszú kontextusuk volt, a transzformernek viszont fix ablaka. Mégis a transzformer nyert. Mi volt a döntő ok?',
+        q: 'RNNs had, in principle, unlimited context, whereas the transformer has a fixed window. The transformer still won. What was the decisive reason?',
         options: [
-          { t: 'A transzformernél a tanítás minden pozícióra egyszerre, párhuzamosan fut, és bármely két token között közvetlen a kapcsolat — így a rendelkezésre álló számítási kapacitás sokkal hatékonyabban váltható tanulásra.', ok: true },
-          { t: 'A transzformernek eleve több paramétere van, és a több paraméter mindig jobb.' },
-          { t: 'Az RNN-ek nem tudtak valószínűség-eloszlást adni a következő tokenre.' },
-          { t: 'A transzformerhez nem kell tokenizálni a szöveget.' }
+          { t: 'In the transformer, training runs on all positions at once, in parallel, and any two tokens are directly connected \u2014 so the available compute converts into learning far more efficiently.', ok: true },
+          { t: 'The transformer simply has more parameters, and more parameters are always better.' },
+          { t: 'RNNs could not produce a probability distribution over the next token.' },
+          { t: 'The transformer does not need the text to be tokenized.' }
         ],
-        why: 'Az RNN „korlátlan” kontextusa a gyakorlatban illúzió volt: az információnak egy fix méretű rejtett állapotban, sok lépésen át kellett túlélnie, ahol a gradiens eltűnik vagy felrobban. A transzformerben bármely két pozíció között a gradiens-út hossza O(1). A második ok legalább ennyire fontos, és ez <strong>hardver-illeszkedés</strong>: az RNN eredendően szekvenciális (a t-edik lépés nem indulhat a t−1-edik előtt), a transzformer viszont a kauzális maszk miatt a teljes szekvenciát egyetlen nagy mátrixműveletként dolgozza fel a GPU-n. A compute-hatékonyság mint elsődleges tervezési elv azóta is az architektúra-fejlődés fő hajtóereje.'
+        why: 'The RNN\u2019s \u201cunlimited\u201d context was an illusion in practice: information had to survive many steps inside a fixed-size hidden state, where the gradient vanishes or explodes. In a transformer the gradient path between any two positions is O(1) long. The second reason matters at least as much, and it is <strong>a fit to the hardware</strong>: an RNN is inherently sequential (step t cannot start before step t\u22121), whereas the transformer, thanks to the causal mask, processes the entire sequence as one large matrix operation on the GPU. Compute efficiency as a primary design principle has driven architectural progress ever since.'
       }
     ],
     2: [
       {
         id: 'tok-strawberry',
         type: 'choice',
-        q: 'Egy modell azt állítja, hogy a <code>strawberry</code> szóban két „r” van. Mi ennek a legvalószínűbb oka?',
+        q: 'A model claims there are two letter “r”s in <code>strawberry</code>. What is the most likely reason?',
         options: [
-          { t: 'A modell nem betűket kap bemenetként, hanem tokeneket (pl. <code>str</code>+<code>aw</code>+<code>berry</code>) — a tokenek belső betűösszetétele csak közvetve hozzáférhető.', ok: true },
-          { t: 'A modell nem tud háromig számolni.' },
-          { t: 'A tokenizáló hibásan darabolta fel a szót.' },
-          { t: 'Túl magas volt a temperature, ezért rossz tokent húzott.' }
+          { t: 'The model does not receive letters as input but tokens (for example <code>str</code>+<code>aw</code>+<code>berry</code>) — the internal letter composition of a token is available only indirectly.', ok: true },
+          { t: 'The model cannot count to three.' },
+          { t: 'The tokenizer split the word incorrectly.' },
+          { t: 'The temperature was too high, so it drew the wrong token.' }
         ],
-        why: 'A tokenizáció információvesztő absztrakció a modell felé: ami egy tokenen belül van, az számára egyetlen atomi szimbólum. A karakterszintű feladatok (betűszámlálás, anagramma, visszafelé írás) nem azért nehezek, mert a modell „buta”, hanem mert a bemenet felbontása durvább, mint a feladat. Ugyanez az oka annak, hogy a számjegyenként tokenizált számokon az aritmetika megbízhatóbb: a <code>12345</code> egyetlen tokenként atomi, <code>1</code>+<code>2</code>+<code>3</code>+<code>4</code>+<code>5</code>-ként viszont a helyiérték-szerkezet láthatóvá válik.'
+        why: 'Tokenization is a lossy abstraction on the way into the model: whatever sits inside a token is, for the model, a single atomic symbol. Character-level tasks (counting letters, anagrams, writing backwards) are hard not because the model is “stupid” but because the input is at a coarser resolution than the task. This is also why arithmetic is more reliable on digit-by-digit tokenized numbers: <code>12345</code> as one token is atomic, whereas as <code>1</code>+<code>2</code>+<code>3</code>+<code>4</code>+<code>5</code> the place-value structure becomes visible.'
       },
       {
         id: 'tok-merges',
         type: 'number',
         answer: 31744,
-        hint: 'Egész szám.',
-        q: 'Egy bájt-szintű BPE 256 bájtból indul, és 32&nbsp;000 elemű szótárat épít. Hány összevonási (merge) lépést hajt végre?',
-        why: 'Minden merge-lépés pontosan <strong>egy</strong> új tokent tesz a szótárba, két meglévő elem összeolvasztásából — tehát 32&nbsp;000 − 256 = <strong>31&nbsp;744</strong> lépés. Ez nem csak számtani játék: a merge-szabályok sorrendezett listája maga a szótár. Tokenizáláskor ugyanezt a 31&nbsp;744 szabályt játsszuk vissza ugyanebben a sorrendben, és ettől determinisztikus az eredmény.'
+        hint: 'A whole number.',
+        q: 'A byte-level BPE starts from 256 bytes and builds a vocabulary of 32,000 entries. How many merge steps does it perform?',
+        why: 'Every merge step adds exactly <strong>one</strong> new token to the vocabulary, formed by fusing two existing entries — so 32,000 − 256 = <strong>31,744</strong> steps. This is not merely arithmetic: the ordered list of merge rules <em>is</em> the vocabulary. When tokenizing, we replay those same 31,744 rules in the same order, and that is what makes the result deterministic.'
       },
       {
         id: 'tok-special',
         type: 'choice',
-        q: 'Miért követelmény, hogy a <code>&lt;|endoftext|&gt;</code> és a <code>&lt;|user|&gt;</code> típusú speciális tokenek soha ne állhassanak elő normál szövegből?',
+        q: 'Why is it a requirement that special tokens such as <code>&lt;|endoftext|&gt;</code> and <code>&lt;|user|&gt;</code> can never arise from ordinary text?',
         options: [
-          { t: 'Mert különben a felhasználó által beírt szöveg szerepváltó jelölőként tokenizálódhatna, és a modell a felhasználó szövegét rendszerutasításnak vagy saját válaszának olvasná.', ok: true },
-          { t: 'Mert megnőne tőle a szótár mérete.' },
-          { t: 'Mert az embeddingjük tanulatlan maradna.' },
-          { t: 'Mert a BPE nem tud 16 karakternél hosszabb tokent kezelni.' }
+          { t: 'Because otherwise text typed by the user could tokenize into a role marker, and the model would read the user\u2019s text as a system instruction or as its own reply.', ok: true },
+          { t: 'Because it would increase the size of the vocabulary.' },
+          { t: 'Because their embeddings would remain untrained.' },
+          { t: 'Because BPE cannot handle tokens longer than 16 characters.' }
         ],
-        why: 'A chat-formátum nem a hálón kívül élő protokoll: a modell számára a szerepek elválasztása <em>ugyanaz a tokensorozat</em>, mint a tartalom. Ha a <code>&lt;|user|&gt;</code> karakterlánc leírásával bárki elő tudná állítani ezt a tokent, a beszélgetés szerkezete hamisítható lenne — ez a prompt injection egyik legdurvább formája. Ezért kezelik ezeket a tokenizálóban külön úton, a normál BPE-darabolás megkerülésével: a leírt <code>&lt;|user|&gt;</code> szöveg közönséges rész-szavakra esik szét, nem a speciális tokenre.'
+        why: 'The chat format is not a protocol living outside the network: for the model, the separation of roles is <em>the same token sequence</em> as the content. If anyone could produce that token simply by writing the string <code>&lt;|user|&gt;</code>, the structure of the conversation would be forgeable — this is one of the crudest forms of prompt injection. That is why tokenizers handle these tokens on a separate path, bypassing normal BPE splitting: the written text <code>&lt;|user|&gt;</code> falls apart into ordinary subwords, not into the special token.'
       },
       {
         id: 'tok-glitch',
         type: 'choice',
-        q: 'Egy token gyakori volt a szótárépítő korpuszban, de a modell tanítóadatából kiszűrték. Mi történik, ha valaki mégis beírja?',
+        q: 'A token was frequent in the vocabulary-building corpus but was filtered out of the model\u2019s training data. What happens if someone types it anyway?',
         options: [
-          { t: 'Az embeddingje lényegében az inicializálási zaj maradt, így a modell kiszámíthatatlanul viselkedik rá: nem tudja kimondani, félreérti, vagy irreleváns választ ad.', ok: true },
-          { t: 'A tokenizáló hibát dob, mert ismeretlen szimbólum.' },
-          { t: 'A modell a leggyakoribb tokennel helyettesíti.' },
-          { t: 'Semmi különös, csak lassabb lesz a feldolgozás.' }
+          { t: 'Its embedding stayed essentially at initialization noise, so the model behaves unpredictably: it cannot say the token, misreads it, or answers irrelevantly.', ok: true },
+          { t: 'The tokenizer throws an error, because the symbol is unknown.' },
+          { t: 'The model substitutes the most frequent token for it.' },
+          { t: 'Nothing in particular, processing is just slower.' }
         ],
-        why: 'Ezek a „glitch tokenek”; klasszikus példa a <code>SolidGoldMagikarp</code>. Ez a legvalószínűbb magyarázat a jelenségre — az egyes esetek pontos ok-lánca nem bizonyított, a viselkedés viszont reprodukálható. A tanulság általánosabb a kuriózumnál: a tokenizáló és a modell <strong>két külön tanított rendszer</strong>, külön korpusszal — ahol a kettő nem fedi egymást, ott mérhető hibaosztály keletkezik. Az „ismeretlen szimbólum” válasz azért téves, mert bájt-szintű BPE-ben ilyen nem létezhet: minden bemenet tokenizálható, a baj nem a darabolásnál, hanem az embedding-táblában van.'
+        why: 'These are the “glitch tokens”; the classic example is <code>SolidGoldMagikarp</code>. This is the most likely explanation of the phenomenon — the precise causal chain in individual cases is not established, though the behavior is reproducible. The lesson is more general than the curiosity: the tokenizer and the model are <strong>two separately trained systems</strong>, with separate corpora — and where the two fail to overlap, a measurable class of errors appears. The “unknown symbol” answer is wrong because in byte-level BPE no such thing can exist: every input can be tokenized, and the trouble is not in the splitting but in the embedding table.'
       },
       {
         id: 'tok-order',
         type: 'choice',
-        q: 'Két tokenizálót építettél ugyanazon a korpuszon, azonos szótármérettel. Az egyiknél elmentetted a merge-szabályok sorrendjét is, a másiknál csak magát a szótárat. Ugyanazt a mondatot tokenizálod mindkettővel. Mi történik?',
+        q: 'You build two tokenizers on the same corpus with the same vocabulary size. For one you also save the order of the merge rules; for the other you save only the vocabulary itself. You tokenize the same sentence with both. What happens?',
         options: [
-          { t: 'Eltérő tokensorozatot kaphatsz: a szótár önmagában nem határozza meg a darabolást, a merge-ek sorrendje teszi determinisztikussá.', ok: true },
-          { t: 'Azonos az eredmény, hiszen a szótár ugyanaz.' },
-          { t: 'A sorrend nélküli tokenizáló hibát dob.' },
-          { t: 'A sorrend nélküli mindig a leghosszabb illeszkedő tokent választja, ami mindig optimális.' }
+          { t: 'You may get different token sequences: the vocabulary alone does not determine the split — it is the order of the merges that makes it deterministic.', ok: true },
+          { t: 'The result is identical, since the vocabulary is the same.' },
+          { t: 'The one without the order throws an error.' },
+          { t: 'The one without the order always picks the longest matching token, which is always optimal.' }
         ],
-        why: 'A tokenizáló nem szótár, hanem <strong>algoritmus + sorrendezett szabálylista</strong>. Ugyanaz a karakterlánc többféleképpen is összerakható a szótár elemeiből (az <code>alma</code> lehet <code>alma</code>, de <code>al</code>+<code>ma</code> is); hogy melyik lesz, azt kizárólag az dönti el, milyen sorrendben játsszuk vissza a tanult merge-eket. Ezért nem cserélhető ki a tokenizáló egy modell alatt utólag: ugyanaz a szöveg más token-ID-kat kapna, mint amiken a modell tanult. A leghosszabb illeszkedés (greedy longest-match) létező stratégia, de nem a BPE-é.'
+        why: 'A tokenizer is not a vocabulary but <strong>an algorithm plus an ordered list of rules</strong>. The same string can be assembled from the vocabulary in several ways (<code>alma</code> could be <code>alma</code>, or <code>al</code>+<code>ma</code>); which one you get is determined solely by the order in which the learned merges are replayed. This is also why a tokenizer cannot be swapped underneath a model afterwards: the same text would receive different token IDs from the ones the model was trained on. Longest matching (greedy longest-match) is a real strategy, but it is not BPE\u2019s.'
       }
     ],
     3: [
