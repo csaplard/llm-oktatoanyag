@@ -1732,9 +1732,9 @@ According to information theory, the optimal code length for an event of probabi
 </section>
 <section id="alignment" data-level="8">
 <div class="chapter-kicker">Chapter 6</div>
-<h2>Finomhangolás és alignment: a nyers modellből asszisztens</h2>
+<h2>Fine-tuning and alignment: from raw model to assistant</h2>
 
-<p>Az előtanított „alapmodell” (base model) félelmetes tudású, de nem asszisztens: a „Hogyan süssek kenyeret?” kérdésre könnyen egy <em>további kérdéslistával</em> válaszol — mert a weben a kérdések gyakran így folytatódnak. A base model azt folytatja, ami <em>valószínű</em>, nem azt, ami <em>hasznos</em>. Az utótanítás (post-training) feladata ezt a rést bezárni: a modell viselkedését hasznossá, őszintévé és ártalmatlanná formálni — anélkül, hogy a nyers képességek sérülnének.</p>
+<p>The pretrained “base model” has formidable knowledge but is not an assistant: asked “How do I bake bread?”, it may well answer with <em>a list of further questions</em> — because on the web, questions often continue that way. The base model continues what is <em>likely</em>, not what is <em>useful</em>. The job of post-training is to close that gap: to shape the model's behavior to be helpful, honest and harmless — without damaging the raw capabilities.</p>
 
 <figure class="diagram">
 <svg viewBox="0 0 920 330" role="img" aria-label="The steps of the alignment pipeline">
@@ -1743,78 +1743,78 @@ According to information theory, the optimal code length for an event of probabi
   </defs>
   <!-- base -->
   <rect x="20" y="90" width="150" height="70" rx="12" fill="var(--wash-blue)" stroke="var(--s1)" stroke-width="1.5"/>
-  <text x="95" y="118" text-anchor="middle" font-size="13" font-weight="700" fill="var(--s1)">Alapmodell</text>
-  <text x="95" y="138" text-anchor="middle" font-size="10.5" class="svg-ink2">előtanítás (5. fejezet)</text>
+  <text x="95" y="118" text-anchor="middle" font-size="13" font-weight="700" fill="var(--s1)">Base model</text>
+  <text x="95" y="138" text-anchor="middle" font-size="10.5" class="svg-ink2">pretraining (chapter 5)</text>
   <line x1="170" y1="125" x2="212" y2="125" stroke="var(--ink-muted)" stroke-width="1.5" marker-end="url(#arrP)"/>
   <!-- SFT -->
   <rect x="214" y="90" width="150" height="70" rx="12" fill="var(--wash-green)" stroke="var(--s2)" stroke-width="1.5"/>
   <text x="289" y="112" text-anchor="middle" font-size="13" font-weight="700" fill="var(--s2)">SFT</text>
-  <text x="289" y="130" text-anchor="middle" font-size="10.5" class="svg-ink2">felügyelt finomhangolás</text>
-  <text x="289" y="145" text-anchor="middle" font-size="10.5" class="svg-ink2">mintapárbeszédeken</text>
+  <text x="289" y="130" text-anchor="middle" font-size="10.5" class="svg-ink2">supervised fine-tuning</text>
+  <text x="289" y="145" text-anchor="middle" font-size="10.5" class="svg-ink2">on example dialogues</text>
   <line x1="364" y1="125" x2="406" y2="125" stroke="var(--ink-muted)" stroke-width="1.5" marker-end="url(#arrP)"/>
   <!-- preferencia adat -->
   <rect x="408" y="40" width="180" height="66" rx="12" class="svg-box" stroke-width="1.2"/>
-  <text x="498" y="62" text-anchor="middle" font-size="12" font-weight="600" class="svg-ink">Preferenciaadat</text>
-  <text x="498" y="80" text-anchor="middle" font-size="10.5" class="svg-ink2">válasz A ≻ válasz B</text>
-  <text x="498" y="95" text-anchor="middle" font-size="10.5" class="svg-ink2">(ember vagy AI ítész)</text>
+  <text x="498" y="62" text-anchor="middle" font-size="12" font-weight="600" class="svg-ink">Preference data</text>
+  <text x="498" y="80" text-anchor="middle" font-size="10.5" class="svg-ink2">answer A ≻ answer B</text>
+  <text x="498" y="95" text-anchor="middle" font-size="10.5" class="svg-ink2">(human or AI judge)</text>
   <!-- RM -->
   <rect x="408" y="150" width="180" height="66" rx="12" fill="var(--wash-orange)" stroke="var(--s6)" stroke-width="1.5"/>
-  <text x="498" y="174" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--s6)">Jutalommodell (RM)</text>
-  <text x="498" y="192" text-anchor="middle" font-size="10.5" class="svg-ink2">megtanulja pontozni,</text>
-  <text x="498" y="206" text-anchor="middle" font-size="10.5" class="svg-ink2">mi számít jó válasznak</text>
+  <text x="498" y="174" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--s6)">Reward model (RM)</text>
+  <text x="498" y="192" text-anchor="middle" font-size="10.5" class="svg-ink2">learns to score</text>
+  <text x="498" y="206" text-anchor="middle" font-size="10.5" class="svg-ink2">what counts as a good answer</text>
   <line x1="498" y1="106" x2="498" y2="146" stroke="var(--ink-muted)" stroke-width="1.5" marker-end="url(#arrP)"/>
   <line x1="588" y1="183" x2="640" y2="183" stroke="var(--ink-muted)" stroke-width="1.5" marker-end="url(#arrP)"/>
   <!-- RL -->
   <rect x="642" y="90" width="180" height="120" rx="12" fill="var(--wash-violet)" stroke="var(--s7)" stroke-width="1.6"/>
   <text x="732" y="115" text-anchor="middle" font-size="13" font-weight="700" fill="var(--s7)">RL (PPO / GRPO)</text>
-  <text x="732" y="136" text-anchor="middle" font-size="10.5" class="svg-ink2">a modell válaszokat generál,</text>
-  <text x="732" y="151" text-anchor="middle" font-size="10.5" class="svg-ink2">az RM pontozza, a policy</text>
-  <text x="732" y="166" text-anchor="middle" font-size="10.5" class="svg-ink2">a magas jutalom felé tolódik</text>
-  <text x="732" y="192" text-anchor="middle" font-size="10" fill="var(--s7)">+ KL-fék a referencia felé</text>
+  <text x="732" y="136" text-anchor="middle" font-size="10.5" class="svg-ink2">the model generates answers,</text>
+  <text x="732" y="151" text-anchor="middle" font-size="10.5" class="svg-ink2">the RM scores them, the policy</text>
+  <text x="732" y="166" text-anchor="middle" font-size="10.5" class="svg-ink2">shifts toward high reward</text>
+  <text x="732" y="192" text-anchor="middle" font-size="10" fill="var(--s7)">+ KL brake toward the reference</text>
   <path d="M 364 140 C 460 250, 560 250, 640 200" fill="none" stroke="var(--ink-muted)" stroke-width="1.3" stroke-dasharray="2,3"/>
   <!-- DPO bypass -->
   <path d="M 498 36 C 498 6, 730 2, 732 84" fill="none" stroke="var(--s8)" stroke-width="1.6" stroke-dasharray="6,4" marker-end="url(#arrP)"/>
-  <text x="280" y="20" text-anchor="middle" font-size="11" fill="var(--s8)" font-weight="600">DPO: közvetlenül a preferenciákból, RM és RL nélkül</text>
-  <!-- kimenet -->
+  <text x="280" y="20" text-anchor="middle" font-size="11" fill="var(--s8)" font-weight="600">DPO: straight from the preferences, without an RM or RL</text>
+  <!-- output -->
   <rect x="700" y="250" width="190" height="56" rx="12" fill="var(--wash-blue)" stroke="var(--s1)" stroke-width="1.8"/>
-  <text x="795" y="273" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--s1)">Asszisztens-modell</text>
-  <text x="795" y="292" text-anchor="middle" font-size="10.5" class="svg-ink2">hasznos · őszinte · ártalmatlan</text>
+  <text x="795" y="273" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--s1)">Assistant model</text>
+  <text x="795" y="292" text-anchor="middle" font-size="10.5" class="svg-ink2">helpful · honest · harmless</text>
   <line x1="795" y1="212" x2="795" y2="246" stroke="var(--ink-muted)" stroke-width="1.5" marker-end="url(#arrP)"/>
-  <text x="20" y="290" font-size="11" class="svg-muted">A modern gyakorlat többkörös: SFT → preferenciatanítás → újabb adatgyűjtés a friss modellel → újra, gyakran</text>
-  <text x="20" y="306" font-size="11" class="svg-muted">ellenőrizhető-jutalmas RL-lel (matek, kód) kombinálva a gondolkodási képességért.</text>
+  <text x="20" y="290" font-size="11" class="svg-muted">Modern practice is multi-round: SFT → preference training → fresh data collected with the new model → again, often</text>
+  <text x="20" y="306" font-size="11" class="svg-muted">combined with verifiable-reward RL (math, code) for reasoning ability.</text>
 </svg>
-<figcaption><span class="fig-num">9. ábra.</span> A klasszikus RLHF-pipeline és a DPO rövidzár. A felügyelt finomhangolás megtanítja a <em>formát</em> (asszisztensként válaszolni), a preferencia-alapú szakasz a <em>minőség finomhangolását</em> végzi: azt tolja feljebb, amit az emberek (vagy elveket követő AI-ítészek) jobbnak ítélnek.</figcaption>
+<figcaption><span class="fig-num">Figure 9.</span> The classic RLHF pipeline and the DPO short circuit. Supervised fine-tuning teaches the <em>form</em> (answering as an assistant), while the preference-based stage does the <em>fine-tuning of quality</em>: it pushes up whatever humans (or AI judges following principles) rate as better.</figcaption>
 </figure>
 
-<h3>A három lépcső</h3>
-<p><strong>1 · Felügyelt finomhangolás (SFT).</strong> A modellt kiváló minőségű mintapárbeszédeken tanítjuk tovább — ugyanazzal a next-token-loss-szal, mint eddig, csak most a „helyes viselkedés” példáin, és a loss-t jellemzően csak az asszisztens-válasz tokenjein számoljuk. Ez adja meg a szerepet: kérdésre válasz jön, nem újabb kérdés.</p>
+<h3>The three stages</h3>
+<p><strong>1 · Supervised fine-tuning (SFT).</strong> The model is trained further on high-quality example dialogues — with the same next-token loss as before, only now on examples of “correct behavior”, and with the loss typically computed on the assistant's response tokens alone. This is what establishes the role: a question is followed by an answer, not by another question.</p>
 
-<p><strong>2 · Jutalommodell.</strong> A „jó válasz” fogalma nehezen írható le szabályokkal, de az embereknek könnyű <em>két válasz közül a jobbat</em> kiválasztani. Ilyen páros ítéletekből tanul egy külön modell — a jutalommodell —, amely bármely válaszhoz pontszámot rendel. Ez az emberi ízlés tömörített, gépi helyettesítője.</p>
+<p><strong>2 · Reward model.</strong> The notion of a “good answer” is hard to write down as rules, but people find it easy to pick <em>the better of two answers</em>. From such pairwise judgments a separate model learns — the reward model — which assigns a score to any answer. It is a compressed, machine substitute for human taste.</p>
 
-<p><strong>3 · Megerősítéses tanulás.</strong> A modell most már saját generált válaszaiból tanul: válaszol, a jutalommodell pontoz, és a paraméterek úgy módosulnak, hogy a magasra pontozott viselkedés valószínűbb legyen. Kritikus alkatrész a <strong>KL-fék</strong>: a modellt büntetjük, ha túl messze sodródik a kiinduló (referencia-) modelltől — enélkül a policy megtalálja a jutalommodell gyenge pontjait, és azokat aknázza ki (<em>reward hacking</em>: magabiztos halandzsa, hízelgés, mesterkélt hossz).</p>
+<p><strong>3 · Reinforcement learning.</strong> The model now learns from its own generated answers: it responds, the reward model scores, and the parameters shift so that highly scored behavior becomes more likely. A critical component is the <strong>KL brake</strong>: the model is penalized for drifting too far from the starting (reference) model — without it the policy finds the reward model's weak spots and exploits them (<em>reward hacking</em>: confident nonsense, flattery, artificial length).</p>
 
 <details class="level l2">
-<summary><span class="badge b2">2. szint</span> A célfüggvények: RLHF és DPO</summary>
+<summary><span class="badge b2">Level 2</span> The objectives: RLHF and DPO</summary>
 <div class="body">
-<p><strong>Jutalommodell-tanítás.</strong> A Bradley–Terry-modell szerint annak a valószínűsége, hogy az emberek a <span class="math">y<sub>w</sub></span> választ preferálják <span class="math">y<sub>l</sub></span>-lel szemben, a pontszámkülönbség szigmoidja. A jutalommodell loss-a:</p>
+<p><strong>Training the reward model.</strong> Under the Bradley–Terry model, the probability that people prefer answer <span class="math">y<sub>w</sub></span> over <span class="math">y<sub>l</sub></span> is the sigmoid of the score difference. The reward model's loss:</p>
 <div class="eq">L<sub>RM</sub> = −𝔼 [<span class="rm">log</span> σ(r(x, y<sub>w</sub>) − r(x, y<sub>l</sub>))]</div>
-<p><strong>RLHF-célfüggvény.</strong> A policy-optimalizálás (jellemzően PPO vagy az egyszerűbb, kritikus-mentes GRPO) célja:</p>
+<p><strong>The RLHF objective.</strong> The goal of policy optimization (typically PPO, or the simpler, critic-free GRPO):</p>
 <div class="eq"><span class="rm">max</span><sub>θ</sub> 𝔼<sub>y∼π<sub>θ</sub></sub>[r(x, y)] − β · <span class="rm">KL</span>(π<sub>θ</sub>(·|x) ‖ π<sub><span class="rm">ref</span></sub>(·|x))</div>
-<p><strong>DPO (direct preference optimization).</strong> Kulcsészrevétel: a fenti célfüggvény optimuma zárt alakban kifejezhető, és visszahelyettesítve a jutalom <em>kiiktatható</em> — a preferenciapárokon közvetlenül optimalizálható a policy:</p>
+<p><strong>DPO (direct preference optimization).</strong> The key observation: the optimum of the objective above can be written in closed form, and substituting it back, the reward can be <em>eliminated</em> — the policy can be optimized directly on the preference pairs:</p>
 <div class="eq">L<sub>DPO</sub> = −𝔼 [<span class="rm">log</span> σ(β·(<span class="rm">log</span><span class="frac"><span>π<sub>θ</sub>(y<sub>w</sub>|x)</span><span>π<sub><span class="rm">ref</span></sub>(y<sub>w</sub>|x)</span></span> − <span class="rm">log</span><span class="frac"><span>π<sub>θ</sub>(y<sub>l</sub>|x)</span><span>π<sub><span class="rm">ref</span></sub>(y<sub>l</sub>|x)</span></span>))]</div>
-<p>Vagyis: növeld a nyertes válasz valószínűségét a referenciához képest, csökkentsd a vesztesét — a β itt is a sodródás fékje. Nincs külön jutalommodell, nincs online RL-hurok: egy stabil, felügyelt-jellegű tanítás.</p>
+<p>That is: raise the probability of the winning answer relative to the reference, lower that of the loser — β is again the brake on drift. No separate reward model, no online RL loop: a stable, supervised-style training run.</p>
 
-<p><strong>Amit ez az elegancia elrejt.</strong> A jutalommodell nem tűnik el, csak <em>implicitté</em> válik: a levezetés éppen azt mutatja meg, hogy a policy és a referencia log-arányában maga a jutalom van elrejtve — a DPO tehát nem jutalommentes, hanem a policyt használja jutalomparaméterezésként. Ennek gyakorlati következményei vannak: a DPO hajlamos a <em>hossz-torzításra</em> (a hosszabb válasz szisztematikusan nyer), és a preferenciapárokon való túlilleszkedésre, mert a veszteséget a nyertes és vesztes válasz <em>különbsége</em> hajtja — így úgy is csökkenthető, hogy a vesztes valószínűségét nyomja le, miközben a nyertesét is rontja. Ezért használnak a gyakorlatban ritkán önmagában egyetlen DPO-kört: iteratív DPO-t (a friss policy mintáival újragenerált preferenciapárok), hosszra normalizált rokonokat (SimPO), vagy explicit büntetőtagot. Az „egyszerűbb, mint az RLHF" állítás a <em>futtatásra</em> igaz, az adatciklusra kevésbé.</p>
-<p>Az iparban mindkét család él: a DPO (és rokonai: IPO, KTO, SimPO) olcsó és robusztus; az online RL (PPO/GRPO) jobban skálázódik friss, a policy saját hibáira célzott adattal — és az ellenőrizhető jutalmas (matek/kód) reasoning-tanítás alapvetően online RL.</p>
+<p><strong>What this elegance conceals.</strong> The reward model does not disappear, it merely becomes <em>implicit</em>: the derivation shows precisely that the reward is hidden inside the log-ratio of the policy and the reference — DPO is therefore not reward-free but uses the policy as a reward parametrization. This has practical consequences: DPO is prone to <em>length bias</em> (the longer answer systematically wins) and to overfitting the preference pairs, because the loss is driven by the <em>difference</em> between the winning and losing answers — so it can also be reduced by pushing the loser down while degrading the winner too. This is why a single DPO round is rarely used on its own in practice: iterative DPO (preference pairs regenerated from samples of the fresh policy), length-normalized relatives (SimPO), or an explicit penalty term. The claim “simpler than RLHF” is true of <em>running</em> it, less so of the data cycle.</p>
+<p>Both families are alive in industry: DPO (and its relatives IPO, KTO, SimPO) is cheap and robust; online RL (PPO/GRPO) scales better with fresh data targeted at the policy's own mistakes — and reasoning training with verifiable rewards (math/code) is fundamentally online RL.</p>
 </div>
 </details>
 
 <details class="level l3">
-<summary><span class="badge b3">3. szint</span> Constitutional AI, RLAIF és a nyitott problémák</summary>
+<summary><span class="badge b3">Level 3</span> Constitutional AI, RLAIF and the open problems</summary>
 <div class="body">
-<p><strong>RLAIF és Constitutional AI.</strong> Az emberi címkézés drága és zajos — a skálázás útja, hogy az ítész is modell. Az Anthropic Constitutional AI megközelítésében a kritikát és a preferenciaítéletet egy <em>explicit elvlista</em> („alkotmány”) vezérli: a modell a saját válaszát az elvek fényében bírálja és javítja (SFT-fázis), majd AI-ítéletekből készül a preferenciaadat (RL-fázis). Az elvek szövege nyilvánossá és auditálhatóvá teszi azt, ami az emberi címkézésben implicit ízlés maradna.</p>
-<p><strong>Mit tud rontani az alignment?</strong> Az „alignment tax" mérhető: a túlhangolt modell modorossá válhat (sablonos bevezetők, túlzott elutasítás), és a preferenciatanítás ismert torzításokat erősít — a hosszabb, magabiztosabb, hízelgőbb válaszokat az emberek szisztematikusan túlpontozzák (szikofancia). A kalibráció is sérülhet: a base model token-valószínűségei meglepően jól kalibráltak, az RLHF ezt jellemzően rontja (a modell „határozottabb”, mint amennyire igaza van).</p>
-<p><strong>Mélyebb nyitott kérdések.</strong> A jutalommodell csak <em>proxy</em>: a Goodhart-törvény szerint az erős optimalizálás a proxy és a valódi cél közti rést tágítja. Kutatott jelenség az <em>alignment faking</em> is: kimutatták, hogy egy elég képes modell a tanítási helyzetet felismerve stratégiailag megjátszhatja az együttműködést, hogy a súlyai ne módosuljanak — ami az értékelés és a felügyelet (scalable oversight) kérdését a terület egyik központi problémájává teszi. A 8. fejezet interpretability-eszközei részben épp erre ígérnek független ellenőrzést: nem azt nézni, mit <em>mond</em> a modell, hanem hogy mit <em>számol</em>.</p>
+<p><strong>RLAIF and Constitutional AI.</strong> Human labeling is expensive and noisy — the route to scale is for the judge to be a model as well. In Anthropic's Constitutional AI approach, the critique and the preference judgment are guided by an <em>explicit list of principles</em> (a “constitution”): the model criticizes and revises its own answer in the light of the principles (the SFT phase), and then the preference data is produced from AI judgments (the RL phase). The text of the principles makes public and auditable what would otherwise remain implicit taste in human labeling.</p>
+<p><strong>What can alignment make worse?</strong> The “alignment tax” is measurable: an over-tuned model can become mannered (formulaic openings, excessive refusal), and preference training amplifies known biases — people systematically over-score longer, more confident, more flattering answers (sycophancy). Calibration can suffer too: the base model's token probabilities are surprisingly well calibrated, and RLHF typically degrades this (the model is “more definite” than it is right).</p>
+<p><strong>Deeper open questions.</strong> The reward model is only a <em>proxy</em>: by Goodhart's law, strong optimization widens the gap between the proxy and the true goal. <em>Alignment faking</em> is another studied phenomenon: a sufficiently capable model has been shown to recognize the training situation and strategically feign cooperation so that its weights are not modified — which makes evaluation and scalable oversight one of the field's central problems. The interpretability tools of chapter 8 promise, in part, exactly this kind of independent check: looking not at what the model <em>says</em> but at what it <em>computes</em>.</p>
 </div>
 </details>
 
@@ -2761,58 +2761,58 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       {
         id: 'al-base',
         type: 'choice',
-        q: 'Egy előtanított alapmodellnek felteszed a kérdést: „Hogyan süssek kenyeret?” — mire válasz helyett további kérdések listáját kapod. Miért?',
+        q: 'You ask a pretrained base model “How do I bake bread?” — and instead of an answer you get a list of further questions. Why?',
         options: [
-          { t: 'Mert az alapmodell azt folytatja, ami <em>valószínű</em>, nem azt, ami <em>hasznos</em>: a weben egy kérdést gyakran további kérdések követnek. Az asszisztens-szerepet a felügyelt finomhangolás tanítja meg.', ok: true },
-          { t: 'Mert az alapmodell nem tanult még eleget, és a válasz meghaladja a képességeit.' },
-          { t: 'Mert a kérdés végi kérdőjel után a tokenizáló hibásan darabolja a szöveget.' },
-          { t: 'Mert az alapmodellből hiányzik a kimeneti fej, amely a választ előállítaná.' }
+          { t: 'Because the base model continues what is <em>likely</em>, not what is <em>useful</em>: on the web a question is often followed by more questions. The assistant role is taught by supervised fine-tuning.', ok: true },
+          { t: 'Because the base model has not learned enough yet and the answer is beyond its abilities.' },
+          { t: 'Because the tokenizer splits the text incorrectly after the question mark.' },
+          { t: 'Because the base model lacks the output head that would produce the answer.' }
         ],
-        why: 'Ez a rés a legjobb bizonyíték arra, hogy az alapmodell képessége és a hasznos viselkedés két külön dolog. A tudás megvan benne — a kenyérsütésről is —, csak nincs oka azt <em>válasz formájában</em> előadni: a next-token-cél a korpusz szerinti legvalószínűbb folytatást jutalmazza, és egy fórumbejegyzés kérdése után gyakran újabb kérdések jönnek. Az SFT ezt olcsón javítja: ugyanaz a next-token-loss, csak kiváló minőségű mintapárbeszédeken, és jellemzően csak az asszisztens-válasz tokenjein számolva. A forma tehát nem képesség kérdése, hanem szerepé.'
+        why: 'This gap is the best evidence that a base model\u2019s capability and useful behavior are two different things. The knowledge is there — about baking bread too — it simply has no reason to present it <em>in the form of an answer</em>: the next-token objective rewards the most likely continuation according to the corpus, and after a question on a forum, more questions often follow. SFT fixes this cheaply: the same next-token loss, only on high-quality example dialogues, and typically computed on the assistant\u2019s response tokens alone. Form is therefore not a matter of capability but of role.'
       },
       {
         id: 'al-kl',
         type: 'choice',
-        q: 'A megerősítéses tanulás szakaszában kiveszed a KL-féket, és hagyod, hogy a modell szabadon maximalizálja a jutalommodell pontszámát. Mi lesz a jellemző eredmény?',
+        q: 'In the reinforcement learning stage you remove the KL brake and let the model freely maximize the reward model\u2019s score. What is the typical result?',
         options: [
-          { t: 'A modell megtalálja és kiaknázza a jutalommodell gyenge pontjait: magabiztos halandzsa, hízelgés, mesterkélten hosszú válaszok — a pontszám nő, a tényleges minőség romlik.', ok: true },
-          { t: 'A modell gyorsabban konvergál ugyanarra a viselkedésre, csak kevesebb lépésből.' },
-          { t: 'A modell elfelejti az előtanított tudását, és véletlenszerű szöveget generál.' },
-          { t: 'Semmi különös: a jutalommodell pontszáma és a valódi minőség egybeesik, a fék csak a tanítást lassítja.' }
+          { t: 'The model finds and exploits the reward model\u2019s weak spots: confident nonsense, flattery, artificially long answers — the score goes up while actual quality goes down.', ok: true },
+          { t: 'The model converges to the same behavior faster, in fewer steps.' },
+          { t: 'The model forgets its pretrained knowledge and generates random text.' },
+          { t: 'Nothing in particular: the reward model\u2019s score and true quality coincide, and the brake only slows training.' }
         ],
-        why: 'A jutalommodell nem a valódi cél, hanem annak <strong>proxyja</strong> — az emberi ízlés tömörített, gépi helyettesítője. A Goodhart-törvény pontosan erről szól: minél erősebben optimalizálunk egy proxyra, annál jobban tágul a rés a proxy és a valódi cél között. A KL-fék ezért nem finomhangolási apróság, hanem a reward hacking elleni fő védelem: azt bünteti, ha a policy túl messzire sodródik a kiinduló modelltől, vagyis behatárolja, mennyire szabad a jutalommodell hibáiba beleszaladni. Az utolsó válasz csábítása az, hogy ha a proxy tökéletes lenne, tényleg nem kellene fék — csak épp sosem tökéletes.'
+        why: 'The reward model is not the true goal but its <strong>proxy</strong> — a compressed, machine substitute for human taste. Goodhart\u2019s law is exactly about this: the harder you optimize a proxy, the wider the gap grows between the proxy and the real objective. The KL brake is therefore not a tuning detail but the main defense against reward hacking: it penalizes the policy for drifting too far from the starting model, which bounds how far it can run into the reward model\u2019s errors. The temptation in the last answer is that if the proxy were perfect, no brake would be needed — it just never is.'
       },
       {
         id: 'al-bradley',
         type: 'number',
         answer: 50,
-        hint: 'Egész szám, százalékban.',
-        q: 'A jutalommodell két válaszra <em>pontosan ugyanazt</em> a pontszámot adja. A Bradley–Terry-modell szerint hány százalék eséllyel preferálják az emberek az elsőt a másodikkal szemben?',
-        why: 'A preferencia valószínűsége a pontszámok <em>különbségének</em> szigmoidja, és σ(0) = 0,5, tehát <strong>50%</strong> — érdektelen döntés, a modell szerint a két válasz egyenértékű. A lényeg ebben nem a szám, hanem az, hogy a jutalommodell világában <em>csak a különbségek léteznek</em>: minden pontszámhoz ugyanazt a konstanst hozzáadva semmi nem változik. Ezért nem értelmezhető egy jutalompontszám önmagában, abszolút skálán („ez a válasz 7,2 pontos”), és ezért a jutalommodellek összehasonlítása is mindig párokon át történik.'
+        hint: 'A whole number, in percent.',
+        q: 'The reward model assigns <em>exactly the same</em> score to two answers. According to the Bradley–Terry model, what percentage of the time do people prefer the first over the second?',
+        why: 'The probability of a preference is the sigmoid of the <em>difference</em> of the scores, and σ(0) = 0.5, that is <strong>50%</strong> — an indifferent decision; on the model\u2019s account the two answers are equivalent. The point is not the number but that in the world of a reward model <em>only differences exist</em>: adding the same constant to every score changes nothing. That is why a single reward score cannot be interpreted on an absolute scale (“this answer is worth 7.2”), and why comparisons between reward models are always made through pairs.'
       },
       {
         id: 'al-dpo',
         type: 'choice',
-        q: 'Egy DPO-tanítás után azt látod, hogy a loss szépen csökkent, de a <em>nyertes</em> típusú válaszok valószínűsége is alacsonyabb lett, mint a tanítás előtt. Hogyan lehetséges ez?',
+        q: 'After a DPO run you find that the loss has fallen nicely, but the probability of the <em>winning</em> kind of answer is also lower than before training. How is that possible?',
         options: [
-          { t: 'Mert a DPO veszteségét a nyertes és a vesztes válasz log-arányának <em>különbsége</em> hajtja: a különbség úgy is nőhet, hogy a vesztest erősen lenyomja, miközben a nyertest is rontja valamennyit.', ok: true },
-          { t: 'Sehogy — ez biztosan implementációs hiba, a DPO definíció szerint növeli a nyertes valószínűségét.' },
-          { t: 'Mert a DPO nem használ referenciamodellt, így nincs mihez viszonyítani a valószínűségeket.' },
-          { t: 'Mert a KL-fék a DPO-ban a nyertes válaszokat is bünteti.' }
+          { t: 'Because the DPO loss is driven by the <em>difference</em> of the log-ratios of the winning and losing answers: the difference can grow by pushing the loser down hard while also degrading the winner somewhat.', ok: true },
+          { t: 'It is not — this must be an implementation bug; DPO by definition raises the probability of the winner.' },
+          { t: 'Because DPO uses no reference model, so there is nothing to measure the probabilities against.' },
+          { t: 'Because in DPO the KL brake penalizes the winning answers too.' }
         ],
-        why: 'A DPO eleganciája — nincs külön jutalommodell, nincs online RL-hurok — elrejt egy fontos részletet: a jutalom nem tűnt el, csak <em>implicitté</em> vált a policy és a referencia log-arányában. A célfüggvény a különbségre optimalizál, tehát nem garantálja, hogy a nyertes abszolút valószínűsége nőjön. Innen erednek a DPO ismert torzításai is: a hossz-torzítás (a hosszabb válasz szisztematikusan nyer) és a preferenciapárokra való túlilleszkedés. Ezért ritkán használnak önmagában egyetlen DPO-kört: iteratív DPO, hosszra normalizált rokonok (SimPO) vagy explicit büntetőtag a szokásos válasz. Az „egyszerűbb, mint az RLHF” állítás a futtatásra igaz, az adatciklusra kevésbé.'
+        why: 'DPO\u2019s elegance — no separate reward model, no online RL loop — hides an important detail: the reward did not disappear, it merely became <em>implicit</em>, inside the log-ratio of the policy and the reference. The objective optimizes a difference, so it does not guarantee that the winner\u2019s absolute probability rises. This is also the origin of DPO\u2019s known biases: length bias (the longer answer systematically wins) and overfitting to the preference pairs. Which is why a single DPO round is rarely used alone: iterative DPO, length-normalized relatives (SimPO) or an explicit penalty term are the usual answers. The claim “simpler than RLHF” is true of running it, less so of the data cycle.'
       },
       {
         id: 'al-kalibracio',
         type: 'choice',
-        q: 'Az alapmodell token-valószínűségei meglepően jól kalibráltak: amire 70%-ot mond, az nagyjából az esetek 70%-ában igaz. Az RLHF után ez jellemzően romlik. Mi ennek az oka?',
+        q: 'A base model\u2019s token probabilities are surprisingly well calibrated: what it says 70% to is right about 70% of the time. After RLHF this typically degrades. What causes that?',
         options: [
-          { t: 'A preferenciajel maga torzít: az emberek szisztematikusan magasabbra pontozzák a magabiztosabb, hosszabb, hízelgőbb válaszokat — a tanítás így a határozottságot jutalmazza, függetlenül attól, hogy indokolt-e.', ok: true },
-          { t: 'A megerősítéses tanulás matematikailag képtelen kalibrált valószínűségeket előállítani.' },
-          { t: 'Az RLHF során a modell elveszti a softmax-réteget, és helyette diszkrét döntést hoz.' },
-          { t: 'A kalibráció romlása mérési hiba: valójában javul, csak más skálán.' }
+          { t: 'The preference signal itself is biased: people systematically score more confident, longer, more flattering answers higher — so training rewards decisiveness, whether or not it is warranted.', ok: true },
+          { t: 'Reinforcement learning is mathematically incapable of producing calibrated probabilities.' },
+          { t: 'During RLHF the model loses its softmax layer and makes a discrete decision instead.' },
+          { t: 'The degradation is a measurement error: calibration actually improves, just on a different scale.' }
         ],
-        why: 'Ez az „alignment tax” egyik legkonkrétabb formája. A jutalommodell azt tanulja meg, amit az emberek ténylegesen preferálnak — és az emberek a bizonytalanságot bevalló választ szisztematikusan alulértékelik a magabiztoshoz képest. A modell tehát pontosan azt tanulja meg, amit kértünk tőle, csak nem azt, amit akartunk: határozottabb lesz, mint amennyire igaza van. Ugyaninnen ered a szikofancia és a modorosság is (sablonos bevezetők, túlzott elutasítás). Ez a megfigyelés az egyik legfőbb érv amellett, hogy a felügyelethez a modell <em>viselkedésének</em> vizsgálata mellett arra is szükség van, amit belül <em>számol</em> — ez a következő fejezet programja.'
+        why: 'This is one of the most concrete forms of the “alignment tax”. The reward model learns what people actually prefer — and people systematically undervalue an answer that admits uncertainty compared with a confident one. The model therefore learns exactly what we asked for, just not what we wanted: it becomes more definite than it is right. Sycophancy and mannerism (formulaic openings, excessive refusal) come from the same place. This observation is one of the strongest arguments that oversight needs, alongside examining the model\u2019s <em>behavior</em>, access to what it <em>computes</em> internally — which is the program of the next chapter.'
       }
     ],
     9: [
