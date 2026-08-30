@@ -1906,19 +1906,19 @@ According to information theory, the optimal code length for an event of probabi
 </section>
 <section id="interpretability" data-level="10">
 <div class="chapter-kicker">Chapter 8</div>
-<h2>Mechanistic interpretability: mi történik odabent?</h2>
+<h2>Mechanistic interpretability: what happens inside?</h2>
 
-<h3 id="mi-program">8.1 · A visszafejtés programja</h3>
+<h3 id="mi-program">8.1 · The reverse-engineering program</h3>
 
-<p>Az eddigi fejezetek megadták, <em>hogyan számol</em> a modell — de nem azt, hogy <em>mit</em>. A súlyok tanultak, nem tervezettek: senki nem írta elő, melyik neuron mit jelentsen. A <strong>mechanistic interpretability</strong> (mech interp) kutatási programja az, hogy a betanított hálót <em>visszafejtsük</em>, mint egy ismeretlen gépet: azonosítsuk a belső változóit (<strong>feature</strong>-öket) és az őket összekötő algoritmusokat (<strong>circuit</strong>-öket, áramköröket). A tét nem csak tudományos kíváncsiság: ha látjuk, mit számol a modell, akkor a viselkedését nem csak kívülről, teszteléssel, hanem belülről is auditálhatjuk — megkülönböztethetjük például az őszinte választ a stratégiai megfeleléstől (6. fejezet), és megérthetjük a hibák okát a tünetek helyett.</p>
+<p>The previous chapters told us <em>how</em> the model computes — but not <em>what</em>. The weights are learned, not designed: nobody prescribed what any given neuron should mean. The research program of <strong>mechanistic interpretability</strong> (mech interp) is to <em>reverse-engineer</em> the trained network as though it were an unknown machine: to identify its internal variables (<strong>features</strong>) and the algorithms that connect them (<strong>circuits</strong>). The stakes are not merely scientific curiosity: if we can see what the model computes, we can audit its behavior from the inside as well as from the outside by testing — we could, for instance, distinguish an honest answer from strategic compliance (chapter 6), and understand the causes of errors rather than their symptoms.</p>
 
-<h3 id="mi-residual">8.2 · A residual stream nézet és a logit lens</h3>
-<p>A visszafejtés természetes koordinátarendszere a 4.2-ben megismert residual stream. Minden komponens — embedding, attention-fejek, MLP-k — <em>ugyanabba a közös vektortérbe ír</em>, additívan; a kimeneti logitok pedig ennek az összegnek a lineáris leképezései. Ebből két azonnali, gyakorlati eszköz esik ki. A <strong>direkt logit-attribúció</strong>: mivel minden komponens hozzájárulása egy összeg tagja, komponensenként kiszámolható, ki mennyivel tolta a „Párizs” logitot felfelé. És a <strong>logit lens</strong>: a stream <em>köztes</em> állapotát bármely réteg után átvezethetjük az unembeddingen — így rétegről rétegre nézhetjük, mivé „gondolja épp” a modell a folytatást. A tipikus kép: a korai rétegek még a felszíni tokenvilágban dolgoznak, a középső rétegekben áll össze a szemantika (és gyakran már a helyes válasz), a késeiek a megfogalmazást élesítik.</p>
+<h3 id="mi-residual">8.2 · The residual stream view and the logit lens</h3>
+<p>The natural coordinate system for reverse engineering is the residual stream from 4.2. Every component — the embedding, the attention heads, the MLPs — <em>writes into the same shared vector space</em>, additively; and the output logits are linear maps of that sum. Two immediate, practical tools fall out of this. <strong>Direct logit attribution</strong>: since every component's contribution is a term of a sum, it can be computed component by component how much each pushed the “Paris” logit up. And the <strong>logit lens</strong>: the <em>intermediate</em> state of the stream can be passed through the unembedding after any layer — so we can watch, layer by layer, what the model currently “thinks” the continuation is. The typical picture: early layers still work in the surface world of tokens, the semantics come together in the middle layers (often along with the correct answer), and the late layers sharpen the phrasing.</p>
 
-<p><strong>Fontos korlát:</strong> a nyers logit lens könnyen félrevezet. A korai rétegek reprezentációi még nem az unembedding terében „laknak" — a <b>W</b><sub>U</sub> mátrix közvetlen alkalmazása rájuk gyakran értelmezhetetlen zajt vagy szisztematikusan torzított jóslatot ad, és modellcsaládonként erősen eltér, hogy meddig használható. Ezért fejlesztették ki a <strong>tuned lens</strong> változatot: rétegenként tanítanak egy affin transzformációt, amely a köztes állapotot a kimeneti térbe illeszti, mielőtt az unembedding jönne. Ez lényegesen simább és megbízhatóbb rétegpályát ad. A logit lenst tehát <em>gyors, olcsó szondaként</em> érdemes kezelni, nem mérőműszerként — és minden belőle levont következtetést oksági beavatkozással (8.6) kell megerősíteni.</p>
+<p><strong>An important limitation:</strong> the raw logit lens easily misleads. The representations of early layers do not yet “live” in the space of the unembedding — applying the matrix <b>W</b><sub>U</sub> to them directly often yields uninterpretable noise or a systematically distorted prediction, and how far it remains usable varies strongly by model family. This is why the <strong>tuned lens</strong> variant was developed: an affine transformation is trained per layer to fit the intermediate state into the output space before the unembedding is applied. This gives a substantially smoother and more reliable layer trajectory. The logit lens is therefore best treated as a <em>fast, cheap probe</em> rather than a measuring instrument — and every conclusion drawn from it should be confirmed by causal intervention (8.6).</p>
 
-<h3 id="induction">8.3 · Induction headek: az első megértett áramkör</h3>
-<p>A legszebb tankönyvi példa arra, hogy a „circuit” nem metafora. A jelenség: minden transzformer megtanul egy egyszerű, de mindenütt hasznos algoritmust — <em>„ha az [A][B] minta korábban előfordult, és most megint [A]-t látok, jósoljak [B]-t”</em>. Ezt egy <strong>két fejből álló, két rétegen átívelő áramkör</strong> valósítja meg: egy korábbi rétegbeli <em>előző-token-fej</em> minden pozícióra rámásolja az őt megelőző token azonosítóját; erre építve egy későbbi rétegbeli <em>induction head</em> query-je az aktuális [A] tokennel megkeresi azt a pozíciót, amelynek „előző tokenje A volt” — vagyis a korábbi [B]-t —, és a talált token tartalmát a kimenet felé továbbítja. Két tanult fej kompozíciója = egy keresés-és-másolás algoritmus.</p>
+<h3 id="induction">8.3 · Induction heads: the first circuit we understood</h3>
+<p>The finest textbook example that “circuit” is not a metaphor. The phenomenon: every transformer learns a simple but universally useful algorithm — <em>“if the pattern [A][B] occurred earlier and I now see [A] again, predict [B]”</em>. It is implemented by a <strong>circuit of two heads spanning two layers</strong>: a <em>previous-token head</em> in an earlier layer copies onto every position the identity of the token preceding it; building on that, the query of an <em>induction head</em> in a later layer uses the current [A] token to find the position whose “previous token was A” — that is, the earlier [B] — and forwards the content of the token it found toward the output. The composition of two learned heads = a search-and-copy algorithm.</p>
 
 <figure class="diagram">
 <svg viewBox="0 0 920 330" role="img" aria-label="The induction head circuit">
@@ -1926,42 +1926,42 @@ According to information theory, the optimal code length for an event of probabi
     <marker id="arrI" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--s7)"/></marker>
     <marker id="arrI2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--s2)"/></marker>
   </defs>
-  <text x="20" y="26" font-size="13" font-weight="700" class="svg-ink">Induction-áramkör: „… Kovács Anna … Kovács → ?”</text>
+  <text x="20" y="26" font-size="13" font-weight="700" class="svg-ink">Induction circuit: “… Anna Smith … Anna → ?”</text>
   <!-- tokensor -->
   <g font-size="12">
     <g transform="translate(40,60)">
       <rect width="70" height="32" rx="8" class="svg-box"/><text x="35" y="21" text-anchor="middle" class="svg-ink2">…</text>
-      <rect x="78" width="90" height="32" rx="8" fill="var(--wash-blue)" stroke="var(--s1)" stroke-width="1.5"/><text x="123" y="21" text-anchor="middle" class="svg-ink">Kovács</text>
-      <rect x="176" width="80" height="32" rx="8" fill="var(--wash-orange)" stroke="var(--s6)" stroke-width="1.5"/><text x="216" y="21" text-anchor="middle" class="svg-ink">Anna</text>
+      <rect x="78" width="90" height="32" rx="8" fill="var(--wash-blue)" stroke="var(--s1)" stroke-width="1.5"/><text x="123" y="21" text-anchor="middle" class="svg-ink">Anna</text>
+      <rect x="176" width="80" height="32" rx="8" fill="var(--wash-orange)" stroke="var(--s6)" stroke-width="1.5"/><text x="216" y="21" text-anchor="middle" class="svg-ink">Smith</text>
       <rect x="264" width="70" height="32" rx="8" class="svg-box"/><text x="299" y="21" text-anchor="middle" class="svg-ink2">…</text>
       <rect x="342" width="70" height="32" rx="8" class="svg-box"/><text x="377" y="21" text-anchor="middle" class="svg-ink2">…</text>
-      <rect x="420" width="90" height="32" rx="8" fill="var(--wash-blue)" stroke="var(--s1)" stroke-width="1.5"/><text x="465" y="21" text-anchor="middle" class="svg-ink">Kovács</text>
+      <rect x="420" width="90" height="32" rx="8" fill="var(--wash-blue)" stroke="var(--s1)" stroke-width="1.5"/><text x="465" y="21" text-anchor="middle" class="svg-ink">Anna</text>
       <rect x="518" width="70" height="32" rx="8" fill="none" stroke="var(--baseline)" stroke-dasharray="4,3"/><text x="553" y="21" text-anchor="middle" class="svg-muted">?</text>
     </g>
   </g>
-  <!-- 1. fej -->
+  <!-- head 1 -->
   <g>
     <path d="M 163 96 C 190 130, 230 130, 252 100" fill="none" stroke="var(--s2)" stroke-width="1.8" marker-end="url(#arrI2)"/>
-    <text x="150" y="140" font-size="11.5" fill="var(--s2)" font-weight="600">1. fej (korai réteg): előző-token-fej</text>
-    <text x="150" y="156" font-size="11" class="svg-ink2">az „Anna” pozíciójára rámásolja: „előttem Kovács állt”</text>
+    <text x="150" y="140" font-size="11.5" fill="var(--s2)" font-weight="600">Head 1 (early layer): previous-token head</text>
+    <text x="150" y="156" font-size="11" class="svg-ink2">copies onto the position of “Smith”: “Anna came before me”</text>
   </g>
-  <!-- annotált Anna -->
+  <!-- annotated token -->
   <rect x="216" y="180" width="180" height="34" rx="8" fill="var(--wash-green)" stroke="var(--s2)" stroke-width="1.2"/>
-  <text x="306" y="202" text-anchor="middle" font-size="11" class="svg-ink">Anna ⟨+ „prev = Kovács”⟩</text>
-  <!-- 2. fej -->
+  <text x="306" y="202" text-anchor="middle" font-size="11" class="svg-ink">Smith ⟨+ “prev = Anna”⟩</text>
+  <!-- head 2 -->
   <g>
     <path d="M 505 96 C 460 200, 380 216, 330 214" fill="none" stroke="var(--s7)" stroke-width="1.9" marker-end="url(#arrI)"/>
-    <text x="480" y="180" font-size="11.5" fill="var(--s7)" font-weight="600">2. fej (későbbi réteg): induction head</text>
-    <text x="480" y="196" font-size="11" class="svg-ink2">query: „hol van olyan pozíció,</text>
-    <text x="480" y="211" font-size="11" class="svg-ink2">amelynek előző tokenje Kovács?”</text>
+    <text x="480" y="180" font-size="11.5" fill="var(--s7)" font-weight="600">Head 2 (later layer): induction head</text>
+    <text x="480" y="196" font-size="11" class="svg-ink2">query: “where is a position</text>
+    <text x="480" y="211" font-size="11" class="svg-ink2">whose previous token is Anna?”</text>
   </g>
-  <!-- másolás a kimenetbe -->
+  <!-- copy into the output -->
   <path d="M 350 214 C 480 260, 545 200, 553 100" fill="none" stroke="var(--s6)" stroke-width="1.8" stroke-dasharray="6,4" marker-end="url(#arrI)"/>
-  <text x="480" y="262" font-size="11.5" fill="var(--s6)" font-weight="600">OV-kör: a talált token („Anna”) másolása a jóslatba</text>
-  <text x="20" y="300" font-size="11" class="svg-muted">Az áramkör tetszőleges tokenpárra működik — nem „Kovács Annát” tanulta meg, hanem a mintaismétlés absztrakt műveletét. Ez az in-context</text>
-  <text x="20" y="316" font-size="11" class="svg-muted">learning egyik alapmechanizmusa: a tanítás közben hirtelen, fázisátmenetszerűen alakul ki, és megjelenése a loss-görbén is látszik.</text>
+  <text x="480" y="262" font-size="11.5" fill="var(--s6)" font-weight="600">OV circuit: copying the found token (“Smith”) into the prediction</text>
+  <text x="20" y="300" font-size="11" class="svg-muted">The circuit works for any pair of tokens — it did not learn “Anna Smith” but the abstract operation of pattern repetition. This is one of the</text>
+  <text x="20" y="316" font-size="11" class="svg-muted">base mechanisms of in-context learning: it forms abruptly during training, like a phase transition, and its arrival is visible on the loss curve.</text>
 </svg>
-<figcaption><span class="fig-num">11. ábra.</span> Az induction-áramkör két fej kompozíciója. Az előző-token-fej minden pozícióhoz odaírja a streambe az előtte álló token azonosítóját; az induction head ezt az annotációt keresi meg a jelenlegi tokennel (QK-kör), és a találat <em>következő</em> tokenjét másolja a kimenetbe (OV-kör). Tankönyvi tisztaságú példa arra, hogy tanult súlyokban felismerhető, emberi fogalmakkal leírható algoritmus él.</figcaption>
+<figcaption><span class="fig-num">Figure 11.</span> The induction circuit as a composition of two heads. The previous-token head writes into the stream, at every position, the identity of the token in front of it; the induction head looks for that annotation using the current token (the QK circuit) and copies the token <em>following</em> the match into the output (the OV circuit). A textbook-clean example that a recognizable algorithm, describable in human terms, lives in learned weights.</figcaption>
 </figure>
 
 <div class="quiz" id="quiz-10" data-level="10">
@@ -2877,58 +2877,58 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       {
         id: 'mi-attribucio',
         type: 'choice',
-        q: 'Egy kutató kiszámolja, hogy a 17. réteg 3. attention-feje mennyivel tolta felfelé a „Párizs” logitot. Mi teszi ezt a komponensenkénti elszámolást egyáltalán lehetővé?',
+        q: 'A researcher computes how much head 3 in layer 17 pushed up the “Paris” logit. What makes this component-by-component accounting possible at all?',
         options: [
-          { t: 'Hogy minden komponens ugyanabba a közös vektortérbe ír, <em>additívan</em>, a logitok pedig ennek az összegnek lineáris leképezései — így az összeg tagonként szétbontható.', ok: true },
-          { t: 'Hogy a fejek egymás után, sorosan dolgoznak, így a hozzájárulásuk időrendben elkülöníthető.' },
-          { t: 'Hogy a modell tanítás közben feljegyzi, melyik komponens mit írt a kimenetbe.' },
-          { t: 'Hogy minden fej a szótár egy külön részéért felel, így a „Párizs” tokenhez tartozó fej azonosítható.' }
+          { t: 'That every component writes into the same shared vector space, <em>additively</em>, and the logits are linear maps of that sum — so the sum can be decomposed term by term.', ok: true },
+          { t: 'That the heads work one after another, serially, so their contributions can be separated in time.' },
+          { t: 'That during training the model records which component wrote what into the output.' },
+          { t: 'That each head is responsible for a separate part of the vocabulary, so the head belonging to the “Paris” token can be identified.' }
         ],
-        why: 'A direkt logit-attribúció nem trükk, hanem a residual stream szerkezetének <em>egyenes következménye</em>. Mivel minden alegység hozzáad, a végállapot szó szerint egy összeg — és mivel az unembedding lineáris, a logit is tagonként bontható: minden komponenshez tartozik egy szám, amennyivel a „Párizs” logitot tolta. Ez az a tulajdonság, amiért a 4. szinten azt mondtuk, hogy az egész interpretability-program erre az egy dologra épül. Ugyaninnen esik ki a logit lens is: ha a köztes állapotot vezetjük át az unembeddingen, azt látjuk, mivé „gondolja épp” a modell a folytatást.'
+        why: 'Direct logit attribution is not a trick but a direct <em>consequence</em> of the structure of the residual stream. Because every sub-layer adds, the final state is literally a sum — and because the unembedding is linear, the logit decomposes term by term: every component has a number attached to it, the amount by which it pushed the “Paris” logit. This is the property we said at level 4 the entire interpretability program rests on. The logit lens falls out of the same place: passing an intermediate state through the unembedding shows what the model currently “thinks” the continuation is.'
       },
       {
         id: 'mi-lens',
         type: 'choice',
-        q: 'A logit lens szerint egy modell már a 4. rétegben „tudja” a helyes választ. Mit szabad ebből következtetni?',
+        q: 'The logit lens says a model already “knows” the right answer at layer 4. What may you conclude from this?',
         options: [
-          { t: 'Egyelőre keveset: a korai rétegek reprezentációi még nem az unembedding terében laknak, ezért a nyers logit lens ott szisztematikusan torzíthat — a leletet oksági beavatkozással kell megerősíteni.', ok: true },
-          { t: 'Hogy a modellben a 4. réteg fölötti rétegek feleslegesek, és levághatók.' },
-          { t: 'Hogy a válasz a 4. réteg MLP-jében van eltárolva.' },
-          { t: 'Semmi kétség nem fér hozzá: a logit lens közvetlenül a modell belső jóslatát olvassa ki.' }
+          { t: 'For now, little: the representations of early layers do not yet live in the space of the unembedding, so the raw logit lens can be systematically distorted there — the finding has to be confirmed by causal intervention.', ok: true },
+          { t: 'That the layers above layer 4 are redundant and can be cut off.' },
+          { t: 'That the answer is stored in the MLP of layer 4.' },
+          { t: 'Nothing is in doubt: the logit lens reads the model\u2019s internal prediction directly.' }
         ],
-        why: 'A logit lens olcsó és látványos, ezért könnyű túlhinni. A baj az, hogy a <b>W</b><sub>U</sub> mátrixot olyan köztes állapotokra alkalmazzuk, amelyekre nem „tervezték”: a korai rétegeknél ez gyakran értelmezhetetlen zajt vagy torzított jóslatot ad, és modellcsaládonként erősen eltér, meddig használható. Ezért fejlesztették ki a <strong>tuned lens</strong>t, amely rétegenként tanult affin transzformációval illeszti a köztes állapotot a kimeneti térbe. A helyes hozzáállás tehát: a logit lens <em>gyors szonda</em>, nem mérőműszer — a belőle levont következtetést beavatkozással (ablációval, aktiváció-cserével) kell igazolni.'
+        why: 'The logit lens is cheap and spectacular, which makes it easy to over-believe. The trouble is that we apply the matrix <b>W</b><sub>U</sub> to intermediate states it was not “designed” for: at early layers this often yields uninterpretable noise or a distorted prediction, and how far it stays usable varies strongly by model family. Hence the development of the <strong>tuned lens</strong>, which fits the intermediate state into the output space with a per-layer learned affine transformation. The right attitude, then: the logit lens is a <em>fast probe</em>, not a measuring instrument — conclusions drawn from it must be verified by intervention (ablation, activation patching).'
       },
       {
         id: 'mi-absztrakt',
         type: 'choice',
-        q: 'Az induction-áramkör olyan tokenpárokra is működik, amelyeket a modell a tanítás során soha nem látott együtt. Hogyan lehetséges ez?',
+        q: 'The induction circuit works even for pairs of tokens the model never saw together during training. How is that possible?',
         options: [
-          { t: 'Mert az áramkör nem konkrét párokat tárol, hanem egy absztrakt műveletet valósít meg: „keresd meg, hol fordult elő korábban ez a token, és másold ide, ami utána jött”.', ok: true },
-          { t: 'Mert a modell a ritka párokat a tanítás után, futás közben tanulja meg és tárolja el.' },
-          { t: 'Mert a tokenizáló az ismeretlen párokat ismert párokra képezi le.' },
-          { t: 'Mert az embedding-tér közeli vektorai miatt minden pár egy már látott párra hasonlít.' }
+          { t: 'Because the circuit does not store concrete pairs but implements an abstract operation: “find where this token occurred before, and copy here whatever came after it”.', ok: true },
+          { t: 'Because the model learns rare pairs after training, at runtime, and stores them.' },
+          { t: 'Because the tokenizer maps unfamiliar pairs onto familiar ones.' },
+          { t: 'Because nearby vectors in embedding space make every pair resemble one already seen.' }
         ],
-        why: 'Ez az a pont, ahol a „circuit” szó megszűnik metafora lenni: két tanult fej kompozíciója egy felismerhető, emberi fogalmakkal leírható <em>algoritmust</em> valósít meg — keresés és másolás. Az áramkör bemenete tetszőleges token, tehát a működése nem függ attól, szerepelt-e a konkrét pár a tanítóadatban. Épp ezért az induction head az in-context learning egyik alapmechanizmusa: az a képesség, hogy a modell a promptban <em>most</em> megadott mintát kövesse, nem memorizálást igényel, hanem ezt az általános műveletet.'
+        why: 'This is the point at which the word “circuit” stops being a metaphor: the composition of two learned heads implements a recognizable <em>algorithm</em>, describable in human terms — search and copy. The input to the circuit is an arbitrary token, so its operation does not depend on whether the specific pair appeared in the training data. This is exactly why the induction head is one of the base mechanisms of in-context learning: the ability to follow a pattern given in the prompt <em>right now</em> requires no memorization, only this general operation.'
       },
       {
         id: 'mi-retegek',
         type: 'number',
         answer: 2,
-        hint: 'Egész szám.',
-        q: 'Legkevesebb hány rétegre van szükség ahhoz, hogy egy induction-áramkör egyáltalán kialakulhasson?',
-        why: 'Kettőre. Az áramkör két fej <em>kompozíciója</em>: egy korábbi rétegbeli előző-token-fej minden pozícióra ráírja a streamre az őt megelőző token azonosítóját, és csak egy <em>későbbi</em> réteg feje tudja ezt az annotációt query-vel megkeresni. Egyetlen rétegben nincs mire építeni: a második fejnek szüksége van arra, hogy az első már írt a streambe. Ebből egy módszertani tanulság is következik: az áramkört <strong>nem találod meg</strong>, ha a fejeket egyenként vizsgálod — az előző-token-fej önmagában unalmas pozicionális fej, a jelentés a kettő együttműködésében van.'
+        hint: 'A whole number.',
+        q: 'What is the minimum number of layers needed for an induction circuit to form at all?',
+        why: 'Two. The circuit is a <em>composition</em> of two heads: a previous-token head in an earlier layer writes onto every position the identity of the token before it, and only a head in a <em>later</em> layer can then look up that annotation with a query. Within a single layer there is nothing to build on: the second head needs the first to have already written into the stream. A methodological lesson follows: you will <strong>not find</strong> the circuit by examining heads one at a time — a previous-token head on its own is a boring positional head, and the meaning lies in the cooperation of the two.'
       },
       {
         id: 'mi-fazisatmenet',
         type: 'choice',
-        q: 'A 7. szinten láttuk, hogy a látszólagos képesség-ugrások gyakran a mérőszám művei. Az induction headek kialakulása viszont valódi, a loss-görbén is látszó fázisátmenet. Hogyan fér meg a kettő egymással?',
+        q: 'At level 7 we saw that apparent jumps in capability are often artifacts of the metric. The formation of induction heads, however, is a genuine phase transition, visible on the loss curve. How do the two fit together?',
         options: [
-          { t: 'Úgy, hogy a skálázás simasága az <em>átlagos</em> lossra igaz, miközben az egyes áramkörök szintjén lehetnek éles átmenetek — a két állítás különböző felbontásról szól.', ok: true },
-          { t: 'Sehogy: a két megfigyelés ellentmond egymásnak, és a kérdés a terület eldöntetlen vitája.' },
-          { t: 'Úgy, hogy az induction headek esetében is a mérőszám élessége csinálja az ugrást, csak ezt még nem mutatták ki.' },
-          { t: 'Úgy, hogy a fázisátmenet csak kis modellekben fordul elő, nagyokban eltűnik.' }
+          { t: 'The smoothness of scaling holds for the <em>average</em> loss, while at the level of individual circuits there can be sharp transitions — the two claims are about different resolutions.', ok: true },
+          { t: 'They do not: the two observations contradict each other, and the question is an unsettled dispute in the field.' },
+          { t: 'The jump in induction heads is also produced by the sharpness of the metric; it simply has not been shown yet.' },
+          { t: 'The phase transition occurs only in small models and disappears in large ones.' }
         ],
-        why: 'A feloldás az, hogy a két állítás nem ugyanarról a mennyiségről szól. A skálázási törvények az <em>összesített</em> lossra vonatkoznak, amely nagyságrendeken át simán viselkedik; egy konkrét belső mechanizmus megjelenése viszont lehet éles esemény a tanítás során, és épp az induction headeknél ezt dokumentálták is — a loss-görbén megjelenő jellegzetes törés formájában. A tanulság módszertani: a „simán skálázódik” és a „belül ugrik” nem versengő magyarázatok, hanem különböző nagyítású képek ugyanarról a rendszerről. Ezért nem elég a benchmark-görbéket nézni, ha azt akarjuk tudni, <em>mi</em> alakult ki egy modellben.'
+        why: 'The resolution is that the two claims are not about the same quantity. Scaling laws concern the <em>aggregate</em> loss, which behaves smoothly across orders of magnitude; the appearance of a specific internal mechanism, by contrast, can be a sharp event during training — and for induction heads exactly this has been documented, in the form of a characteristic kink on the loss curve. The methodological lesson: “scales smoothly” and “jumps inside” are not competing explanations but pictures of the same system at different magnifications. Which is why looking at benchmark curves is not enough if you want to know <em>what</em> has formed in a model.'
       }
     ],
     11: [
