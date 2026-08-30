@@ -1124,11 +1124,11 @@ After the embedding layer, every question about language becomes geometry: simil
 </section>
 <section id="architektura" data-level="4">
 <div class="chapter-kicker">Chapter 4</div>
-<h2>A transzformer architektúra</h2>
+<h2>The transformer architecture</h2>
 
-<h3 id="blokk">4.1 · A blokk: attention és MLP</h3>
+<h3 id="blokk">4.1 · The block: attention and MLP</h3>
 
-<p>A transzformer a modern LLM-ek motorja. Szerkezete meglepően ismétlődő: ugyanaz a <strong>blokk</strong> ismétlődik egymás után néhány tucatszor vagy százszor. Minden blokk két alegységből áll: egy <strong>attention</strong> (figyelem) rétegből, amely a tokenek <em>közötti</em> információáramlásért felel — ez az egyetlen hely, ahol a pozíciók „beszélgethetnek” egymással —, és egy <strong>MLP</strong>-rétegből, amely minden pozíciót <em>önmagában</em>, de nagy kapacitással dolgoz fel. A kettő munkamegosztása az egész architektúra veleje: az attention <em>mozgatja</em> az információt, az MLP <em>feldolgozza</em>.</p>
+<p>The transformer is the engine of modern LLMs. Its structure is surprisingly repetitive: the same <strong>block</strong> repeats one after another, a few dozen or a few hundred times. Every block consists of two sub-layers: an <strong>attention</strong> layer, responsible for the flow of information <em>between</em> tokens — the only place where positions can “talk” to one another — and an <strong>MLP</strong> layer, which processes every position <em>on its own</em>, but with large capacity. The division of labor between them is the heart of the whole architecture: attention <em>moves</em> information, the MLP <em>processes</em> it.</p>
 
 <figure class="diagram">
 <svg viewBox="0 0 900 560" role="img" aria-label="The structure of a transformer block">
@@ -1140,13 +1140,13 @@ After the embedding layer, every question about language becomes geometry: simil
       <path d="M0,0 L8,4 L0,8 z" fill="var(--ink-muted)"/>
     </marker>
   </defs>
-  <!-- residual stream: vastag függőleges sáv -->
+  <!-- residual stream: thick vertical band -->
   <rect x="240" y="60" width="26" height="450" rx="13" fill="var(--wash-blue)" stroke="var(--s1)" stroke-width="1.6"/>
   <text x="253" y="46" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--s1)">residual stream</text>
-  <!-- alul: bemenet -->
-  <text x="253" y="540" text-anchor="middle" font-size="12" class="svg-ink2">token-embedding (x)</text>
+  <!-- bottom: input -->
+  <text x="253" y="540" text-anchor="middle" font-size="12" class="svg-ink2">token embedding (x)</text>
   <line x1="253" y1="524" x2="253" y2="512" stroke="var(--s1)" stroke-width="2" marker-end="url(#arrB)"/>
-  <!-- ATTENTION ág -->
+  <!-- ATTENTION branch -->
   <g>
     <line x1="266" y1="440" x2="330" y2="440" stroke="var(--ink-muted)" stroke-width="1.4" marker-end="url(#arrG)"/>
     <rect x="332" y="418" width="112" height="44" rx="9" class="svg-box" stroke-width="1.2"/>
@@ -1155,14 +1155,14 @@ After the embedding layer, every question about language becomes geometry: simil
     <line x1="444" y1="440" x2="500" y2="440" stroke="var(--ink-muted)" stroke-width="1.4" marker-end="url(#arrG)"/>
     <rect x="502" y="404" width="180" height="72" rx="10" fill="var(--wash-green)" stroke="var(--s2)" stroke-width="1.5"/>
     <text x="592" y="432" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--s2)">Multi-head attention</text>
-    <text x="592" y="452" text-anchor="middle" font-size="10.5" class="svg-ink2">információ mozgatása</text>
-    <text x="592" y="466" text-anchor="middle" font-size="10.5" class="svg-ink2">a pozíciók között</text>
+    <text x="592" y="452" text-anchor="middle" font-size="10.5" class="svg-ink2">moving information</text>
+    <text x="592" y="466" text-anchor="middle" font-size="10.5" class="svg-ink2">between positions</text>
     <path d="M 682 440 L 720 440 L 720 368 L 270 368" fill="none" stroke="var(--ink-muted)" stroke-width="1.4" marker-end="url(#arrG)"/>
     <circle cx="253" cy="368" r="11" fill="var(--surface-1)" stroke="var(--s1)" stroke-width="1.6"/>
     <text x="253" y="373" text-anchor="middle" font-size="14" fill="var(--s1)" font-weight="700">+</text>
-    <text x="150" y="372" text-anchor="end" font-size="11" class="svg-muted">hozzáadás a streamhez</text>
+    <text x="150" y="372" text-anchor="end" font-size="11" class="svg-muted">added to the stream</text>
   </g>
-  <!-- MLP ág -->
+  <!-- MLP branch -->
   <g>
     <line x1="266" y1="290" x2="330" y2="290" stroke="var(--ink-muted)" stroke-width="1.4" marker-end="url(#arrG)"/>
     <rect x="332" y="268" width="112" height="44" rx="9" class="svg-box" stroke-width="1.2"/>
@@ -1171,60 +1171,60 @@ After the embedding layer, every question about language becomes geometry: simil
     <line x1="444" y1="290" x2="500" y2="290" stroke="var(--ink-muted)" stroke-width="1.4" marker-end="url(#arrG)"/>
     <rect x="502" y="254" width="180" height="72" rx="10" fill="var(--wash-orange)" stroke="var(--s6)" stroke-width="1.5"/>
     <text x="592" y="282" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--s6)">MLP</text>
-    <text x="592" y="302" text-anchor="middle" font-size="10.5" class="svg-ink2">pozíciónkénti feldolgozás</text>
-    <text x="592" y="316" text-anchor="middle" font-size="10.5" class="svg-ink2">(fel- és levetítés, nemlinearitás)</text>
+    <text x="592" y="302" text-anchor="middle" font-size="10.5" class="svg-ink2">per-position processing</text>
+    <text x="592" y="316" text-anchor="middle" font-size="10.5" class="svg-ink2">(up- and down-projection, nonlinearity)</text>
     <path d="M 682 290 L 720 290 L 720 218 L 270 218" fill="none" stroke="var(--ink-muted)" stroke-width="1.4" marker-end="url(#arrG)"/>
     <circle cx="253" cy="218" r="11" fill="var(--surface-1)" stroke="var(--s1)" stroke-width="1.6"/>
     <text x="253" y="223" text-anchor="middle" font-size="14" fill="var(--s1)" font-weight="700">+</text>
   </g>
   <!-- blokk keret -->
   <rect x="130" y="196" width="620" height="290" rx="14" fill="none" stroke="var(--s7)" stroke-width="1.4" stroke-dasharray="7,5"/>
-  <text x="758" y="212" font-size="12" fill="var(--s7)" font-weight="700">1 blokk</text>
-  <text x="758" y="230" font-size="11" fill="var(--s7)">× N réteg</text>
-  <!-- felül: kimenet -->
+  <text x="758" y="212" font-size="12" fill="var(--s7)" font-weight="700">1 block</text>
+  <text x="758" y="230" font-size="11" fill="var(--s7)">× N layers</text>
+  <!-- top: output -->
   <line x1="253" y1="160" x2="253" y2="146" stroke="var(--s1)" stroke-width="2" marker-end="url(#arrB)"/>
   <rect x="180" y="100" width="146" height="42" rx="9" class="svg-box" stroke-width="1.2"/>
-  <text x="253" y="120" text-anchor="middle" font-size="12" class="svg-ink">végső norm +</text>
+  <text x="253" y="120" text-anchor="middle" font-size="12" class="svg-ink">final norm +</text>
   <text x="253" y="135" text-anchor="middle" font-size="12" class="svg-ink">unembedding (W&#8203;ᵁ)</text>
   <line x1="326" y1="121" x2="380" y2="121" stroke="var(--ink-muted)" stroke-width="1.4" marker-end="url(#arrG)"/>
-  <text x="388" y="126" font-size="12.5" class="svg-ink">logitok → softmax → P(következő token)</text>
+  <text x="388" y="126" font-size="12.5" class="svg-ink">logits → softmax → P(next token)</text>
 </svg>
-<figcaption><span class="fig-num">4. ábra.</span> Egy dekóder-only transzformer blokkja. A függőleges kék sáv a <em>residual stream</em>: az információ fő útvonala. Minden alegység (attention, MLP) csak <em>kiolvas</em> belőle, számol, majd az eredményét <em>hozzáadja</em> — soha nem cseréli le. A modern (pre-norm) elrendezésben a normalizálás az alegységek bemeneténél ül. N blokk után a végső vektorból az unembedding-mátrix csinál szótár-pontszámokat.</figcaption>
+<figcaption><span class="fig-num">Figure 4.</span> A block of a decoder-only transformer. The vertical blue band is the <em>residual stream</em>: the main route of information. Every sub-layer (attention, MLP) only <em>reads</em> from it, computes, and then <em>adds</em> its result — it never replaces it. In the modern (pre-norm) arrangement, normalization sits at the input of the sub-layers. After N blocks the unembedding matrix turns the final vector into vocabulary scores.</figcaption>
 </figure>
 
-<h3 id="residual-stream">4.2 · A residual stream: az architektúra gerince</h3>
-<p>Mielőtt az attention részleteibe mennénk, érdemes rögzíteni a legjobb mentális modellt az egészről. Minden token-pozícióhoz tartozik egy <span class="math">d<sub><span class="rm">model</span></sub></span>-dimenziós vektor, amely a rétegeken át <em>folyamatosan megmarad és gazdagodik</em> — ez a <strong>residual stream</strong> (reziduális folyam). A blokkok nem „feldolgozzák és továbbadják” az adatot, mint egy futószalag: ehelyett minden alegység kiolvassa a stream aktuális tartalmát, kiszámol belőle valami hasznosat, és az eredményt <strong>hozzáadja</strong> a streamhez. A kimenet felé haladva a stream egyre több réteg hozzájárulását hordozza összegként.</p>
+<h3 id="residual-stream">4.2 · The residual stream: the backbone of the architecture</h3>
+<p>Before going into the details of attention, it is worth fixing the best mental model of the whole. Every token position carries a <span class="math">d<sub><span class="rm">model</span></sub></span>-dimensional vector that <em>persists and grows richer</em> through the layers — this is the <strong>residual stream</strong>. The blocks do not “process and pass on” the data like a conveyor belt: instead, every sub-layer reads the current contents of the stream, computes something useful from it, and <strong>adds</strong> the result back to the stream. Moving toward the output, the stream carries the contributions of more and more layers, as a sum.</p>
 
-<p>Ez az apróságnak tűnő tervezési döntés — a <em>reziduális kapcsolat</em> — három szempontból is alapvető. <strong>Tanulhatóság:</strong> a gradiens az összeadásokon át akadálytalanul folyik visszafelé a legmélyebb rétegig is (5.3-ban látjuk, miért kritikus ez). <strong>Fokozatosság:</strong> minden réteg csak <em>finomít</em> egy már értelmes reprezentáción, így a modell mélysége növelhető a tanítás összeomlása nélkül. <strong>Értelmezhetőség:</strong> a stream additív szerkezete miatt utólag szétszedhető, melyik réteg mit tett hozzá — a 8. fejezet mechanistic interpretability programja lényegében erre az egy tulajdonságra épül.</p>
+<p>This seemingly minor design decision — the <em>residual connection</em> — is fundamental in three separate ways. <strong>Trainability:</strong> the gradient flows back unimpeded through the additions, all the way to the deepest layer (5.3 shows why that is critical). <strong>Gradualness:</strong> every layer only <em>refines</em> an already meaningful representation, so the model's depth can grow without training collapsing. <strong>Interpretability:</strong> because the stream is additive, it can be decomposed after the fact to see which layer contributed what — the mechanistic interpretability program of chapter 8 essentially rests on this single property.</p>
 
 <div class="note"><span class="label">Kulcsgondolat</span>
-A residual stream <em>kommunikációs csatorna</em>: a korai rétegek üzeneteket írnak bele, amelyeket a későbbiek olvasnak. Egy-egy irány (altér) a streamben egy-egy „témát” hordozhat — a rétegek ezen a megosztott sávon keresztül működnek együtt anélkül, hogy közvetlenül összekötné őket bármi.
+The residual stream is a <em>communication channel</em>: early layers write messages into it that later ones read. A given direction (subspace) in the stream can carry a given “topic” — the layers cooperate over this shared band without anything connecting them directly.
 </div>
 
-<h3 id="attention">4.3 · Attention: melyik token honnan olvasson?</h3>
-<p>A mondat megértéséhez a tokeneknek egymásról kell tudniuk. Az „A daru fészkén ült” mondatban a „daru” jelentését — madár vagy emelőgép? — a „fészkén” dönti el; az „ő” névmásnak meg kell találnia, kire utal. Az attention ezt a problémát elegánsan, <em>tanult kereséssel</em> oldja meg. Minden pozíció három szerepben lép fel:</p>
+<h3 id="attention">4.3 · Attention: which token should read from where?</h3>
+<p>To understand a sentence, tokens have to know about one another. In “The crane nested high”, the meaning of “crane” — the bird or the machine? — is settled by “nested”; the pronoun “it” has to find what it refers to. Attention solves this problem elegantly, by a <em>learned lookup</em>. Every position takes on three roles:</p>
 
 <ul>
-<li><strong>Query (lekérdezés)</strong> — „mit keresek?”: a token megfogalmazza, milyen információra van szüksége.</li>
-<li><strong>Key (kulcs)</strong> — „mit kínálok?”: minden token hirdetést ad fel arról, milyen információt tud nyújtani.</li>
-<li><strong>Value (érték)</strong> — „mit adok át, ha választanak?”: a ténylegesen továbbítandó tartalom.</li>
+<li><strong>Query</strong> — “what am I looking for?”: the token states what information it needs.</li>
+<li><strong>Key</strong> — “what do I offer?”: every token advertises what information it can provide.</li>
+<li><strong>Value</strong> — “what do I hand over if chosen?”: the content actually to be passed on.</li>
 </ul>
 
-<p>A mechanizmus: a token query-vektorát összevetjük az összes korábbi token key-vektorával (skalárszorzattal — emlékezzünk, a hasonlóság szög kérdése). Ahol nagy az egyezés, oda nagy súly kerül; a súlyokat softmax normálja eloszlássá; végül a token a value-vektorok <em>súlyozott átlagát</em> kapja meg és adja hozzá a saját streamjéhez. Nem egy címzettől olvas tehát, hanem mindenkitől egyszerre, a relevancia arányában.</p>
+<p>The mechanism: the token's query vector is compared with the key vectors of all earlier tokens (by a dot product — recall that similarity is a matter of angle). Wherever the match is strong, a large weight goes; softmax normalizes the weights into a distribution; and finally the token receives the <em>weighted average</em> of the value vectors and adds it to its own stream. So it does not read from a single addressee but from everyone at once, in proportion to relevance.</p>
 
 <figure class="diagram">
 <svg viewBox="0 0 920 430" role="img" aria-label="The steps of the attention mechanism">
-  <text x="20" y="26" font-size="13" font-weight="700" class="svg-ink">Egy fej, egy query-pozíció: „ült” — honnan olvasson?</text>
-  <!-- tokenek felül -->
+  <text x="20" y="26" font-size="13" font-weight="700" class="svg-ink">One head, one query position: “high” — where should it read from?</text>
+  <!-- tokens on top -->
   <g font-size="12.5">
     <g transform="translate(60,50)">
-      <rect width="80" height="30" rx="7" class="svg-box"/><text x="40" y="20" text-anchor="middle" class="svg-ink">A</text>
-      <rect x="90" width="80" height="30" rx="7" class="svg-box"/><text x="130" y="20" text-anchor="middle" class="svg-ink">daru</text>
-      <rect x="180" width="90" height="30" rx="7" class="svg-box"/><text x="225" y="20" text-anchor="middle" class="svg-ink">fészkén</text>
-      <rect x="280" width="80" height="30" rx="7" fill="var(--wash-blue)" stroke="var(--s1)" stroke-width="1.6"/><text x="320" y="20" text-anchor="middle" class="svg-ink" font-weight="700">ült</text>
+      <rect width="80" height="30" rx="7" class="svg-box"/><text x="40" y="20" text-anchor="middle" class="svg-ink">The</text>
+      <rect x="90" width="80" height="30" rx="7" class="svg-box"/><text x="130" y="20" text-anchor="middle" class="svg-ink">crane</text>
+      <rect x="180" width="90" height="30" rx="7" class="svg-box"/><text x="225" y="20" text-anchor="middle" class="svg-ink">nested</text>
+      <rect x="280" width="80" height="30" rx="7" fill="var(--wash-blue)" stroke="var(--s1)" stroke-width="1.6"/><text x="320" y="20" text-anchor="middle" class="svg-ink" font-weight="700">high</text>
     </g>
   </g>
-  <!-- key/value vektorok -->
+  <!-- key/value vectors -->
   <g font-size="10.5">
     <g transform="translate(60,96)">
       <rect width="80" height="20" rx="5" fill="var(--wash-green)" stroke="var(--s2)"/><text x="40" y="14" text-anchor="middle" class="svg-ink2">k₁, v₁</text>
@@ -1232,17 +1232,17 @@ A residual stream <em>kommunikációs csatorna</em>: a korai rétegek üzeneteke
       <rect x="180" width="90" height="20" rx="5" fill="var(--wash-green)" stroke="var(--s2)"/><text x="225" y="14" text-anchor="middle" class="svg-ink2">k₃, v₃</text>
       <rect x="280" width="80" height="20" rx="5" fill="var(--wash-green)" stroke="var(--s2)"/><text x="320" y="14" text-anchor="middle" class="svg-ink2">k₄, v₄</text>
     </g>
-    <text x="470" y="110" font-size="11" class="svg-muted">← minden tokenből key és value készül</text>
+    <text x="470" y="110" font-size="11" class="svg-muted">← every token yields a key and a value</text>
   </g>
   <!-- query -->
   <g transform="translate(340,140)">
     <rect width="80" height="22" rx="5" fill="var(--wash-blue)" stroke="var(--s1)" stroke-width="1.4"/>
     <text x="40" y="15" text-anchor="middle" font-size="10.5" class="svg-ink2">q₄ (query)</text>
   </g>
-  <text x="440" y="155" font-size="11" class="svg-muted">← a vizsgált pozíció lekérdezése</text>
-  <!-- pontszámok -->
+  <text x="440" y="155" font-size="11" class="svg-muted">← the query of the position in question</text>
+  <!-- scores -->
   <g>
-    <text x="20" y="205" font-size="11.5" class="svg-muted">pontszám: q₄·kⱼ / √d</text>
+    <text x="20" y="205" font-size="11.5" class="svg-muted">score: q₄·kⱼ / √d</text>
     <g class="svg-mono" font-size="11">
       <text x="100" y="235" text-anchor="middle" class="svg-ink">0.8</text>
       <text x="190" y="235" text-anchor="middle" class="svg-ink">2.9</text>
@@ -1254,9 +1254,9 @@ A residual stream <em>kommunikációs csatorna</em>: a korai rétegek üzeneteke
     <line x1="285" y1="118" x2="285" y2="222" stroke="var(--grid)" stroke-width="1"/>
     <line x1="380" y1="118" x2="380" y2="222" stroke="var(--grid)" stroke-width="1"/>
   </g>
-  <!-- softmax súlyok oszlopokként -->
+  <!-- softmax weights as bars -->
   <g>
-    <text x="20" y="270" font-size="11.5" class="svg-muted">softmax → súlyok</text>
+    <text x="20" y="270" font-size="11.5" class="svg-muted">softmax → weights</text>
     <rect x="82" y="316" width="36" height="14" fill="var(--s1)" opacity="0.45" rx="3"/>
     <rect x="172" y="286" width="36" height="44" fill="var(--s1)" opacity="0.75" rx="3"/>
     <rect x="267" y="272" width="36" height="58" fill="var(--s1)" rx="3"/>
@@ -1269,57 +1269,57 @@ A residual stream <em>kommunikációs csatorna</em>: a korai rétegek üzeneteke
       <text x="380" y="345" text-anchor="middle">0.11</text>
     </g>
   </g>
-  <!-- kimenet -->
+  <!-- output -->
   <g>
     <path d="M 285 355 L 285 380" stroke="var(--ink-muted)" stroke-width="1.4" marker-end="url(#arrG)"/>
     <rect x="130" y="384" width="330" height="32" rx="8" fill="var(--wash-blue)" stroke="var(--s1)" stroke-width="1.4"/>
-    <text x="295" y="405" text-anchor="middle" font-size="12" class="svg-ink">kimenet = 0.05·v₁ + 0.33·v₂ + 0.51·v₃ + 0.11·v₄</text>
+    <text x="295" y="405" text-anchor="middle" font-size="12" class="svg-ink">output = 0.05·v₁ + 0.33·v₂ + 0.51·v₃ + 0.11·v₄</text>
   </g>
-  <!-- jobb oldali magyarázat -->
+  <!-- explanation on the right -->
   <g font-size="11.5" class="svg-ink2">
-    <text x="530" y="240">Az „ült” a helyhatározóhoz illő</text>
-    <text x="530" y="258">információt keres — a „fészkén”</text>
-    <text x="530" y="276">key-e illeszkedik legjobban,</text>
-    <text x="530" y="294">ezért onnan (és a „daru”-ból)</text>
-    <text x="530" y="312">áramlik a legtöbb value-tartalom.</text>
-    <text x="530" y="342" fill="var(--s7)">A súlyozott value-összeg</text>
-    <text x="530" y="360" fill="var(--s7)">hozzáadódik az „ült”</text>
-    <text x="530" y="378" fill="var(--s7)">residual streamjéhez.</text>
+    <text x="530" y="240">The query “high” looks for the</text>
+    <text x="530" y="258">action it qualifies — the key of</text>
+    <text x="530" y="276">“nested” matches it best, so</text>
+    <text x="530" y="294">most of the value content flows</text>
+    <text x="530" y="312">from there (and from “crane”).</text>
+    <text x="530" y="342" fill="var(--s7)">The weighted sum of values</text>
+    <text x="530" y="360" fill="var(--s7)">is added to the residual</text>
+    <text x="530" y="378" fill="var(--s7)">stream of “high”.</text>
   </g>
 </svg>
-<figcaption><span class="fig-num">5. ábra.</span> A skálázott skalárszorzatos attention egyetlen query-pozícióra. A query és a key-k illeszkedése pontszámot ad, a softmax a pontszámokat súlyeloszlássá alakítja, a kimenet pedig a value-vektorok e súlyokkal vett átlaga. Minden számot a modell tanult vetítőmátrixai állítanak elő — hogy <em>mi</em> számít illeszkedésnek, azt a tanítás alakítja ki.</figcaption>
+<figcaption><span class="fig-num">Figure 5.</span> Scaled dot-product attention for a single query position. The match between the query and the keys gives a score, softmax turns the scores into a weight distribution, and the output is the average of the value vectors taken with those weights. Every number is produced by the model's learned projection matrices — <em>what</em> counts as a match is shaped by training.</figcaption>
 </figure>
 
-<h3>Kauzális maszk és multi-head</h3>
-<p>Két fontos kiegészítés. Először: mivel a feladat a <em>következő</em> token jóslása, egy pozíció csak a <strong>múltból</strong> olvashat — a jövőbeli tokenekre irányuló figyelmet a <strong>kauzális maszk</strong> tiltja le (a softmax előtt −∞-t írunk a jövőbeli pozíciók pontszámába). Ezért tudja a tanítás <em>minden</em> pozíción egyszerre gyakorolni a jóslást: a t-edik pozíció kimenete csak az első t tokentől függ, így egyetlen előrefuttatás T darab tanítópéldát ad.</p>
+<h3>The causal mask and multi-head attention</h3>
+<p>Two important additions. First: since the task is predicting the <em>next</em> token, a position may read only from the <strong>past</strong> — attention toward future tokens is forbidden by the <strong>causal mask</strong> (before the softmax we write −∞ into the scores of future positions). This is what lets training practice prediction at <em>every</em> position at once: the output at position t depends only on the first t tokens, so a single forward pass yields T training examples.</p>
 
-<p>Másodszor: nem egy attention fut, hanem párhuzamosan sok — ez a <strong>multi-head attention</strong>. Minden <em>fej</em> (head) saját query/key/value-vetítésekkel dolgozik egy kisebb altérben, így különböző fejek különböző relációkra szakosodhatnak: az egyik a közvetlen előző tokenre figyel, a másik a mondat alanyára, a harmadik az azonos szó korábbi előfordulásaira (ez lesz a 8.3 induction headje). A fejek kimenetei egymás mellé fűzve, egy közös kimeneti vetítésen át kerülnek vissza a streambe.</p>
+<p>Second: attention does not run once but many times in parallel — this is <strong>multi-head attention</strong>. Every <em>head</em> works with its own query/key/value projections in a smaller subspace, so different heads can specialize in different relations: one attends to the immediately preceding token, another to the subject of the sentence, a third to earlier occurrences of the same word (this will be the induction head of 8.3). The outputs of the heads are concatenated and returned to the stream through a shared output projection.</p>
 
 <figure class="diagram">
 <svg viewBox="0 0 640 400" role="img" aria-label="Causal attention matrix">
-  <text x="20" y="24" font-size="13" font-weight="700" class="svg-ink">Attention-súlymátrix kauzális maszkkal (egy fej)</text>
-  <!-- címkék -->
+  <text x="20" y="24" font-size="13" font-weight="700" class="svg-ink">Attention weight matrix with a causal mask (one head)</text>
+  <!-- labels -->
   <g font-size="11.5" class="svg-ink2">
-    <text x="150" y="66" text-anchor="end">A</text>
-    <text x="150" y="116" text-anchor="end">daru</text>
-    <text x="150" y="166" text-anchor="end">fészkén</text>
-    <text x="150" y="216" text-anchor="end">ült</text>
-    <text x="150" y="266" text-anchor="end">és</text>
-    <text x="150" y="316" text-anchor="end">nézte</text>
+    <text x="150" y="66" text-anchor="end">The</text>
+    <text x="150" y="116" text-anchor="end">crane</text>
+    <text x="150" y="166" text-anchor="end">nested</text>
+    <text x="150" y="216" text-anchor="end">high</text>
+    <text x="150" y="266" text-anchor="end">and</text>
+    <text x="150" y="316" text-anchor="end">waited</text>
   </g>
   <g font-size="11.5" class="svg-ink2">
-    <text x="185" y="360" text-anchor="middle" transform="rotate(-38 185 360)">A</text>
-    <text x="235" y="360" text-anchor="middle" transform="rotate(-38 235 360)">daru</text>
-    <text x="285" y="360" text-anchor="middle" transform="rotate(-38 285 360)">fészkén</text>
-    <text x="335" y="360" text-anchor="middle" transform="rotate(-38 335 360)">ült</text>
-    <text x="385" y="360" text-anchor="middle" transform="rotate(-38 385 360)">és</text>
-    <text x="435" y="360" text-anchor="middle" transform="rotate(-38 435 360)">nézte</text>
+    <text x="185" y="360" text-anchor="middle" transform="rotate(-38 185 360)">The</text>
+    <text x="235" y="360" text-anchor="middle" transform="rotate(-38 235 360)">crane</text>
+    <text x="285" y="360" text-anchor="middle" transform="rotate(-38 285 360)">nested</text>
+    <text x="335" y="360" text-anchor="middle" transform="rotate(-38 335 360)">high</text>
+    <text x="385" y="360" text-anchor="middle" transform="rotate(-38 385 360)">and</text>
+    <text x="435" y="360" text-anchor="middle" transform="rotate(-38 435 360)">waited</text>
   </g>
-  <text x="90" y="190" font-size="11" class="svg-muted" transform="rotate(-90 90 190)">query (olvasó pozíció)</text>
-  <text x="310" y="392" text-anchor="middle" font-size="11" class="svg-muted">key (olvasott pozíció)</text>
-  <!-- mátrix cellák: sor=query, oszlop=key; alsó háromszög kék árnyalat, felső maszkolt -->
+  <text x="90" y="190" font-size="11" class="svg-muted" transform="rotate(-90 90 190)">query (reading position)</text>
+  <text x="310" y="392" text-anchor="middle" font-size="11" class="svg-muted">key (position being read)</text>
+  <!-- matrix cells: row = query, column = key; lower triangle shaded blue, upper masked -->
   <g stroke="var(--surface-1)" stroke-width="2">
-    <!-- sor 1 -->
+    <!-- row 1 -->
     <rect x="160" y="42" width="50" height="48" fill="var(--s1)" opacity="1"/>
     <rect x="210" y="42" width="50" height="48" fill="var(--grid)"/><rect x="260" y="42" width="50" height="48" fill="var(--grid)"/><rect x="310" y="42" width="50" height="48" fill="var(--grid)"/><rect x="360" y="42" width="50" height="48" fill="var(--grid)"/><rect x="410" y="42" width="50" height="48" fill="var(--grid)"/>
     <!-- sor 2 -->
@@ -1353,42 +1353,42 @@ A residual stream <em>kommunikációs csatorna</em>: a korai rétegek üzeneteke
     <rect x="410" y="292" width="50" height="48" fill="var(--s1)" opacity="0.28"/>
   </g>
   <!-- maszk felirat -->
-  <text x="392" y="122" font-size="11" class="svg-muted" font-style="italic">maszkolt</text>
-  <text x="392" y="138" font-size="11" class="svg-muted" font-style="italic">(jövő = −∞)</text>
-  <!-- jelmagyarázat -->
+  <text x="392" y="122" font-size="11" class="svg-muted" font-style="italic">masked</text>
+  <text x="392" y="138" font-size="11" class="svg-muted" font-style="italic">(future = −∞)</text>
+  <!-- legend -->
   <g transform="translate(490,60)">
-    <text x="0" y="0" font-size="11" class="svg-ink2">súly:</text>
+    <text x="0" y="0" font-size="11" class="svg-ink2">weight:</text>
     <rect x="0" y="10" width="18" height="14" fill="var(--s1)" opacity="0.08"/><text x="24" y="21" font-size="10.5" class="svg-ink2">≈ 0</text>
-    <rect x="0" y="28" width="18" height="14" fill="var(--s1)" opacity="0.45"/><text x="24" y="39" font-size="10.5" class="svg-ink2">közepes</text>
-    <rect x="0" y="46" width="18" height="14" fill="var(--s1)"/><text x="24" y="57" font-size="10.5" class="svg-ink2">nagy</text>
+    <rect x="0" y="28" width="18" height="14" fill="var(--s1)" opacity="0.45"/><text x="24" y="39" font-size="10.5" class="svg-ink2">medium</text>
+    <rect x="0" y="46" width="18" height="14" fill="var(--s1)"/><text x="24" y="57" font-size="10.5" class="svg-ink2">large</text>
   </g>
 </svg>
-<figcaption><span class="fig-num">6. ábra.</span> Egy attention-fej súlymátrixa: minden sor egy query-pozíció softmax utáni súlyeloszlása a key-pozíciók felett (a sorok összege 1). A felső háromszög — a jövő — maszkolva van. Az első token csak önmagára figyelhet. Jól látszik, hogy a „fészkén” query erősen olvassa a „daru” tokent: ez a fej épp a jelentés-egyértelműsítésben segít.</figcaption>
+<figcaption><span class="fig-num">Figure 6.</span> The weight matrix of one attention head: each row is the post-softmax weight distribution of one query position over the key positions (the rows sum to 1). The upper triangle — the future — is masked. The first token can only attend to itself. It is clearly visible that the query “nested” reads “crane” strongly: this head is helping precisely with disambiguation.</figcaption>
 </figure>
 
 <details class="level l2">
-<summary><span class="badge b2">2. szint</span> Az attention teljes matematikája</summary>
+<summary><span class="badge b2">Level 2</span> The full mathematics of attention</summary>
 <div class="body">
-<p>Legyen <span class="math"><b>X</b> ∈ ℝ<sup>T×d</sup></span> a T pozíció streamvektorainak mátrixa. Egy fej három tanult vetítéssel dolgozik, <span class="math"><b>W</b><sub>Q</sub>, <b>W</b><sub>K</sub>, <b>W</b><sub>V</sub> ∈ ℝ<sup>d×d<sub>h</sub></sup></span>, ahol <span class="math">d<sub>h</sub> = d/H</span> a fej-dimenzió (H a fejek száma):</p>
+<p>Let <span class="math"><b>X</b> ∈ ℝ<sup>T×d</sup></span> be the matrix of the stream vectors of the T positions. One head works with three learned projections, <span class="math"><b>W</b><sub>Q</sub>, <b>W</b><sub>K</sub>, <b>W</b><sub>V</sub> ∈ ℝ<sup>d×d<sub>h</sub></sup></span>, where <span class="math">d<sub>h</sub> = d/H</span> is the head dimension (H being the number of heads):</p>
 <div class="eq"><b>Q</b> = <b>X</b><b>W</b><sub>Q</sub>, &nbsp; <b>K</b> = <b>X</b><b>W</b><sub>K</sub>, &nbsp; <b>V</b> = <b>X</b><b>W</b><sub>V</sub></div>
-<p>A fej kimenete a híres képlet:</p>
+<p>The output of the head is the famous formula:</p>
 <div class="eq"><span class="rm">Attn</span>(<b>Q</b>, <b>K</b>, <b>V</b>) = <span class="rm">softmax</span><span class="rm">(</span><span class="frac"><span><b>Q</b><b>K</b><sup>⊤</sup> + <b>M</b></span><span>√<span style="border-top:1px solid currentColor">d<sub>h</sub></span></span></span><span class="rm">)</span> <b>V</b></div>
-<p>ahol <span class="math"><b>M</b></span> a kauzális maszk: <span class="math">M<sub>ij</sub> = 0</span>, ha <span class="math">j ≤ i</span>, egyébként <span class="math">−∞</span>. A softmax soronként fut, így az <span class="math">i</span>-edik sor egy valószínűség-eloszlás az <span class="math">1…i</span> pozíciók felett.</p>
-<p><strong>Miért az osztás √d<sub>h</sub>-val?</strong> Ha q és k komponensei független, egységszórású változók, a skalárszorzatuk szórása √d<sub>h</sub>-val nő. Nagy d<sub>h</sub> mellett a pontszámok szóródása akkora lenne, hogy a softmax gyakorlatilag one-hottá telítődik — ott pedig a gradiens eltűnik. A skálázás a pontszámokat a softmax „érzékeny” tartományában tartja.</p>
-<p><strong>Multi-head összefűzés.</strong> A H fej kimenetét egymás mellé fűzzük és egy tanult <span class="math"><b>W</b><sub>O</sub> ∈ ℝ<sup>d×d</sup></span> mátrixszal vetítjük vissza:</p>
+<p>where <span class="math"><b>M</b></span> is the causal mask: <span class="math">M<sub>ij</sub> = 0</span> if <span class="math">j ≤ i</span>, and <span class="math">−∞</span> otherwise. The softmax runs row by row, so row <span class="math">i</span> is a probability distribution over positions <span class="math">1…i</span>.</p>
+<p><strong>Why divide by √d<sub>h</sub>?</strong> If the components of q and k are independent variables with unit variance, the standard deviation of their dot product grows with √d<sub>h</sub>. At large d<sub>h</sub> the spread of the scores would be such that the softmax saturates to practically one-hot — and there the gradient vanishes. The scaling keeps the scores in the “sensitive” range of the softmax.</p>
+<p><strong>Concatenating the heads.</strong> The outputs of the H heads are concatenated and projected back with a learned matrix <span class="math"><b>W</b><sub>O</sub> ∈ ℝ<sup>d×d</sup></span>:</p>
 <div class="eq"><span class="rm">MHA</span>(<b>X</b>) = <span class="rm">Concat</span>(<span class="rm">fej</span><sub>1</sub>, …, <span class="rm">fej</span><sub>H</sub>) <b>W</b><sub>O</sub></div>
-<p><strong>Költség.</strong> A <span class="math"><b>Q</b><b>K</b><sup>⊤</sup></span> szorzat T×T mátrixot ad: az attention ideje és memóriája a szekvenciahosszban <em>négyzetes</em> — O(T²·d). Ez a transzformer skálázásának központi szűk keresztmetszete; a 7. fejezet (KV-cache, FlashAttention) és a 4.8 (ritka/lineáris variánsok) részben erre válasz.</p>
+<p><strong>Cost.</strong> The product <span class="math"><b>Q</b><b>K</b><sup>⊤</sup></span> gives a T×T matrix: the time and memory of attention are <em>quadratic</em> in sequence length — O(T²·d). This is the central bottleneck in scaling the transformer; chapter 7 (KV cache, FlashAttention) and section 4.8 (sparse/linear variants) are in part answers to it.</p>
 </div>
 </details>
 
 <details class="level l3">
-<summary><span class="badge b3">3. szint</span> A QK- és OV-kör: az attention mint két független áramkör</summary>
+<summary><span class="badge b3">Level 3</span> The QK and OV circuits: attention as two independent circuits</summary>
 <div class="body">
-<p>A mechanistic interpretability (Elhage et al., 2021, „A Mathematical Framework for Transformer Circuits”) egyik legtermékenyebb észrevétele, hogy egy attention-fej valójában <strong>két, egymástól független lineáris kört</strong> valósít meg, és ezek külön elemezhetők:</p>
-<p><strong>QK-kör:</strong> a <span class="math"><b>W</b><sub>Q</sub><b>W</b><sub>K</sub><sup>⊤</sup> ∈ ℝ<sup>d×d</sup></span> szorzatmátrix dönti el, <em>hova</em> figyel a fej — a pontszám bilineáris forma a két pozíció streamvektorai között: <span class="math">s<sub>ij</sub> = <b>x</b><sub>i</sub><sup>⊤</sup>(<b>W</b><sub>Q</sub><b>W</b><sub>K</sub><sup>⊤</sup>)<b>x</b><sub>j</sub>/√d<sub>h</sub></span>. A Q és K külön-külön nem is jól definiált (bármely invertálható R-rel <span class="math"><b>W</b><sub>Q</sub>R, <b>W</b><sub>K</sub>R<sup>−⊤</sup></span> ugyanazt a kört adja) — csak a szorzatuk az.</p>
-<p><strong>OV-kör:</strong> a <span class="math"><b>W</b><sub>V</sub><b>W</b><sub>O</sub></span> szorzat dönti el, <em>mit</em> ír a fej a streambe, ha már valahova figyel. Ez tisztán lineáris leképezés a forrás-pozíció streamjéből a cél-pozíció streamjébe.</p>
-<p>Következmény: az attention-fej „mozgatás” művelete a value-tartalomban lineáris; az egyetlen nemlinearitás a softmax, amely csak a <em>súlyozást</em> érinti. Ezért lehet fejek kompozícióit — az egyik fej kimenete a másik query-jét/key-ét módosítja (Q-, K-, V-kompozíció) — algebrai objektumként, ún. <em>virtuális súlyokként</em> tanulmányozni. Ebből a keretből esett ki az induction head felfedezése (8.3).</p>
-<p>További kutatói megfigyelések: az <strong>attention sink</strong> jelenség (a fejek feleslegben az első tokenre „parkolják” a súlyt, mert a softmaxnak mindig összegeznie kell 1-re — újabb architektúrák ezért tanult sink-tokent vagy „off” opciót adnak); a súlyok <strong>nem magyarázatok</strong> (a nagy attention-súly nem feltétlenül jelent oksági fontosságot — az ablációs tesztek ezt sokszor cáfolják, 8.6); és a <strong>pozíciós fejek</strong> (sok fej tisztán pozicionális mintát tanul: előző token, mondatkezdet, ritmikus offszetek).</p>
+<p>One of the most productive observations of mechanistic interpretability (Elhage et al., 2021, “A Mathematical Framework for Transformer Circuits”) is that an attention head in fact implements <strong>two mutually independent linear circuits</strong>, and that these can be analyzed separately:</p>
+<p><strong>The QK circuit:</strong> the product matrix <span class="math"><b>W</b><sub>Q</sub><b>W</b><sub>K</sub><sup>⊤</sup> ∈ ℝ<sup>d×d</sup></span> decides <em>where</em> the head attends — the score is a bilinear form between the stream vectors of the two positions: <span class="math">s<sub>ij</sub> = <b>x</b><sub>i</sub><sup>⊤</sup>(<b>W</b><sub>Q</sub><b>W</b><sub>K</sub><sup>⊤</sup>)<b>x</b><sub>j</sub>/√d<sub>h</sub></span>. Q and K are not even well defined on their own (for any invertible R, <span class="math"><b>W</b><sub>Q</sub>R, <b>W</b><sub>K</sub>R<sup>−⊤</sup></span> gives the same circuit) — only their product is.</p>
+<p><strong>The OV circuit:</strong> the product <span class="math"><b>W</b><sub>V</sub><b>W</b><sub>O</sub></span> decides <em>what</em> the head writes into the stream once it attends somewhere. This is a purely linear map from the stream of the source position into the stream of the target position.</p>
+<p>A consequence: the head's “moving” operation is linear in the value content; the only nonlinearity is the softmax, which affects the <em>weighting</em> alone. This is why compositions of heads — one head's output modifying another's query or key (Q-, K- and V-composition) — can be studied as algebraic objects, as so-called <em>virtual weights</em>. The discovery of the induction head (8.3) fell out of this framework.</p>
+<p>Further research observations: the <strong>attention sink</strong> phenomenon (heads “park” surplus weight on the first token, because the softmax must always sum to 1 — newer architectures therefore add a learned sink token or an “off” option); weights are <strong>not explanations</strong> (a large attention weight does not necessarily mean causal importance — ablation tests often refute it, 8.6); and <strong>positional heads</strong> (many heads learn a purely positional pattern: previous token, start of sentence, rhythmic offsets).</p>
 </div>
 </details>
 
@@ -2525,58 +2525,58 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       {
         id: 'trf-residual',
         type: 'choice',
-        q: 'A 3. réteg attention-fejének kimenetét a 27. réteg MLP-je használja fel — pedig a kettőt semmilyen közvetlen kapcsolat nem köti össze. Hogyan jut el az információ?',
+        q: 'The output of an attention head in layer 3 is used by the MLP in layer 27 — yet no direct connection joins the two. How does the information get there?',
         options: [
-          { t: 'A residual streamen keresztül: minden alegység csak <em>hozzáad</em> a közös vektorhoz, sosem cseréli le, így a korai réteg hozzájárulása benne marad az összegben, és a későbbi rétegek kiolvashatják.', ok: true },
-          { t: 'A rétegek egymás után adják tovább a feldolgozott adatot, mint egy futószalagon — a 27. réteg a 26. kimenetét kapja, amiben már benne van minden.' },
-          { t: 'A modell külön memóriában tárolja a korábbi rétegek kimeneteit, és szükség esetén visszakeresi.' },
-          { t: 'Az attention-fejek közvetlen kapcsolatot építenek ki a rétegek között a tanítás során.' }
+          { t: 'Through the residual stream: every sub-layer only <em>adds</em> to the shared vector, never replaces it, so the early layer\u2019s contribution stays in the sum and later layers can read it out.', ok: true },
+          { t: 'The layers pass the processed data on one after another, like a conveyor belt — layer 27 receives the output of layer 26, which already contains everything.' },
+          { t: 'The model stores the outputs of earlier layers in a separate memory and looks them up when needed.' },
+          { t: 'The attention heads build direct connections between layers during training.' }
         ],
-        why: 'A második válasz a klasszikus félreértés: a transzformer nem futószalag. A residual stream <strong>kommunikációs csatorna</strong> — a korai rétegek üzeneteket írnak bele, amelyeket a későbbiek olvasnak, anélkül hogy bármi közvetlenül összekötné őket. Három dolog következik ebből, és mindhárom fontos: a gradiens az összeadásokon át akadálytalanul folyik vissza a legmélyebb rétegig (ezért tanítható egyáltalán egy százrétegű modell); minden réteg csak <em>finomít</em> egy már értelmes reprezentáción; és mivel a stream additív, utólag szétszedhető, melyik réteg mit tett hozzá — a 8. fejezet interpretability-programja lényegében erre az egy tulajdonságra épül.'
+        why: 'The second answer is the classic misunderstanding: a transformer is not a conveyor belt. The residual stream is a <strong>communication channel</strong> — early layers write messages into it that later ones read, without anything connecting them directly. Three things follow, and all three matter: the gradient flows back unimpeded through the additions to the deepest layer (which is why a hundred-layer model is trainable at all); every layer only <em>refines</em> an already meaningful representation; and because the stream is additive, it can be decomposed afterwards to see which layer contributed what — the interpretability program of chapter 8 essentially rests on this one property.'
       },
       {
         id: 'trf-maszk',
         type: 'choice',
-        q: 'Egy 1000 tokenes tanítómondaton a modell <em>egyetlen</em> előrefuttatásból 1000 tanítópéldát nyer. Mi teszi ezt lehetővé?',
+        q: 'On a 1,000-token training sentence the model extracts 1,000 training examples from a <em>single</em> forward pass. What makes this possible?',
         options: [
-          { t: 'A kauzális maszk: a t-edik pozíció kimenete csak az első t tokentől függhet, így minden pozíció egyszerre, egymást nem szennyezve gyakorolja a saját következő-token-jóslását.', ok: true },
-          { t: 'A modell a mondatot 1000 különböző módon darabolja fel, és mindegyiket külön lefuttatja.' },
-          { t: 'A multi-head attention: minden fej külön tanítópéldaként számít.' },
-          { t: 'A batch-feldolgozás: a GPU egyszerre 1000 másolatot futtat a modellből.' }
+          { t: 'The causal mask: the output at position t can depend only on the first t tokens, so every position practices its own next-token prediction at once, without contaminating the others.', ok: true },
+          { t: 'The model splits the sentence in 1,000 different ways and runs each separately.' },
+          { t: 'Multi-head attention: every head counts as a separate training example.' },
+          { t: 'Batch processing: the GPU runs 1,000 copies of the model at the same time.' }
         ],
-        why: 'A maszk a softmax előtt −∞-t ír a jövőbeli pozíciók pontszámába, tehát egy pozíció fizikailag képtelen a jövőbe nézni. Ez elsőre korlátozásnak hangzik, valójában viszont ez teszi a tanítást gazdaságossá: ha a jövő nem szivároghat vissza, akkor minden pozíció kimenete egy <em>érvényes</em> jóslás a saját következő tokenjére, és mind az ezer egyszerre értékelhető. Innen nézve a kauzalitás nem ár, hanem a transzformer tanítási hatékonyságának egyik alapja — és egyben az oka annak, hogy a generálás mégis tokenenként, sorosan megy (1. szint): tanításkor a folytatás már ismert, generáláskor még nem.'
+        why: 'The mask writes −∞ into the scores of future positions before the softmax, so a position is physically unable to look ahead. That sounds like a restriction, but it is exactly what makes training economical: if the future cannot leak backwards, then the output at every position is a <em>valid</em> prediction of its own next token, and all thousand can be scored at once. Seen this way, causality is not a price but one of the foundations of the transformer\u2019s training efficiency — and also the reason generation still proceeds serially, token by token (level 1): during training the continuation is already known, during generation it is not.'
       },
       {
         id: 'trf-kvadratikus',
         type: 'number',
         answer: 16,
-        hint: 'Egész szám (szorzó).',
-        q: 'A kontextushosszt 2&nbsp;048-ról 8&nbsp;192 tokenre növeled. Hányszorosára nő ettől az attention <span class="math"><b>Q</b><b>K</b><sup>⊤</sup></span> pontszám-mátrixának mérete?',
-        why: 'A pontszám-mátrix <span class="math">T × T</span> méretű, tehát a hosszban <strong>négyzetes</strong>: a négyszeres kontextus 4² = <strong>16-szoros</strong> mátrixot jelent. Ez a transzformer skálázásának központi szűk keresztmetszete — nem a paraméterszám, hanem a szekvenciahossz az, ami így viselkedik. Ezért nem egyszerűen „drágább” a hosszú kontextus, hanem aránytalanul drágább, és ezért szól önálló mérnöki irodalom arról, hogyan kerüljék meg: KV-cache és FlashAttention az inferencia oldalán (7. fejezet), ritka és lineáris attention-variánsok az architektúra oldalán (4.8).'
+        hint: 'A whole number (a multiplier).',
+        q: 'You grow the context length from 2,048 to 8,192 tokens. By what factor does the attention score matrix <span class="math"><b>Q</b><b>K</b><sup>⊤</sup></span> grow?',
+        why: 'The score matrix is of size <span class="math">T × T</span>, so it is <strong>quadratic</strong> in length: four times the context means a 4² = <strong>16×</strong> matrix. This is the central bottleneck in scaling the transformer — it is the sequence length, not the parameter count, that behaves this way. Long context is therefore not merely more expensive but disproportionately so, which is why a whole engineering literature exists on getting around it: the KV cache and FlashAttention on the inference side (chapter 7), sparse and linear attention variants on the architecture side (4.8).'
       },
       {
         id: 'trf-skalazas',
         type: 'choice',
-        q: 'Egy nagy fejdimenziójú modellben kihagyod az attention-pontszámok <span class="math">√d<sub>h</sub></span>-val való osztását. Mi lesz a következménye a tanításra nézve?',
+        q: 'In a model with a large head dimension you leave out the division of the attention scores by <span class="math">√d<sub>h</sub></span>. What follows for training?',
         options: [
-          { t: 'A pontszámok szórása túl nagy lesz, a softmax gyakorlatilag one-hottá telítődik, és a telített tartományban eltűnik a gradiens — a fej nem tud tanulni.', ok: true },
-          { t: 'A figyelem egyenletesen szétterül minden pozíción, ezért a fej semmit nem tud kiemelni.' },
-          { t: 'Semmi, a skálázás csak numerikus kényelmi lépés, a softmax úgyis normalizál.' },
-          { t: 'A kauzális maszk hatástalanná válik, és a modell a jövőbe lát.' }
+          { t: 'The spread of the scores becomes too large, the softmax saturates to practically one-hot, and in that saturated range the gradient vanishes — the head cannot learn.', ok: true },
+          { t: 'Attention spreads evenly over all positions, so the head cannot single anything out.' },
+          { t: 'Nothing; the scaling is only a numerical convenience, since the softmax normalizes anyway.' },
+          { t: 'The causal mask stops working and the model can see into the future.' }
         ],
-        why: 'Ha a query és a key komponensei független, egységszórású mennyiségek, a skalárszorzatuk szórása <span class="math">√d<sub>h</sub></span>-val nő. Nagy fejdimenzió mellett a pontszámok annyira szétszóródnak, hogy a softmax kimenete gyakorlatilag one-hot lesz — és épp ott, a telített tartományban a deriváltja közel nulla. A skálázás tehát nem kozmetika: a pontszámokat a softmax <em>érzékeny</em> tartományában tartja, ahol egyáltalán van mit visszaterjeszteni. A harmadik válasz csapdája éppen az, hogy a softmax valóban normalizál — de a normalizálás nem állítja vissza az elveszett gradienst.'
+        why: 'If the components of the query and the key are independent quantities with unit variance, the standard deviation of their dot product grows with <span class="math">√d<sub>h</sub></span>. At a large head dimension the scores scatter so widely that the softmax output becomes practically one-hot — and precisely there, in the saturated range, its derivative is near zero. The scaling is therefore not cosmetic: it keeps the scores in the <em>sensitive</em> range of the softmax, where there is something to backpropagate at all. The trap in the third answer is that the softmax really does normalize — but normalization does not restore the lost gradient.'
       },
       {
         id: 'trf-sulyok',
         type: 'choice',
-        q: 'Egy fej feltűnően nagy attention-súlyt ad egy adott tokenre. Következtethetsz-e ebből arra, hogy ez a token oksági szempontból fontos a modell kimenete szempontjából?',
+        q: 'A head gives a strikingly large attention weight to a particular token. Can you conclude from this that the token is causally important for the model\u2019s output?',
         options: [
-          { t: 'Nem: a nagy súly önmagában nem oksági bizonyíték — ezt ablációs tesztekkel kell ellenőrizni —, ráadásul a fejek gyakran „parkolják” a felesleges súlyt egy semleges pozícióra, mert a softmaxnak mindenképp 1-re kell összegeznie.', ok: true },
-          { t: 'Igen: az attention-súlyok pontosan azt mutatják meg, mi befolyásolta a kimenetet — ez a mechanizmus beépített magyarázata.' },
-          { t: 'Igen, de csak az utolsó rétegben; a korábbi rétegek súlyai zajosak.' },
-          { t: 'Nem, mert az attention-súlyok a tanítás után véletlenszerűvé válnak.' }
+          { t: 'No: a large weight is not causal evidence on its own — that has to be checked with ablation tests — and heads often “park” surplus weight on a neutral position, because the softmax has to sum to 1 regardless.', ok: true },
+          { t: 'Yes: attention weights show exactly what influenced the output — this is the mechanism\u2019s built-in explanation.' },
+          { t: 'Yes, but only in the last layer; the weights of earlier layers are noisy.' },
+          { t: 'No, because attention weights become random after training.' }
         ],
-        why: 'Ez az interpretability egyik legkeményebben megtanult leckéje: <strong>a súlyok nem magyarázatok</strong>. Két külön ok is aláássa a naiv olvasatot. Egyrészt a fej kimenete a value-vektorokon múlik, nem csak a súlyokon — nagy súly egy tartalmilag üres value-n semmit nem visz át. Másrészt az <em>attention sink</em>: mivel a softmax kimenete mindig 1-re összegez, a fejnek akkor is el kell osztania a súlyt, ha éppen nincs mit olvasnia — ilyenkor jellemzően az első tokenre parkolja. Amit valóban mérni lehet, az az abláció: kivesszük a fejet vagy elvágjuk az utat, és megnézzük, változik-e a kimenet (8.6).'
+        why: 'This is one of the hardest-learned lessons of interpretability: <strong>weights are not explanations</strong>. Two separate reasons undermine the naive reading. First, the head\u2019s output depends on the value vectors, not only on the weights — a large weight on a contentless value transfers nothing. Second, the <em>attention sink</em>: because the softmax output always sums to 1, the head must distribute weight even when it has nothing to read, and it typically parks it on the first token. What can actually be measured is ablation: remove the head or cut the path, and see whether the output changes (8.6).'
       }
     ],
     5: [
