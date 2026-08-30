@@ -1,35 +1,36 @@
 <!DOCTYPE html>
 <!--
-  Hogyan működnek a nagy nyelvi modellek? — átfogó oktatóanyag
-  © 2026 Csaplár Dániel
-  Licenc: CC BY-NC-SA 4.0 (Nevezd meg! · Ne add el! · Így add tovább!)
-  https://creativecommons.org/licenses/by-nc-sa/4.0/deed.hu
-  v1.0 · utolsó frissítés: 2026. augusztus 30.
+  How do large language models work? — a comprehensive guide
+  © 2026 Dániel Csaplár
+  Licence: CC BY-NC-SA 4.0 (Attribution · NonCommercial · ShareAlike)
+  https://creativecommons.org/licenses/by-nc-sa/4.0/
+  v1.0 · last updated: 30 August 2026
+  Hungarian original: https://csaplard.github.io/llm-oktatoanyag/
 -->
-<html lang="hu">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Átfogó magyar oktatóanyag a nagy nyelvi modellekről: tokenizáció, embedding, transzformer, tanítás, alignment, inferencia és interpretability — 12 szinten, kvízekkel.">
-<meta name="author" content="Csaplár Dániel">
+<meta name="description" content="A comprehensive guide to large language models: tokenization, embeddings, the transformer, training, alignment, inference and interpretability — twelve levels, each closed by a quiz.">
+<meta name="author" content="Dániel Csaplár">
 <link rel="alternate" hreflang="hu" href="https://csaplard.github.io/llm-oktatoanyag/">
 <link rel="alternate" hreflang="en" href="https://csaplard.github.io/llm-oktatoanyag/en/">
 <link rel="alternate" hreflang="x-default" href="https://csaplard.github.io/llm-oktatoanyag/">
-<link rel="canonical" href="https://csaplard.github.io/llm-oktatoanyag/">
+<link rel="canonical" href="https://csaplard.github.io/llm-oktatoanyag/en/">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230F5C52'/><line x1='16' y1='11' x2='16' y2='6' stroke='%23FCFCFA' stroke-width='1.8' stroke-linecap='round'/><circle cx='16' cy='4.6' r='1.7' fill='none' stroke='%23FCFCFA' stroke-width='1.6'/><rect x='8.5' y='11' width='15' height='13.5' rx='4' fill='none' stroke='%23FCFCFA' stroke-width='1.9'/><line x1='12' y1='18' x2='14.6' y2='18' stroke='%23FCFCFA' stroke-width='2' stroke-linecap='round'/><line x1='17.4' y1='18' x2='20' y2='18' stroke='%23FCFCFA' stroke-width='2' stroke-linecap='round'/></svg>">
 <meta property="og:type" content="article">
-<meta property="og:locale" content="hu_HU">
+<meta property="og:locale" content="en_GB">
 <meta property="og:site_name" content="Katedra">
-<meta property="og:url" content="https://csaplard.github.io/llm-oktatoanyag/">
-<meta property="og:title" content="Hogyan működnek a nagy nyelvi modellek?">
-<meta property="og:description" content="Átfogó magyar oktatóanyag a tokenizációtól az interpretabilityig — 12 szint, szintenként záró kvízzel.">
+<meta property="og:url" content="https://csaplard.github.io/llm-oktatoanyag/en/">
+<meta property="og:title" content="How do large language models work?">
+<meta property="og:description" content="From tokenization to interpretability — twelve levels, each closed by a quiz.">
 <meta property="og:image" content="https://csaplard.github.io/llm-oktatoanyag/og-image.png?v=2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Katedra — Hogyan működnek a nagy nyelvi modellek? Oktatóanyag 12 szinten.">
+<meta property="og:image:alt" content="Katedra — How do large language models work? A guide in twelve levels.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://csaplard.github.io/llm-oktatoanyag/og-image.png?v=2">
-<title>Hogyan működnek a nagy nyelvi modellek? — Átfogó oktatóanyag</title>
+<title>How do large language models work? — A comprehensive guide</title>
 <style>
 /* ════════════════════════════════════════════════════════════
    KATEDRA — arculati változók.
@@ -743,8 +744,8 @@ details.level > summary:focus-visible, main a:focus-visible {
 </head>
 <body>
 <div id="floatDock">
-  <a id="langSwitch" href="en/" hreflang="en" lang="en" title="Read this page in English">EN</a>
-  <button id="themeToggle" aria-label="Téma váltása">◐ Sötét mód</button>
+  <a id="langSwitch" href="../" hreflang="hu" lang="hu" title="Olvasd magyarul">HU</a>
+  <button id="themeToggle" aria-label="Switch theme">◐ Dark mode</button>
 </div>
 <div id="progressBar" role="status" aria-live="polite">
   <span class="pb-track"><span class="pb-fill"></span></span>
@@ -754,67 +755,67 @@ details.level > summary:focus-visible, main a:focus-visible {
   </div>
 </div>
 <div class="layout">
-<nav id="toc" aria-label="Tartalomjegyzék">
-  <div class="toc-title">Tartalom</div>
-  <a href="#bevezetes" data-level="1"><span class="st"></span>1 · Mi az LLM?</a>
-  <a href="#tokenizacio" data-level="2"><span class="st"></span>2 · Tokenizáció</a>
-  <a href="#embedding" data-level="3"><span class="st"></span>3 · Embeddingek</a>
-  <a href="#architektura" data-level="4"><span class="st"></span>4 · A transzformer</a>
-  <a class="sub" href="#blokk">4.1 · A blokk</a>
+<nav id="toc" aria-label="Table of contents">
+  <div class="toc-title">Contents</div>
+  <a href="#bevezetes" data-level="1"><span class="st"></span>1 · What is an LLM?</a>
+  <a href="#tokenizacio" data-level="2"><span class="st"></span>2 · Tokenization</a>
+  <a href="#embedding" data-level="3"><span class="st"></span>3 · Embeddings</a>
+  <a href="#architektura" data-level="4"><span class="st"></span>4 · The transformer</a>
+  <a class="sub" href="#blokk">4.1 · The block</a>
   <a class="sub" href="#residual-stream">4.2 · Residual stream</a>
   <a class="sub" href="#attention">4.3 · Attention</a>
-  <a class="sub" href="#mlp" data-level="5"><span class="st"></span>4.4 · MLP-réteg</a>
-  <a class="sub" href="#norm">4.5 · Normalizálás</a>
-  <a class="sub" href="#pozicio">4.6 · Pozíciókódolás</a>
-  <a class="sub" href="#kimenet">4.7 · Kimeneti fej</a>
-  <a class="sub" href="#variansok">4.8 · Modern variánsok</a>
-  <a href="#tanitas" data-level="6"><span class="st"></span>5 · Tanítás</a>
-  <a class="sub" href="#loss">5.1 · A veszteségfüggvény</a>
-  <a class="sub" href="#autograd">5.2 · Számítási gráf</a>
+  <a class="sub" href="#mlp" data-level="5"><span class="st"></span>4.4 · The MLP layer</a>
+  <a class="sub" href="#norm">4.5 · Normalization</a>
+  <a class="sub" href="#pozicio">4.6 · Positional encoding</a>
+  <a class="sub" href="#kimenet">4.7 · The output head</a>
+  <a class="sub" href="#variansok">4.8 · Modern variants</a>
+  <a href="#tanitas" data-level="6"><span class="st"></span>5 · Training</a>
+  <a class="sub" href="#loss">5.1 · The loss function</a>
+  <a class="sub" href="#autograd">5.2 · Computational graph</a>
   <a class="sub" href="#backprop">5.3 · Backpropagation</a>
-  <a class="sub" href="#optim" data-level="7"><span class="st"></span>5.4 · Optimalizálók</a>
-  <a class="sub" href="#infra">5.5 · Tanítás a gyakorlatban</a>
-  <a class="sub" href="#scaling">5.6 · Skálázási törvények</a>
-  <a href="#alignment" data-level="8"><span class="st"></span>6 · Finomhangolás, alignment</a>
-  <a href="#inferencia" data-level="9"><span class="st"></span>7 · Inferencia</a>
+  <a class="sub" href="#optim" data-level="7"><span class="st"></span>5.4 · Optimizers</a>
+  <a class="sub" href="#infra">5.5 · Training in practice</a>
+  <a class="sub" href="#scaling">5.6 · Scaling laws</a>
+  <a href="#alignment" data-level="8"><span class="st"></span>6 · Fine-tuning, alignment</a>
+  <a href="#inferencia" data-level="9"><span class="st"></span>7 · Inference</a>
   <a href="#interpretability" data-level="10"><span class="st"></span>8 · Mechanistic interpretability</a>
-  <a class="sub" href="#mi-program">8.1 · A program</a>
-  <a class="sub" href="#mi-residual">8.2 · A residual stream nézet</a>
-  <a class="sub" href="#induction">8.3 · Induction headek</a>
-  <a class="sub" href="#superpozicio" data-level="11"><span class="st"></span>8.4 · Szuperpozíció</a>
-  <a class="sub" href="#sae">8.5 · Sparse autoencoderek</a>
-  <a class="sub" href="#modszerek">8.6 · Módszertan</a>
-  <a href="#kepessegek" data-level="12"><span class="st"></span>9 · Képességek és korlátok</a>
-  <a href="#glosszarium">10 · Glosszárium</a>
-  <a href="#irodalom">11 · Irodalom</a>
-  <a href="#valtozasnaplo">Változásnapló</a>
+  <a class="sub" href="#mi-program">8.1 · The programme</a>
+  <a class="sub" href="#mi-residual">8.2 · The residual stream view</a>
+  <a class="sub" href="#induction">8.3 · Induction heads</a>
+  <a class="sub" href="#superpozicio" data-level="11"><span class="st"></span>8.4 · Superposition</a>
+  <a class="sub" href="#sae">8.5 · Sparse autoencoders</a>
+  <a class="sub" href="#modszerek">8.6 · Methodology</a>
+  <a href="#kepessegek" data-level="12"><span class="st"></span>9 · Capabilities and limits</a>
+  <a href="#glosszarium">10 · Glossary</a>
+  <a href="#irodalom">11 · Further reading</a>
+  <a href="#valtozasnaplo">Changelog</a>
 </nav>
 <main>
 <header class="hero">
-  <h1>Hogyan működnek a nagy nyelvi modellek?</h1>
-  <div class="subtitle">Átfogó oktatóanyag a tokenizációtól a backpropagationön át a mechanistic interpretability kutatási frontvonaláig — rétegzett mélységben: minden téma előbb intuitívan, majd matematikai pontossággal, végül kutatói szinten.</div>
+  <h1>How do large language models work?</h1>
+  <div class="subtitle">A comprehensive guide, from tokenization through backpropagation to the research frontier of mechanistic interpretability — written in layers: every topic first intuitively, then with mathematical precision, and finally at research depth.</div>
   <div class="meta-line">
-    <span class="tag" style="background:var(--wash-blue); color:var(--s1)">■ 1. szint · intuíció</span> a fő szöveg —
-    <span class="tag" style="background:var(--wash-blue); color:var(--s1)">▸ 2. szint · matematika</span> és
-    <span class="tag" style="background:var(--wash-violet); color:var(--s7)">▸ 3. szint · kutatói mélység</span> a lenyitható blokkokban.
+    <span class="tag" style="background:var(--wash-blue); color:var(--s1)">■ Level 1 · intuition</span> is the main text —
+    <span class="tag" style="background:var(--wash-blue); color:var(--s1)">▸ Level 2 · mathematics</span> and
+    <span class="tag" style="background:var(--wash-violet); color:var(--s7)">▸ Level 3 · research depth</span> live in the collapsible blocks.
   </div>
   <div class="meta-line hero-meta">
-    <span>Csaplár Dániel</span>
+    <span>Dániel Csaplár</span>
     <span class="dot">·</span>
     <span>v1.0</span>
     <span class="dot">·</span>
-    <span>utolsó frissítés: 2026. augusztus 30.</span>
+    <span>last updated: 30 August 2026</span>
     <span class="dot">·</span>
-    <a href="#valtozasnaplo">változásnapló</a>
+    <a href="#valtozasnaplo">changelog</a>
   </div>
 </header>
 <section id="bevezetes" data-level="1">
-<div class="chapter-kicker">1. fejezet</div>
-<h2>Mi az a nagy nyelvi modell?</h2>
+<div class="chapter-kicker">Chapter 1</div>
+<h2>What is a large language model?</h2>
 
-<p>Egy nagy nyelvi modell (large language model, LLM) a felszínen megtévesztően egyszerű dolgot csinál: <strong>adott szövegkezdet után megjósolja a következő szövegdarabot</strong>. Kap egy tokensorozatot — „A macska felmászott a” —, és kimenetként egy valószínűség-eloszlást ad a szótára összes lehetséges következő tokenjére: „fára” 62%, „fa” 11%, „kerítésre” 7%, és így tovább több tízezer további lehetőségre. A szöveg generálása ennek az egyetlen műveletnek az ismétlése: a modell húz egy tokent az eloszlásból, hozzáfűzi a szöveghez, majd az egésszel újra lefuttatja önmagát. Ezt hívjuk <strong>autoregresszív</strong> generálásnak.</p>
+<p>On the surface, a large language model (LLM) does something deceptively simple: <strong>given the beginning of a text, it predicts the next piece of it</strong>. It receives a sequence of tokens — “The cat climbed up the” — and returns a probability distribution over every possible next token in its vocabulary: “tree” 62%, “stairs” 11%, “fence” 7%, and so on across tens of thousands of further options. Generating text is nothing but the repetition of that single operation: the model draws a token from the distribution, appends it to the text, then runs itself again on the whole thing. This is called <strong>autoregressive</strong> generation.</p>
 
-<p>Ami ebből a definícióból nem látszik: ahhoz, hogy a következő tokent <em>jól</em> jósold meg, implicit módon nagyon sok mindent kell „tudni”. A „Párizs Franciaország fővárosa, Berlin pedig …” folytatásához földrajzi tényeket; a „ha 3 alma 600 Ft, akkor 7 alma …” folytatásához aritmetikát; egy félbehagyott Python-függvény folytatásához programozást. A következő token jóslása tehát nem egy szűk feladat, hanem egy <strong>kényszer, amely a szöveget előállító világ modellezését jutalmazza</strong>. A tanítás során a modell paraméterei fokozatosan olyan belső gépezetté rendeződnek, amely nyelvtant, tényeket, stílust és következtetési mintázatokat reprezentál — pusztán azért, mert ezek nélkül a jóslás rosszabb lenne.</p>
+<p>What the definition hides is this: to predict the next token <em>well</em>, you implicitly need to know a great deal. Continuing “Paris is the capital of France, and Berlin is …” takes geographical facts; continuing “if 3 apples cost £6, then 7 apples …” takes arithmetic; continuing a half-finished Python function takes programming. Next-token prediction is therefore not a narrow task but a <strong>pressure that rewards modelling the world which produced the text</strong>. Over the course of training, the model's parameters gradually organise into internal machinery that represents grammar, facts, style and patterns of inference — purely because without them the prediction would be worse.</p>
 
 <figure class="diagram">
 <svg viewBox="0 0 960 250" role="img" aria-label="Az LLM teljes feldolgozási folyamata">
@@ -825,15 +826,15 @@ details.level > summary:focus-visible, main a:focus-visible {
   </defs>
   <!-- input szöveg -->
   <rect x="10" y="80" width="128" height="56" rx="10" class="svg-box" stroke-width="1.2"/>
-  <text x="74" y="103" text-anchor="middle" font-size="12.5" class="svg-ink" font-style="italic">„A macska</text>
-  <text x="74" y="120" text-anchor="middle" font-size="12.5" class="svg-ink" font-style="italic">felmászott a”</text>
-  <text x="74" y="160" text-anchor="middle" font-size="11" class="svg-muted">bemeneti szöveg</text>
+  <text x="74" y="103" text-anchor="middle" font-size="12.5" class="svg-ink" font-style="italic">“The cat</text>
+  <text x="74" y="120" text-anchor="middle" font-size="12.5" class="svg-ink" font-style="italic">climbed up the”</text>
+  <text x="74" y="160" text-anchor="middle" font-size="11" class="svg-muted">input text</text>
   <line x1="138" y1="108" x2="168" y2="108" stroke="var(--ink-muted)" stroke-width="1.3" marker-end="url(#arr)"/>
   <!-- tokenizáló -->
   <rect x="170" y="72" width="100" height="72" rx="10" fill="var(--wash-orange)" stroke="var(--s6)" stroke-width="1.4"/>
-  <text x="220" y="103" text-anchor="middle" font-size="13" font-weight="600" fill="var(--s6)">Tokenizáló</text>
+  <text x="220" y="103" text-anchor="middle" font-size="13" font-weight="600" fill="var(--s6)">Tokenizer</text>
   <text x="220" y="122" text-anchor="middle" font-size="10.5" class="svg-ink2">BPE</text>
-  <text x="220" y="160" text-anchor="middle" font-size="11" class="svg-muted">2. fejezet</text>
+  <text x="220" y="160" text-anchor="middle" font-size="11" class="svg-muted">chapter 2</text>
   <line x1="270" y1="108" x2="300" y2="108" stroke="var(--ink-muted)" stroke-width="1.3" marker-end="url(#arr)"/>
   <!-- token id-k -->
   <g class="svg-mono" font-size="10.5">
@@ -842,28 +843,28 @@ details.level > summary:focus-visible, main a:focus-visible {
     <rect x="302" y="110" width="46" height="20" rx="4" fill="var(--wash-blue)" stroke="var(--s1)" stroke-width="1"/>
     <text x="325" y="124" text-anchor="middle" class="svg-ink">9042</text>
   </g>
-  <text x="325" y="160" text-anchor="middle" font-size="11" class="svg-muted">token-ID-k</text>
+  <text x="325" y="160" text-anchor="middle" font-size="11" class="svg-muted">token IDs</text>
   <text x="325" y="80" text-anchor="middle" font-size="10" class="svg-muted">⋮</text>
   <line x1="350" y1="108" x2="380" y2="108" stroke="var(--ink-muted)" stroke-width="1.3" marker-end="url(#arr)"/>
   <!-- embedding -->
   <rect x="382" y="72" width="100" height="72" rx="10" fill="var(--wash-green)" stroke="var(--s2)" stroke-width="1.4"/>
   <text x="432" y="103" text-anchor="middle" font-size="13" font-weight="600" fill="var(--s2)">Embedding</text>
-  <text x="432" y="122" text-anchor="middle" font-size="10.5" class="svg-ink2">ID → vektor</text>
-  <text x="432" y="160" text-anchor="middle" font-size="11" class="svg-muted">3. fejezet</text>
+  <text x="432" y="122" text-anchor="middle" font-size="10.5" class="svg-ink2">ID → vector</text>
+  <text x="432" y="160" text-anchor="middle" font-size="11" class="svg-muted">chapter 3</text>
   <line x1="482" y1="108" x2="512" y2="108" stroke="var(--ink-muted)" stroke-width="1.3" marker-end="url(#arr)"/>
   <!-- transzformer -->
   <rect x="514" y="46" width="150" height="124" rx="12" fill="var(--wash-blue)" stroke="var(--s1)" stroke-width="1.6"/>
-  <text x="589" y="72" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--s1)">Transzformer</text>
+  <text x="589" y="72" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--s1)">Transformer</text>
   <rect x="530" y="84" width="118" height="22" rx="5" class="svg-box"/>
   <text x="589" y="99" text-anchor="middle" font-size="10.5" class="svg-ink2">attention + MLP</text>
   <rect x="530" y="110" width="118" height="22" rx="5" class="svg-box"/>
   <text x="589" y="125" text-anchor="middle" font-size="10.5" class="svg-ink2">attention + MLP</text>
-  <text x="589" y="147" text-anchor="middle" font-size="11" class="svg-ink2">⋮ N réteg ⋮</text>
-  <text x="589" y="188" text-anchor="middle" font-size="11" class="svg-muted">4. fejezet</text>
+  <text x="589" y="147" text-anchor="middle" font-size="11" class="svg-ink2">⋮ N layers ⋮</text>
+  <text x="589" y="188" text-anchor="middle" font-size="11" class="svg-muted">chapter 4</text>
   <line x1="664" y1="108" x2="694" y2="108" stroke="var(--ink-muted)" stroke-width="1.3" marker-end="url(#arr)"/>
   <!-- softmax / eloszlás -->
   <rect x="696" y="46" width="152" height="124" rx="12" class="svg-box" stroke-width="1.2"/>
-  <text x="772" y="68" text-anchor="middle" font-size="12" font-weight="600" class="svg-ink">softmax(logitok)</text>
+  <text x="772" y="68" text-anchor="middle" font-size="12" font-weight="600" class="svg-ink">softmax(logits)</text>
   <!-- mini oszlopok -->
   <g>
     <rect x="714" y="88" width="26" height="62" fill="var(--s1)" rx="3"/>
@@ -873,57 +874,57 @@ details.level > summary:focus-visible, main a:focus-visible {
   </g>
   <line x1="708" y1="150" x2="842" y2="150" stroke="var(--baseline)" stroke-width="1"/>
   <g font-size="9" class="svg-ink2">
-    <text x="727" y="163" text-anchor="middle">fára</text>
-    <text x="759" y="163" text-anchor="middle">fa</text>
-    <text x="791" y="163" text-anchor="middle">falra</text>
+    <text x="727" y="163" text-anchor="middle">tree</text>
+    <text x="759" y="163" text-anchor="middle">roof</text>
+    <text x="791" y="163" text-anchor="middle">wall</text>
     <text x="823" y="163" text-anchor="middle">…</text>
   </g>
-  <text x="772" y="188" text-anchor="middle" font-size="11" class="svg-muted">P(következő token)</text>
+  <text x="772" y="188" text-anchor="middle" font-size="11" class="svg-muted">P(next token)</text>
   <!-- visszacsatolás -->
   <path d="M 772 200 L 772 226 L 74 226 L 74 140" fill="none" stroke="var(--s6)" stroke-width="1.3" stroke-dasharray="5,4" marker-end="url(#arr)"/>
-  <text x="420" y="220" text-anchor="middle" font-size="11" fill="var(--s6)">mintavétel → a kiválasztott token visszakerül a bemenetre (autoregresszió)</text>
+  <text x="420" y="220" text-anchor="middle" font-size="11" fill="var(--s6)">sampling → the chosen token is fed back into the input (autoregression)</text>
 </svg>
-<figcaption><span class="fig-num">1. ábra.</span> A teljes folyamat madártávlatból. A szöveg tokenekre bomlik, minden token vektorrá alakul, a transzformer rétegek ezeket a vektorokat transzformálják, végül a modell egy valószínűség-eloszlást ad a következő tokenre. A kiválasztott token visszakerül a bemenetre, és a kör újraindul — tokenről tokenre így épül fel a válasz.</figcaption>
+<figcaption><span class="fig-num">Figure 1.</span> The whole pipeline from above. The text is broken into tokens, each token becomes a vector, the transformer layers transform those vectors, and finally the model produces a probability distribution over the next token. The chosen token is fed back into the input and the loop starts again — token by token, this is how an answer is built.</figcaption>
 </figure>
 
-<h3>Miért „nagy”?</h3>
-<p>A „nagy” a paraméterek számára utal: a modell viselkedését meghatározó tanult számokra. Egy modern LLM-ben ezekből milliárdok vannak — a nyílt modellek jellemzően a ~1 milliárdtól a több száz milliárdig terjedő tartományban mozognak, a legnagyobb rendszerek ezt is meghaladják. A paraméterek túlnyomó része néhány óriási mátrixban ül (embedding-, attention- és MLP-súlyok, lásd a 4. fejezetet). A méret nem öncélú: az 5.6. szakaszban látni fogjuk, hogy a teljesítmény meglepően szabályos <em>skálázási törvényeket</em> követ — a több paraméter és több adat kiszámíthatóan jobb jóslást ad.</p>
+<h3>Why “large”?</h3>
+<p>“Large” refers to the number of parameters: the learned numbers that determine the model's behaviour. A modern LLM has billions of them — open models typically range from ~1 billion to several hundred billion, and the largest systems go beyond that. The overwhelming majority of parameters sit in a handful of enormous matrices (embedding, attention and MLP weights; see chapter 4). The size is not an end in itself: in section 5.6 we will see that performance follows surprisingly regular <em>scaling laws</em> — more parameters and more data give predictably better prediction.</p>
 
-<h3>A modell életciklusa</h3>
-<p>Egy modern LLM két nagy szakaszban készül. Az <strong>előtanítás</strong> (pretraining) során a modell hatalmas, több billió tokenes szövegkorpuszon tanulja a következő token jóslását — itt jön létre a nyers képesség (5. fejezet). Ezután az <strong>utótanítás</strong> (post-training) formálja használható asszisztenssé: felügyelt finomhangolás, preferencia-alapú tanítás (RLHF, DPO) és biztonsági tréning (6. fejezet). A kész modellt futtatni — <em>inferencia</em> — önálló mérnöki terület a maga trükkjeivel (7. fejezet). Végül a 8. fejezet arról szól, amit a kutatók ma még csak részben értenek: <em>mi történik valójában odabent</em>.</p>
+<h3>The life cycle of a model</h3>
+<p>A modern LLM is built in two large stages. During <strong>pretraining</strong> the model learns next-token prediction on an enormous corpus of trillions of tokens — this is where the raw capability comes from (chapter 5). <strong>Post-training</strong> then shapes it into a usable assistant: supervised fine-tuning, preference-based training (RLHF, DPO) and safety training (chapter 6). Running the finished model — <em>inference</em> — is an engineering field of its own, with its own tricks (chapter 7). Finally, chapter 8 is about what researchers still understand only partly: <em>what actually happens inside</em>.</p>
 
 <details class="level l2">
-<summary><span class="badge b2">2. szint</span> A modell mint valószínűségi eloszlás — pontos megfogalmazás</summary>
+<summary><span class="badge b2">Level 2</span> The model as a probability distribution — stated precisely</summary>
 <div class="body">
-<p>Formálisan a nyelvi modell egy paraméterezett eloszlás a tokensorozatok felett. A láncszabály szerint bármely <span class="math">x<sub>1</sub>, …, x<sub>T</sub></span> sorozat együttes valószínűsége felbontható feltételes valószínűségek szorzatára:</p>
+<p>Formally, a language model is a parameterised distribution over token sequences. By the chain rule, the joint probability of any sequence <span class="math">x<sub>1</sub>, …, x<sub>T</sub></span> factorises into a product of conditional probabilities:</p>
 <div class="eq">P<sub>θ</sub>(x<sub>1</sub>, …, x<sub>T</sub>) = <span class="rm">∏</span><sub>t=1</sub><sup>T</sup> P<sub>θ</sub>(x<sub>t</sub> | x<sub>1</sub>, …, x<sub>t−1</sub>)</div>
-<p>A modell — a <span class="math">θ</span> paraméterekkel — pontosan ezeket a feltételes tagokat számolja: minden pozícióban egy eloszlást ad a <span class="math">V</span> méretű szótár felett az addigi <em>kontextus</em> (prefix) függvényében. Ez a felbontás egzakt, nem közelítés; a modellezési döntés az, hogy a feltételes eloszlást egy neurális háló reprezentálja, amelynek bemenete a prefix, kimenete pedig egy <span class="math">V</span>-dimenziós valószínűségvektor.</p>
-<p>Két fontos következmény. Először: a tanítás célja természetesen adódik — maximalizáljuk a tanítókorpusz log-valószínűségét (ez lesz a cross-entropy loss, 5.1). Másodszor: a generálás <em>mintavételezés</em> ebből az eloszlásból, és a mintavételi stratégia (temperature, top-p) külön szabadságfok, amely nem része a modellnek (7. fejezet).</p>
+<p>The model — with parameters <span class="math">θ</span> — computes exactly these conditional terms: at every position it produces a distribution over the vocabulary of size <span class="math">V</span>, conditioned on the <em>context</em> (the prefix) so far. This factorisation is exact, not an approximation; the modelling decision is that a neural network represents the conditional distribution, taking the prefix as input and returning a <span class="math">V</span>-dimensional probability vector.</p>
+<p>Two consequences matter. First, the training objective follows naturally: maximise the log-probability of the training corpus (this becomes the cross-entropy loss, 5.1). Second, generation is <em>sampling</em> from this distribution, and the sampling strategy (temperature, top-p) is a separate degree of freedom that is not part of the model at all (chapter 7).</p>
 </div>
 </details>
 
 <details class="level l3">
-<summary><span class="badge b3">3. szint</span> Történeti ív: miért éppen a transzformer nyert?</summary>
+<summary><span class="badge b3">Level 3</span> A historical arc: why did the transformer win?</summary>
 <div class="body">
-<p>A feltételes eloszlás reprezentálására több architektúra-generáció versengett. Az <strong>n-gram modellek</strong> (a 2000-es évekig dominánsak) egyszerűen megszámolták, milyen gyakran követi egy szó az előző <span class="math">n−1</span> szót — de a kontextus hossza fixen rövid, és a soha nem látott kombinációkra nincs általánosítás. A <strong>rekurrens hálók</strong> (RNN, LSTM; ~2014–2017) egy fix méretű rejtett állapotba tömörítették a teljes előzményt: elvben korlátlan kontextus, gyakorlatban két végzetes gyengeséggel. Az információnak sok lépésen át kell „túlélnie” a rejtett állapotban (a gradiens eltűnik vagy felrobban, 5.3), és a feldolgozás eredendően szekvenciális — a <span class="math">t</span>-edik lépés nem kezdhető el a <span class="math">t−1</span>-edik előtt, ami a GPU-k párhuzamos természetével ellentétes.</p>
-<p>A transzformer (Vaswani et al., 2017, „Attention Is All You Need”) mindkét problémát egyszerre oldotta meg. Az attention <em>közvetlen</em> kapcsolatot teremt bármely két pozíció között — az információnak nem kell lépésről lépésre vándorolnia, a gradiens-út hossza bármely két token között O(1). És mivel a tanítás során minden pozíció jóslása egyszerre, egymástól függetlenül számolható (a kauzális maszkkal, 4.3), a teljes szekvencia egyetlen hatalmas mátrixműveletként fut a GPU-n. A győzelem tehát nem pusztán „jobb induktív torzítás”, hanem <strong>hardver-illeszkedés</strong>: a transzformer az az architektúra, amely a rendelkezésre álló számítási kapacitást a leghatékonyabban váltja tanulásra. Ez a szempont — a compute-hatékonyság mint elsődleges tervezési elv — azóta is az architektúra-fejlődés fő hajtóereje (4.8).</p>
+<p>Several generations of architecture competed to represent that conditional distribution. <strong>N-gram models</strong> (dominant until the 2000s) simply counted how often a word follows the previous <span class="math">n−1</span> words — but the context length is fixed and short, and there is no generalisation to combinations never seen. <strong>Recurrent networks</strong> (RNN, LSTM; ~2014–2017) compressed the entire history into a fixed-size hidden state: unlimited context in principle, with two fatal weaknesses in practice. Information has to “survive” many steps inside the hidden state (the gradient vanishes or explodes, 5.3), and processing is inherently sequential — step <span class="math">t</span> cannot begin before step <span class="math">t−1</span>, which runs against the parallel nature of GPUs.</p>
+<p>The transformer (Vaswani et al., 2017, “Attention Is All You Need”) solved both problems at once. Attention creates a <em>direct</em> connection between any two positions — information does not have to travel step by step, and the gradient path between any two tokens is O(1) long. And because during training the prediction at every position can be computed simultaneously and independently (using the causal mask, 4.3), the entire sequence runs as one huge matrix operation on the GPU. The victory was therefore not merely a “better inductive bias” but <strong>a fit to the hardware</strong>: the transformer is the architecture that converts available compute into learning most efficiently. That consideration — compute efficiency as the primary design principle — has driven architectural progress ever since (4.8).</p>
 </div>
 </details>
 
-<div class="note"><span class="label">Kulcsgondolat</span>
-Az LLM nem adatbázis és nem szabályrendszer: egyetlen hatalmas, differenciálható függvény, amelyet a „jósold meg a következő tokent” feladat gradiens-alapú optimalizálása formált. Minden képessége — és minden korlátja — ebből az egy tényből vezethető le.
+<div class="note"><span class="label">Key idea</span>
+An LLM is neither a database nor a rule system: it is a single enormous differentiable function, shaped by gradient-based optimisation of the task “predict the next token”. Every capability it has — and every limitation — follows from that one fact.
 </div>
 
 <div class="quiz" id="quiz-1" data-level="1">
-  <div class="quiz-head">Szintzáró kvíz · 1. szint</div>
-  <div class="quiz-title">Mi az a nagy nyelvi modell?</div>
-  <p class="quiz-sub">Öt kérdés, az átmenőhöz négy helyes válasz kell. Bukásnál azonnal újrapróbálható, ahányszor csak akarod — a kérdések és a válaszlehetőségek sorrendje minden körben más.</p>
+  <div class="quiz-head">Level 1 quiz</div>
+  <div class="quiz-title">What is a large language model?</div>
+  <p class="quiz-sub">Five questions; four correct answers to pass. If you fall short you can retake it right away, as many times as you like — the questions and the options are shuffled every round.</p>
   <div class="quiz-body"></div>
   <div class="quiz-foot"></div>
 </div>
 </section>
 <section id="tokenizacio" data-level="2">
-<div class="chapter-kicker">2. fejezet</div>
+<div class="chapter-kicker">Chapter 2</div>
 <h2>Tokenizáció: a szövegből számsorozat</h2>
 
 <p>A neurális háló nem betűket lát, hanem számokat. Az első lépés tehát a szöveg feldarabolása egy rögzített <strong>szótár</strong> (vocabulary) elemeire — ezek a <strong>tokenek</strong> —, majd minden darab lecserélése a szótárbeli sorszámára. A kérdés: mekkorák legyenek a darabok?</p>
@@ -1030,15 +1031,15 @@ while |szótár| &lt; V:
 </details>
 
 <div class="quiz" id="quiz-2" data-level="2">
-  <div class="quiz-head">Szintzáró kvíz · 2. szint</div>
-  <div class="quiz-title">Tokenizáció</div>
-  <p class="quiz-sub">Öt kérdés, az átmenőhöz négy helyes válasz kell. Bukásnál azonnal újrapróbálható, ahányszor csak akarod — a kérdések és a válaszlehetőségek sorrendje minden körben más.</p>
+  <div class="quiz-head">Level 2 quiz</div>
+  <div class="quiz-title">Tokenization</div>
+  <p class="quiz-sub">Five questions; four correct answers to pass. If you fall short you can retake it right away, as many times as you like — the questions and the options are shuffled every round.</p>
   <div class="quiz-body"></div>
   <div class="quiz-foot"></div>
 </div>
 </section>
 <section id="embedding" data-level="3">
-<div class="chapter-kicker">3. fejezet</div>
+<div class="chapter-kicker">Chapter 3</div>
 <h2>Embeddingek: a jelentés mint irány egy vektortérben</h2>
 
 <p>A token-ID-k önmagukban semmitmondó sorszámok: a 9042-es token semmivel sem „hasonlóbb” a 9043-ashoz, mint az 517-eshez. A hálónak olyan reprezentáció kell, amelyben a hasonlóság <em>számolható</em>. Ezért minden tokenhez egy tanult <strong>vektort</strong> rendelünk — egy több ezer dimenziós számsorozatot —, és ettől kezdve a modell nem tokenekkel, hanem ezekkel a vektorokkal dolgozik. Ezt a hozzárendelést hívjuk <strong>embeddingnek</strong>.</p>
@@ -1114,15 +1115,15 @@ Az embedding-réteg után minden nyelvi kérdés geometriává válik: hasonlós
 </div>
 
 <div class="quiz" id="quiz-3" data-level="3">
-  <div class="quiz-head">Szintzáró kvíz · 3. szint</div>
-  <div class="quiz-title">Embeddingek</div>
-  <p class="quiz-sub">Öt kérdés, az átmenőhöz négy helyes válasz kell. Bukásnál azonnal újrapróbálható, ahányszor csak akarod — a kérdések és a válaszlehetőségek sorrendje minden körben más.</p>
+  <div class="quiz-head">Level 3 quiz</div>
+  <div class="quiz-title">Embeddings</div>
+  <p class="quiz-sub">Five questions; four correct answers to pass. If you fall short you can retake it right away, as many times as you like — the questions and the options are shuffled every round.</p>
   <div class="quiz-body"></div>
   <div class="quiz-foot"></div>
 </div>
 </section>
 <section id="architektura" data-level="4">
-<div class="chapter-kicker">4. fejezet</div>
+<div class="chapter-kicker">Chapter 4</div>
 <h2>A transzformer architektúra</h2>
 
 <h3 id="blokk">4.1 · A blokk: attention és MLP</h3>
@@ -1392,9 +1393,9 @@ A residual stream <em>kommunikációs csatorna</em>: a korai rétegek üzeneteke
 </details>
 
 <div class="quiz" id="quiz-4" data-level="4">
-  <div class="quiz-head">Szintzáró kvíz · 4. szint</div>
-  <div class="quiz-title">Transzformer: residual stream + attention</div>
-  <p class="quiz-sub">Öt kérdés, az átmenőhöz négy helyes válasz kell. Bukásnál azonnal újrapróbálható, ahányszor csak akarod — a kérdések és a válaszlehetőségek sorrendje minden körben más.</p>
+  <div class="quiz-head">Level 4 quiz</div>
+  <div class="quiz-title">Transformer: residual stream + attention</div>
+  <p class="quiz-sub">Five questions; four correct answers to pass. If you fall short you can retake it right away, as many times as you like — the questions and the options are shuffled every round.</p>
   <div class="quiz-body"></div>
   <div class="quiz-foot"></div>
 </div>
@@ -1468,15 +1469,15 @@ Ezen a ponton a teljes előreirányú számítás a kezünkben van: tokenek → 
 </div>
 
 <div class="quiz" id="quiz-5" data-level="5">
-  <div class="quiz-head">Szintzáró kvíz · 5. szint</div>
-  <div class="quiz-title">Transzformer: MLP, normalizálás, pozíciókódolás, kimeneti fej</div>
-  <p class="quiz-sub">Öt kérdés, az átmenőhöz négy helyes válasz kell. Bukásnál azonnal újrapróbálható, ahányszor csak akarod — a kérdések és a válaszlehetőségek sorrendje minden körben más.</p>
+  <div class="quiz-head">Level 5 quiz</div>
+  <div class="quiz-title">Transformer: MLP, normalization, positional encoding, output head</div>
+  <p class="quiz-sub">Five questions; four correct answers to pass. If you fall short you can retake it right away, as many times as you like — the questions and the options are shuffled every round.</p>
   <div class="quiz-body"></div>
   <div class="quiz-foot"></div>
 </div>
 </section>
 <section id="tanitas" data-level="6">
-<div class="chapter-kicker">5. fejezet</div>
+<div class="chapter-kicker">Chapter 5</div>
 <h2>Tanítás: honnan jönnek a súlyok?</h2>
 
 <p>A frissen inicializált modell súlyai véletlenszámok, kimenete értelmetlen zaj. A tanítás célja, hogy ebből a zajból — kizárólag példák és egy hibamérték alapján — a 4. fejezet gépezetének <em>jó</em> paraméterei álljanak elő. A recept elve egyszerű, és lényegében az egész deep learning erre az egy hurokra épül:</p>
@@ -1603,9 +1604,9 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 </details>
 
 <div class="quiz" id="quiz-6" data-level="6">
-  <div class="quiz-head">Szintzáró kvíz · 6. szint</div>
-  <div class="quiz-title">Tanítás: loss, számítási gráf, backpropagation</div>
-  <p class="quiz-sub">Öt kérdés, az átmenőhöz négy helyes válasz kell. Bukásnál azonnal újrapróbálható, ahányszor csak akarod — a kérdések és a válaszlehetőségek sorrendje minden körben más.</p>
+  <div class="quiz-head">Level 6 quiz</div>
+  <div class="quiz-title">Training: loss, computational graph, backpropagation</div>
+  <p class="quiz-sub">Five questions; four correct answers to pass. If you fall short you can retake it right away, as many times as you like — the questions and the options are shuffled every round.</p>
   <div class="quiz-body"></div>
   <div class="quiz-foot"></div>
 </div>
@@ -1721,15 +1722,15 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 </details>
 
 <div class="quiz" id="quiz-7" data-level="7">
-  <div class="quiz-head">Szintzáró kvíz · 7. szint</div>
-  <div class="quiz-title">Tanítás: optimalizálók, infrastruktúra, skálázási törvények</div>
-  <p class="quiz-sub">Öt kérdés, az átmenőhöz négy helyes válasz kell. Bukásnál azonnal újrapróbálható, ahányszor csak akarod — a kérdések és a válaszlehetőségek sorrendje minden körben más.</p>
+  <div class="quiz-head">Level 7 quiz</div>
+  <div class="quiz-title">Training: optimizers, infrastructure, scaling laws</div>
+  <p class="quiz-sub">Five questions; four correct answers to pass. If you fall short you can retake it right away, as many times as you like — the questions and the options are shuffled every round.</p>
   <div class="quiz-body"></div>
   <div class="quiz-foot"></div>
 </div>
 </section>
 <section id="alignment" data-level="8">
-<div class="chapter-kicker">6. fejezet</div>
+<div class="chapter-kicker">Chapter 6</div>
 <h2>Finomhangolás és alignment: a nyers modellből asszisztens</h2>
 
 <p>Az előtanított „alapmodell” (base model) félelmetes tudású, de nem asszisztens: a „Hogyan süssek kenyeret?” kérdésre könnyen egy <em>további kérdéslistával</em> válaszol — mert a weben a kérdések gyakran így folytatódnak. A base model azt folytatja, ami <em>valószínű</em>, nem azt, ami <em>hasznos</em>. Az utótanítás (post-training) feladata ezt a rést bezárni: a modell viselkedését hasznossá, őszintévé és ártalmatlanná formálni — anélkül, hogy a nyers képességek sérülnének.</p>
@@ -1817,15 +1818,15 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 </details>
 
 <div class="quiz" id="quiz-8" data-level="8">
-  <div class="quiz-head">Szintzáró kvíz · 8. szint</div>
-  <div class="quiz-title">Finomhangolás és alignment</div>
-  <p class="quiz-sub">Öt kérdés, az átmenőhöz négy helyes válasz kell. Bukásnál azonnal újrapróbálható, ahányszor csak akarod — a kérdések és a válaszlehetőségek sorrendje minden körben más.</p>
+  <div class="quiz-head">Level 8 quiz</div>
+  <div class="quiz-title">Fine-tuning and alignment</div>
+  <p class="quiz-sub">Five questions; four correct answers to pass. If you fall short you can retake it right away, as many times as you like — the questions and the options are shuffled every round.</p>
   <div class="quiz-body"></div>
   <div class="quiz-foot"></div>
 </div>
 </section>
 <section id="inferencia" data-level="9">
-<div class="chapter-kicker">7. fejezet</div>
+<div class="chapter-kicker">Chapter 7</div>
 <h2>Inferencia: a kész modell futtatása</h2>
 
 <p>A tanítás megadta a súlyokat — de a modell <em>használata</em> saját mérnöki világ. A generálás két, gyökeresen eltérő karakterű fázisból áll. A <strong>prefill</strong> a prompt egyszeri feldolgozása: minden token párhuzamosan megy át a hálón, a GPU számolókapacitása a korlát. A <strong>dekódolás</strong> ezután tokenenként halad: minden új tokenhez egy teljes előrefuttatás kell, amely az <em>összes</em> súly memóriából való beolvasásával jár — itt nem a számolás, hanem a <strong>memória-sávszélesség</strong> a szűk keresztmetszet. Ezért mérünk külön „első token késleltetést” és „token/másodperc” ütemet, és ezért szól az inferencia-optimalizálás nagy része a memóriaforgalom csökkentéséről.</p>
@@ -1895,15 +1896,15 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 </details>
 
 <div class="quiz" id="quiz-9" data-level="9">
-  <div class="quiz-head">Szintzáró kvíz · 9. szint</div>
-  <div class="quiz-title">Inferencia</div>
-  <p class="quiz-sub">Öt kérdés, az átmenőhöz négy helyes válasz kell. Bukásnál azonnal újrapróbálható, ahányszor csak akarod — a kérdések és a válaszlehetőségek sorrendje minden körben más.</p>
+  <div class="quiz-head">Level 9 quiz</div>
+  <div class="quiz-title">Inference</div>
+  <p class="quiz-sub">Five questions; four correct answers to pass. If you fall short you can retake it right away, as many times as you like — the questions and the options are shuffled every round.</p>
   <div class="quiz-body"></div>
   <div class="quiz-foot"></div>
 </div>
 </section>
 <section id="interpretability" data-level="10">
-<div class="chapter-kicker">8. fejezet</div>
+<div class="chapter-kicker">Chapter 8</div>
 <h2>Mechanistic interpretability: mi történik odabent?</h2>
 
 <h3 id="mi-program">8.1 · A visszafejtés programja</h3>
@@ -1963,9 +1964,9 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 </figure>
 
 <div class="quiz" id="quiz-10" data-level="10">
-  <div class="quiz-head">Szintzáró kvíz · 10. szint</div>
-  <div class="quiz-title">Interpretability: residual stream nézet, induction headek</div>
-  <p class="quiz-sub">Öt kérdés, az átmenőhöz négy helyes válasz kell. Bukásnál azonnal újrapróbálható, ahányszor csak akarod — a kérdések és a válaszlehetőségek sorrendje minden körben más.</p>
+  <div class="quiz-head">Level 10 quiz</div>
+  <div class="quiz-title">Interpretability: the residual stream view, induction heads</div>
+  <p class="quiz-sub">Five questions; four correct answers to pass. If you fall short you can retake it right away, as many times as you like — the questions and the options are shuffled every round.</p>
   <div class="quiz-body"></div>
   <div class="quiz-foot"></div>
 </div>
@@ -2117,15 +2118,15 @@ A mech interp tétele: a tanult háló nem fekete doboz, hanem <em>ismeretlen</e
 </div>
 
 <div class="quiz" id="quiz-11" data-level="11">
-  <div class="quiz-head">Szintzáró kvíz · 11. szint</div>
-  <div class="quiz-title">Interpretability: szuperpozíció, sparse autoencoderek, módszertan</div>
-  <p class="quiz-sub">Öt kérdés, az átmenőhöz négy helyes válasz kell. Bukásnál azonnal újrapróbálható, ahányszor csak akarod — a kérdések és a válaszlehetőségek sorrendje minden körben más.</p>
+  <div class="quiz-head">Level 11 quiz</div>
+  <div class="quiz-title">Interpretability: superposition, sparse autoencoders, methodology</div>
+  <p class="quiz-sub">Five questions; four correct answers to pass. If you fall short you can retake it right away, as many times as you like — the questions and the options are shuffled every round.</p>
   <div class="quiz-body"></div>
   <div class="quiz-foot"></div>
 </div>
 </section>
 <section id="kepessegek" data-level="12">
-<div class="chapter-kicker">9. fejezet</div>
+<div class="chapter-kicker">Chapter 9</div>
 <h2>Képességek és korlátok: mit várhatunk a gépezettől?</h2>
 
 <p>Az előző fejezetek gépezetéből néhány jellegzetes viselkedés <em>szükségszerűen</em> következik — jó és rossz egyaránt. Ez a fejezet a kettőt köti össze: a képességeket és a hibamódokat egyaránt a mechanizmusból vezeti le.</p>
@@ -2162,15 +2163,15 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
 </div>
 
 <div class="quiz" id="quiz-12" data-level="12">
-  <div class="quiz-head">Szintzáró kvíz · 12. szint</div>
-  <div class="quiz-title">Képességek és korlátok</div>
-  <p class="quiz-sub">Az utolsó öt kérdés, az átmenőhöz négy helyes válasz kell. Ez a szint összeköti a korábbiakat: minden kérdés egy képességet vagy hibamódot vezet vissza a mechanizmusra.</p>
+  <div class="quiz-head">Level 12 quiz</div>
+  <div class="quiz-title">Capabilities and limits</div>
+  <p class="quiz-sub">The last five questions; four correct answers to pass. This level ties the others together: every question traces a capability or a failure mode back to the mechanism.</p>
   <div class="quiz-body"></div>
   <div class="quiz-foot"></div>
 </div>
 </section>
 <section id="glosszarium">
-<div class="chapter-kicker">10. fejezet</div>
+<div class="chapter-kicker">Chapter 10</div>
 <h2>Glosszárium</h2>
 <dl class="gloss">
 <dt>Attention (figyelem)</dt><dd>Mechanizmus, amellyel egy token-pozíció tanult relevancia-súlyokkal olvas információt a többi pozícióból (query–key illeszkedés, value-átvitel). 4.3.</dd>
@@ -2212,7 +2213,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
 </section>
 
 <section id="irodalom">
-<div class="chapter-kicker">11. fejezet</div>
+<div class="chapter-kicker">Chapter 11</div>
 <h2>Irodalom — a kánon, olvasási sorrendben</h2>
 <p>A lista szándékosan rövid: a terület alapszövegei, nagyjából a jelen anyag fejezeteinek sorrendjében. A címek keresőbe írva mind szabadon elérhetők (arXiv, ill. a distill.pub / transformer-circuits.pub oldalak).</p>
 <ol class="refs">
@@ -2242,20 +2243,21 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
 <p style="margin-top:36px; padding-top:18px; border-top:1px solid var(--border); font-size:13.5px; color:var(--ink-muted);">Ez az anyag oktatási céllal készült. A szakmai tartalom a terület <strong>2026. júliusi</strong> állapotát tükrözi; a kiadás utolsó frissítése <strong>2026. augusztus 30.</strong> — a kettő közti különbség a <a href="#valtozasnaplo">változásnaplóban</a> olvasható. A számszerű példák (méretek, arányok) tipikus nagyságrendeket illusztrálnak, nem konkrét termékek specifikációit. Az ábrák sematikusak. Hibajelzést, kiegészítési ötletet szívesen fogad a szerkesztő. ◆</p>
 </section>
 <section id="valtozasnaplo">
-<div class="chapter-kicker">Függelék</div>
-<h2>Változásnapló</h2>
-<p>Ez az anyag gyorsan mozgó területről szól. Az alábbi lista fordított időrendben mutatja, mi változott — így látszik, mikori állapotot olvasol.</p>
+<div class="chapter-kicker">Appendix</div>
+<h2>Changelog</h2>
+<p>This material covers a fast-moving field. The list below is in reverse chronological order, so you can see how current the version you are reading is.</p>
 <dl class="changelog">
-  <dt>v1.0 — 2026. augusztus 30.</dt>
-  <dd>Első nyilvános kiadás. A tizenkét fejezet szintalapú tanulórendszerré alakítva: fejezetenként ötkérdéses szintzáró kvíz, 4/5-ös átmenőküszöbbel, korlátlan újrapróbálkozással; a még nem teljesített fejezetek zárolva. A haladás a böngésző helyi tárolójában marad, szerverre semmi nem kerül. Katedra arculat: világos és sötét mód külön tervezett palettával.</dd>
+  <dt>v1.0 — 30 August 2026</dt>
+  <dd>First public release. The twelve chapters were turned into a level-based learning system: each chapter closes with a five-question quiz, a 4/5 pass mark and unlimited retries; chapters you have not yet completed stay locked. Progress lives in your browser's local storage — nothing is sent to a server. Katedra visual identity, with light and dark modes designed separately.</dd>
+  <dd>English edition, translated from the Hungarian original.</dd>
 </dl>
 </section>
 <footer class="page-footer">
-  <p class="foot-line"><strong>© 2026 Csaplár Dániel.</strong> Ez a mű a <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.hu" rel="license noopener noreferrer" target="_blank">Creative Commons Nevezd meg! – Ne add el! – Így add tovább! 4.0 Nemzetközi (CC&nbsp;BY-NC-SA&nbsp;4.0)</a> licenc alatt érhető el: nevezd meg a szerzőt, ne használd kereskedelmi célra, és a származékos műveket ugyanilyen feltételekkel add tovább.</p>
-  <p class="foot-line">v1.0 · utolsó frissítés: 2026. augusztus 30. · a haladásod kizárólag a saját böngésződben tárolódik.</p>
+  <p class="foot-line"><strong>© 2026 Dániel Csaplár.</strong> This work is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="license noopener noreferrer" target="_blank">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC&nbsp;BY-NC-SA&nbsp;4.0)</a>: credit the author, do not use it commercially, and share any derivative work under the same terms.</p>
+  <p class="foot-line">v1.0 · last updated: 30 August 2026 · your progress is stored only in your own browser. · <a href="../">Magyar változat</a></p>
 </footer>
 <div class="reset-row">
-  <button id="resetProgress" type="button">Haladás törlése</button>
+  <button id="resetProgress" type="button">Reset progress</button>
 </div>
 </main>
 </div>
@@ -2265,8 +2267,8 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
   var btn = document.getElementById('themeToggle');
   var root = document.documentElement;
   function setTheme(t){
-    if(t === 'dark'){ root.setAttribute('data-theme','dark'); btn.textContent = '◑ Világos mód'; }
-    else { root.removeAttribute('data-theme'); btn.textContent = '◐ Sötét mód'; }
+    if(t === 'dark'){ root.setAttribute('data-theme','dark'); btn.textContent = '◑ Light mode'; }
+    else { root.removeAttribute('data-theme'); btn.textContent = '◐ Dark mode'; }
   }
   var theme = 'light';   // alapértelmezés: világos mód
   setTheme(theme);
@@ -2329,18 +2331,18 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
   // Egyelőre csak az első három fejezet tartozik a szintrendszerhez;
   // a többi addig nyitva marad, amíg meg nem kapja a saját kvízét.
   var LEVELS = [
-    { n: 1, sec: 'bevezetes',   title: 'Mi az LLM?' },
-    { n: 2, sec: 'tokenizacio', title: 'Tokenizáció' },
-    { n: 3, sec: 'embedding',   title: 'Embeddingek' },
-    { n: 4, sec: 'architektura', title: 'Transzformer: residual stream + attention' },
-    { n: 5, sec: 'architektura2', title: 'Transzformer: MLP, normalizálás, pozíciókódolás, kimeneti fej' },
-    { n: 6, sec: 'tanitas', title: 'Tanítás: loss, számítási gráf, backpropagation' },
-    { n: 7, sec: 'tanitas2', title: 'Tanítás: optimalizálók, infrastruktúra, skálázási törvények' },
-    { n: 8, sec: 'alignment', title: 'Finomhangolás és alignment' },
-    { n: 9, sec: 'inferencia', title: 'Inferencia' },
-    { n: 10, sec: 'interpretability', title: 'Interpretability: residual stream nézet, induction headek' },
-    { n: 11, sec: 'interpretability2', title: 'Interpretability: szuperpozíció, sparse autoencoderek, módszertan' },
-    { n: 12, sec: 'kepessegek', title: 'Képességek és korlátok' }
+    { n: 1, sec: 'bevezetes',   title: 'What is an LLM?' },
+    { n: 2, sec: 'tokenizacio', title: 'Tokenization' },
+    { n: 3, sec: 'embedding',   title: 'Embeddings' },
+    { n: 4, sec: 'architektura', title: 'Transformer: residual stream + attention' },
+    { n: 5, sec: 'architektura2', title: 'Transformer: MLP, normalization, positional encoding, output head' },
+    { n: 6, sec: 'tanitas', title: 'Training: loss, computational graph, backpropagation' },
+    { n: 7, sec: 'tanitas2', title: 'Training: optimizers, infrastructure, scaling laws' },
+    { n: 8, sec: 'alignment', title: 'Fine-tuning and alignment' },
+    { n: 9, sec: 'inferencia', title: 'Inference' },
+    { n: 10, sec: 'interpretability', title: 'Interpretability: the residual stream view, induction heads' },
+    { n: 11, sec: 'interpretability2', title: 'Interpretability: superposition, sparse autoencoders, methodology' },
+    { n: 12, sec: 'kepessegek', title: 'Capabilities and limits' }
   ];
   var INITIAL_UNLOCKED = [1];
 
@@ -3111,6 +3113,8 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       (tokens ? BOT_TOKENS : '') + BOT_FIGURE + '</svg>';
   }
   function setBot(el, state){ if(el) el.setAttribute('class', 'bot ' + state); }
+  // egyes/többes szám a menet közben összerakott mondatokhoz
+  function plural(n, one, many){ return n + ' ' + (n === 1 ? one : many); }
   var ICO = {
     done: '<svg class="toc-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 4.8" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>',
     open: '<svg class="toc-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h10M9 4.5L12.8 8 9 11.5" fill="none" stroke="var(--ink-1)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>',
@@ -3165,10 +3169,11 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       var fCount = sec.querySelectorAll('figure').length;
       ov.innerHTML = ICO.lockBig +
         '<div class="lock-body">' +
-          '<div class="lock-title">Még egy kvíz, és a tiéd.</div>' +
-          '<p class="lock-text">A(z) ' + (prev ? prev.n : (lv.n - 1)) + '. szint kvízének teljesítése nyitja meg' +
-          (prev ? ' (<a href="#quiz-' + prev.n + '">ugrás a kvízhez</a>)' : '') + '. Odáig ' +
-          pCount + ' bekezdés és ' + fCount + ' ábra vár itt.</p>' +
+          '<div class="lock-title">One quiz away.</div>' +
+          '<p class="lock-text">Passing the level ' + (prev ? prev.n : (lv.n - 1)) + ' quiz unlocks this chapter' +
+          (prev ? ' (<a href="#quiz-' + prev.n + '">jump to the quiz</a>)' : '') + '. Until then, ' +
+          plural(pCount, 'paragraph', 'paragraphs') + ' and ' + plural(fCount, 'figure', 'figures') +
+          (pCount + fCount === 1 ? ' is' : ' are') + ' waiting here.</p>' +
         '</div>';
       var h2 = sec.querySelector('h2');
       if(h2 && h2.nextSibling) sec.insertBefore(ov, h2.nextSibling);
@@ -3187,9 +3192,9 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
     var bar = document.getElementById('progressBar');
     if(bar){
       var cur = levelByN(current);
-      bar.querySelector('.pb-label').textContent = current + '. szint · ' + (cur ? cur.title : '');
+      bar.querySelector('.pb-label').textContent = 'Level ' + current + ' · ' + (cur ? cur.title : '');
       bar.querySelector('.pb-fill').style.width = (done / LEVELS.length * 100) + '%';
-      bar.querySelector('.pb-note').textContent = done + ' / ' + LEVELS.length + ' szint';
+      bar.querySelector('.pb-note').textContent = done + ' / ' + LEVELS.length + ' levels';
     }
     var tocLinks = document.querySelectorAll('#toc a[data-level]');
     Array.prototype.forEach.call(tocLinks, function(a){
@@ -3202,14 +3207,14 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       }
       var ico, state, cls;
       if(progress.passed[n]){
-        cls = 'lvl-done'; ico = ICO.done; state = 'Teljesítve';
+        cls = 'lvl-done'; ico = ICO.done; state = 'Completed';
       } else if(isUnlocked(n)){
         cls = 'lvl-open';
-        if(justUnlocked === n){ ico = ICO.unlocked; state = 'Most oldódott fel'; }
-        else { ico = ICO.open; state = (n === current) ? 'Most itt tartasz' : 'Elérhető'; }
+        if(justUnlocked === n){ ico = ICO.unlocked; state = 'Just unlocked'; }
+        else { ico = ICO.open; state = (n === current) ? 'You are here' : 'Available'; }
       } else {
         cls = 'lvl-locked'; ico = ICO.locked;
-        state = prev ? ('Zárt · ' + prev.n + '. szint oldja fel') : 'Zárt';
+        state = prev ? ('Locked · level ' + prev.n + ' unlocks it') : 'Locked';
       }
       a.classList.remove('lvl-done', 'lvl-open', 'lvl-locked', 'toc-unlocked');
       a.classList.add(cls);
@@ -3292,7 +3297,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
         inp.type = 'text';
         inp.className = 'quiz-num';
         inp.setAttribute('inputmode', 'numeric');
-        inp.setAttribute('aria-label', 'Válasz — szám');
+        inp.setAttribute('aria-label', 'Answer — a number');
         inp.addEventListener('input', function(){ answers[q.id] = inp.value; });
         row.appendChild(inp);
         var hint = document.createElement('span');
@@ -3340,18 +3345,18 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       if(last && last.length){
         var m0 = document.createElement('p');
         m0.className = 'quiz-msg';
-        m0.textContent = 'A legutóbbi körben ' + last.length + ' kérdésre hibáztál. A kérdések és a válaszok sorrendje most újrakeveredett.';
+        m0.textContent = 'Last time you missed ' + plural(last.length, 'question', 'questions') + '. The questions and the answers have been reshuffled.';
         footEl.appendChild(m0);
       }
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'quiz-btn';
-      btn.textContent = 'Kiértékelés';
+      btn.textContent = 'Check answers';
       btn.addEventListener('click', grade);
       footEl.appendChild(btn);
       var msg = document.createElement('p');
       msg.className = 'quiz-msg';
-      msg.textContent = 'Az átmenőhöz ' + PASS_MIN + ' / ' + questions.length + ' helyes válasz kell.';
+      msg.textContent = 'You need ' + PASS_MIN + ' of ' + questions.length + ' correct to pass.';
       footEl.appendChild(msg);
     }
 
@@ -3387,9 +3392,9 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
         fb.className = 'q-feedback ' + (ok ? 'ok' : 'bad');
         fb.style.display = '';
         fb.innerHTML = '<span class="fb-verdict">' + (ok ? ICO.ok : ICO.care) + '<span>' +
-          (ok ? 'Így van.'
-              : (blank ? 'Nincs válasz.'
-              : (unparsed ? 'Ezt nem sikerült számként értelmezni.' : 'Nem ez az — de nézzük, miért.'))) +
+          (ok ? 'That\u2019s it.'
+              : (blank ? 'No answer.'
+              : (unparsed ? 'That could not be read as a number.' : 'Not this one — but here is why.'))) +
           '</span></span>' + q.why;
       });
       graded = true;
@@ -3429,18 +3434,18 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
         cert.className = 'quiz-result pass cert';
         cert.innerHTML = botSvg(104, 'is-celebrate', true) +
           (next
-            ? '<div class="cert-kicker">' + lvl + '. szint teljesítve</div>' +
+            ? '<div class="cert-kicker">Level ' + lvl + ' completed</div>' +
               '<div class="cert-title">' + (lv ? lv.title : '') + '</div>'
-            : '<div class="cert-title">Gratulálok, végigértél!</div>') +
+            : '<div class="cert-title">Congratulations — you made it!</div>') +
           '<div class="cert-rule"></div>' +
           '<p class="cert-note">' +
             (next
               ? (newly
-                  ? 'Nyílik a(z) ' + next.n + '. szint: ' + next.title + '.'
-                  : 'A következő szint már fel volt oldva.')
-              : 'Mind a ' + LEVELS.length + ' szint megvan — a tokenizációtól az interpretabilityig. A glosszárium és az irodalomjegyzék ezután is szabadon elérhető.') +
+                  ? 'Level ' + next.n + ' is now open: ' + next.title + '.'
+                  : 'The next level was already unlocked.')
+              : 'All ' + LEVELS.length + ' levels are behind you — from tokenization to interpretability. The glossary and the reading list stay open from here on.') +
           '</p>' +
-          (next ? '<button type="button" class="quiz-btn" data-go="' + next.sec + '">Tovább a(z) ' + next.n + '. szintre</button>' : '');
+          (next ? '<button type="button" class="quiz-btn" data-go="' + next.sec + '">On to level ' + next.n + '</button>' : '');
         footEl.appendChild(cert);
         var go = cert.querySelector('[data-go]');
         if(go){
@@ -3450,22 +3455,22 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           });
         }
         again.className = 'quiz-btn ghost cert-again';
-        again.textContent = 'Kvíz megismétlése';
+        again.textContent = 'Take the quiz again';
         footEl.appendChild(again);
       } else {
         var res = document.createElement('div');
         res.className = 'quiz-result fail';
         res.innerHTML = '<span class="res-score">' + score + ' / ' + questions.length + '</span>' +
-          '<p>Az átmenőhöz ' + PASS_MIN + ' helyes válasz kell. A magyarázatok minden kérdésnél ott vannak fent — olvasd el őket, aztán próbáld újra, ahányszor csak akarod.' +
-          (unanswered ? ' (' + unanswered + ' kérdést üresen hagytál.)' : '') + '</p>';
+          '<p>You need ' + PASS_MIN + ' correct answers to pass. The explanations are above, on every question — read them, then try again as often as you like.' +
+          (unanswered ? ' (' + plural(unanswered, 'question', 'questions') + ' left blank.)' : '') + '</p>';
         footEl.appendChild(res);
         again.className = 'quiz-btn';
-        again.textContent = 'Újrapróbálom';
+        again.textContent = 'Try again';
         footEl.appendChild(again);
         if(progress.best[lvl]){
           var m = document.createElement('p');
           m.className = 'quiz-msg';
-          m.textContent = 'Legjobb eredményed ezen a szinten: ' + progress.best[lvl] + ' / ' + questions.length + '.';
+          m.textContent = 'Your best on this level: ' + progress.best[lvl] + ' / ' + questions.length + '.';
           footEl.appendChild(m);
         }
       }
@@ -3478,15 +3483,15 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       var res = document.createElement('div');
       res.className = 'quiz-result pass cert';
       res.innerHTML = botSvg(84, 'is-idle', false) +
-        '<div class="cert-kicker">' + lvl + '. szint teljesítve</div>' +
+        '<div class="cert-kicker">Level ' + lvl + ' completed</div>' +
         '<div class="cert-title">' + (lv ? lv.title : '') + '</div>' +
         '<div class="cert-rule"></div>' +
-        '<p class="cert-note">Ezt a szintet már teljesítetted. Ha akarod, újra megcsinálhatod.</p>';
+        '<p class="cert-note">You have already completed this level. You can take it again if you like.</p>';
       footEl.appendChild(res);
       var again = document.createElement('button');
       again.type = 'button';
       again.className = 'quiz-btn ghost cert-again';
-      again.textContent = 'Kvíz megismétlése';
+      again.textContent = 'Take the quiz again';
       again.addEventListener('click', start);
       footEl.appendChild(again);
     }
@@ -3504,7 +3509,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
   var resetBtn = document.getElementById('resetProgress');
   if(resetBtn){
     resetBtn.addEventListener('click', function(){
-      if(!window.confirm('Biztosan törlöd az eddigi haladást? A kvízeredmények elvesznek, és az 1. szinten kívül minden fejezet újra lezáródik.')) return;
+      if(!window.confirm('Reset all your progress? Your quiz results will be lost and every chapter except level 1 will lock again.')) return;
       try { window.localStorage.removeItem(STORE_KEY); } catch(e){}
       progress = defaultProgress();
       justUnlocked = null;
@@ -3521,9 +3526,9 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
 </script>
 
 <!-- ────────────────────────────────────────────────────────────────
-     GoatCounter — süti nélküli, IP-tárolás nélküli látogatásszámláló.
-     Csak oldalletöltést számol; a tanulási haladás NEM kerül sehova,
-     az végig a böngésző helyi tárolójában marad.
+     GoatCounter — a cookie-free visitor counter that stores no IP addresses.
+     It counts page views only; learning progress is NEVER sent anywhere,
+     it stays in the browser's local storage throughout.
 
      A statisztika itt nézhető meg: https://csaplard.goatcounter.com/
      Ha a szkript bármiért nem tölt be (reklámszűrő, offline olvasás),
