@@ -618,19 +618,17 @@ section.locked > h2 { color: var(--ink-2); }
 }
 .quiz .quiz-result.fail .res-score { font-family: var(--font-display); font-size: 22px; color: var(--ink-1); }
 .quiz .quiz-result.fail p { margin: var(--sp2) 0 0; font-size: 15px; line-height: 1.7; color: var(--ink-2); max-width: none; }
-.cert { border: 1px solid var(--gold); border-radius: 3px; background: var(--surface-1); padding: 5px; box-shadow: var(--shadow-2); }
-.cert-inner { border: 1px solid var(--border); padding: 34px 30px 30px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.cert {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  padding: var(--sp5) var(--sp4) var(--sp3);
+  background: none; border: none; box-shadow: none;
+}
 .cert-kicker { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold-ink); margin-top: var(--sp2); }
-.cert-title { font-family: var(--font-display); font-weight: 600; font-size: 32px; line-height: 1.12; color: var(--ink-1); margin-top: var(--sp3); max-width: 22ch; }
+.cert-title { font-family: var(--font-display); font-weight: 600; font-size: 32px; line-height: 1.15; color: var(--ink-1); margin-top: var(--sp3); max-width: 24ch; }
 .cert-rule { width: 52px; height: 2px; background: var(--gold); margin: 18px 0; }
-.cert-note { font-size: 15px; line-height: 1.65; color: var(--ink-2); max-width: 46ch; margin: 0; }
-.cert-stats { display: flex; margin-top: var(--sp5); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; width: 100%; }
-.cert-stats > div { flex: 1; padding: 12px 8px; text-align: center; border-right: 1px solid var(--border); }
-.cert-stats > div:last-child { border-right: none; }
-.cert-stats .cs-val { font-family: var(--font-display); font-size: 22px; color: var(--ink-1); }
-.cert-stats .cs-lbl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); margin-top: var(--sp1); }
-.cert .quiz-btn { width: 100%; margin-top: var(--sp4); }
-.cert-again { margin-top: var(--sp3); }
+.cert-note { font-size: 15.5px; line-height: 1.7; color: var(--ink-2); max-width: 48ch; margin: 0; }
+.cert .quiz-btn { margin-top: var(--sp5); padding: 0 28px; }
+.cert-again { display: block; margin: var(--sp3) auto 0; }
 
 /* — lábléc, változásnapló, jelvény-lábszöveg — */
 .hero-meta { margin-top: var(--sp3); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
@@ -640,7 +638,6 @@ dl.changelog dd { margin: var(--sp2) 0 0; color: var(--ink-2); font-size: 15.5px
 .page-footer { margin-top: var(--sp8); padding-top: var(--sp4); border-top: 1px solid var(--border); }
 .page-footer .foot-line { font-size: var(--fs-note); line-height: var(--lh-note); color: var(--ink-3); margin: var(--sp2) 0; max-width: var(--measure-code); }
 .page-footer .foot-line strong { color: var(--ink-2); font-weight: 650; }
-.cert-fine { margin: var(--sp4) 0 0; font-family: var(--font-mono); font-size: 10.5px; line-height: 1.7; letter-spacing: 0.06em; color: var(--ink-3); max-width: 46ch; }
 
 /* — fókusz: billentyűzettel is követhető — */
 .quiz .quiz-opt:focus-visible, .quiz .quiz-btn:focus-visible, .quiz input.quiz-num:focus-visible,
@@ -3407,31 +3404,22 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       });
 
       if(passed){
-        var doneCount = 0, di;
-        for(di=0; di<LEVELS.length; di++){ if(progress.passed[LEVELS[di].n]) doneCount++; }
         var cert = document.createElement('div');
         cert.className = 'quiz-result pass cert';
-        cert.innerHTML = '<div class="cert-inner">' +
-          botSvg(104, 'is-celebrate', true) +
-          '<div class="cert-kicker">' + (next ? (lvl + '. szint teljesítve') : 'A végigjátszás elismerése') + '</div>' +
-          '<div class="cert-title">' + (lv ? lv.title : '') + '</div>' +
+        cert.innerHTML = botSvg(104, 'is-celebrate', true) +
+          (next
+            ? '<div class="cert-kicker">' + lvl + '. szint teljesítve</div>' +
+              '<div class="cert-title">' + (lv ? lv.title : '') + '</div>'
+            : '<div class="cert-title">Gratulálok, végigértél!</div>') +
           '<div class="cert-rule"></div>' +
           '<p class="cert-note">' +
-            (newly && next
-              ? 'Nyílik a(z) ' + next.n + '. szint: ' + next.title + '.'
-              : (next
-                  ? 'A következő szint már fel volt oldva.'
-                  : 'Végigértél: mind a ' + LEVELS.length + ' szint teljesítve. A glosszárium és az irodalomjegyzék végig szabadon elérhető.')) +
+            (next
+              ? (newly
+                  ? 'Nyílik a(z) ' + next.n + '. szint: ' + next.title + '.'
+                  : 'A következő szint már fel volt oldva.')
+              : 'Mind a ' + LEVELS.length + ' szint megvan — a tokenizációtól az interpretabilityig. A glosszárium és az irodalomjegyzék ezután is szabadon elérhető.') +
           '</p>' +
-          '<div class="cert-stats">' +
-            '<div><div class="cs-val">' + score + '/' + questions.length + '</div><div class="cs-lbl">pontszám</div></div>' +
-            '<div><div class="cs-val">' + doneCount + ' / ' + LEVELS.length + '</div><div class="cs-lbl">szint</div></div>' +
-            '<div><div class="cs-val">' + (progress.best[lvl] || score) + '/' + questions.length + '</div><div class="cs-lbl">legjobb</div></div>' +
-          '</div>' +
-          (next ? '<button type="button" class="quiz-btn" data-go="' + next.sec + '">Tovább a(z) ' + next.n + '. szintre</button>'
-                : '<p class="cert-fine">Teljesítés-jelvény · ' + new Date().toLocaleDateString('hu-HU') +
-                  ' — ez önértékelés, nem hivatalos képesítés: a kvíz a saját böngésződben fut.</p>') +
-          '</div>';
+          (next ? '<button type="button" class="quiz-btn" data-go="' + next.sec + '">Tovább a(z) ' + next.n + '. szintre</button>' : '');
         footEl.appendChild(cert);
         var go = cert.querySelector('[data-go]');
         if(go){
@@ -3468,14 +3456,11 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       var lv = levelByN(lvl);
       var res = document.createElement('div');
       res.className = 'quiz-result pass cert';
-      res.innerHTML = '<div class="cert-inner">' +
-        botSvg(84, 'is-idle', false) +
+      res.innerHTML = botSvg(84, 'is-idle', false) +
         '<div class="cert-kicker">' + lvl + '. szint teljesítve</div>' +
         '<div class="cert-title">' + (lv ? lv.title : '') + '</div>' +
         '<div class="cert-rule"></div>' +
-        '<p class="cert-note">Ezt a szintet már teljesítetted' +
-        (progress.best[lvl] ? ' — legjobb eredményed ' + progress.best[lvl] + ' / ' + questions.length : '') +
-        '. Ha akarod, újra megcsinálhatod.</p></div>';
+        '<p class="cert-note">Ezt a szintet már teljesítetted. Ha akarod, újra megcsinálhatod.</p>';
       footEl.appendChild(res);
       var again = document.createElement('button');
       again.type = 'button';
