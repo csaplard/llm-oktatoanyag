@@ -1040,78 +1040,78 @@ while |vocab| &lt; V:
 </section>
 <section id="embedding" data-level="3">
 <div class="chapter-kicker">Chapter 3</div>
-<h2>Embeddingek: a jelentés mint irány egy vektortérben</h2>
+<h2>Embeddings: meaning as a direction in a vector space</h2>
 
-<p>A token-ID-k önmagukban semmitmondó sorszámok: a 9042-es token semmivel sem „hasonlóbb” a 9043-ashoz, mint az 517-eshez. A hálónak olyan reprezentáció kell, amelyben a hasonlóság <em>számolható</em>. Ezért minden tokenhez egy tanult <strong>vektort</strong> rendelünk — egy több ezer dimenziós számsorozatot —, és ettől kezdve a modell nem tokenekkel, hanem ezekkel a vektorokkal dolgozik. Ezt a hozzárendelést hívjuk <strong>embeddingnek</strong>.</p>
+<p>Token IDs on their own are meaningless serial numbers: token 9042 is no more “similar” to 9043 than it is to 517. The network needs a representation in which similarity is <em>computable</em>. So we assign every token a learned <strong>vector</strong> — a sequence of several thousand numbers — and from then on the model works with these vectors rather than with tokens. This assignment is called the <strong>embedding</strong>.</p>
 
-<p>A döntő pont: az embeddingeket <strong>nem kézzel tervezzük, hanem a modell tanulja</strong>, ugyanazzal a gradiens-módszerrel, mint minden más paraméterét. A tanítás nyomása alatt a geometria jelentést kezd hordozni: azok a tokenek, amelyek hasonló környezetekben fordulnak elő — és ezért hasonló jóslásokhoz kell hasonlóan hozzájárulniuk —, egymáshoz közeli vektorokat kapnak. A „kutya” és a „macska” vektora közel kerül egymáshoz; a „kutya” és az „integrál” távol. Sőt, az <em>irányok</em> is jelentést hordoznak: bizonyos irányba elmozdulva a nyelvtani szám, a nem, az idő vagy éppen a formalitás változik.</p>
+<p>The decisive point: embeddings are <strong>not designed by hand but learned by the model</strong>, with the same gradient method as every other parameter. Under the pressure of training the geometry starts to carry meaning: tokens that occur in similar contexts — and therefore have to contribute similarly to similar predictions — receive vectors close to one another. The vectors for “dog” and “cat” end up near each other; “dog” and “integral” far apart. What is more, the <em>directions</em> carry meaning too: moving along a particular direction changes grammatical number, gender, tense, or even formality.</p>
 
 <figure class="diagram">
 <svg viewBox="0 0 860 340" role="img" aria-label="A two-dimensional projection of the embedding vector space">
-  <!-- tengelyek -->
+  <!-- axes -->
   <line x1="70" y1="300" x2="820" y2="300" stroke="var(--baseline)" stroke-width="1.2"/>
   <line x1="70" y1="300" x2="70" y2="30" stroke="var(--baseline)" stroke-width="1.2"/>
-  <text x="800" y="320" font-size="11" class="svg-muted">1. főirány</text>
-  <text x="30" y="45" font-size="11" class="svg-muted">2. főirány</text>
-  <!-- állat klaszter -->
+  <text x="800" y="320" font-size="11" class="svg-muted">principal direction 1</text>
+  <text x="30" y="45" font-size="11" class="svg-muted">principal direction 2</text>
+  <!-- animal cluster -->
   <ellipse cx="220" cy="110" rx="105" ry="62" fill="var(--wash-blue)" stroke="var(--s1)" stroke-dasharray="4,4"/>
-  <text x="220" y="45" text-anchor="middle" font-size="11" fill="var(--s1)" font-weight="600">állatok</text>
+  <text x="220" y="45" text-anchor="middle" font-size="11" fill="var(--s1)" font-weight="600">animals</text>
   <g font-size="12.5" class="svg-ink">
-    <circle cx="185" cy="95" r="4" fill="var(--s1)"/><text x="195" y="90">kutya</text>
-    <circle cx="240" cy="118" r="4" fill="var(--s1)"/><text x="250" y="113">macska</text>
-    <circle cx="170" cy="140" r="4" fill="var(--s1)"/><text x="180" y="152">farkas</text>
-    <circle cx="275" cy="88" r="4" fill="var(--s1)"/><text x="285" y="84">egér</text>
+    <circle cx="185" cy="95" r="4" fill="var(--s1)"/><text x="195" y="90">dog</text>
+    <circle cx="240" cy="118" r="4" fill="var(--s1)"/><text x="250" y="113">cat</text>
+    <circle cx="170" cy="140" r="4" fill="var(--s1)"/><text x="180" y="152">wolf</text>
+    <circle cx="275" cy="88" r="4" fill="var(--s1)"/><text x="285" y="84">mouse</text>
   </g>
-  <!-- matek klaszter -->
+  <!-- math cluster -->
   <ellipse cx="660" cy="230" rx="110" ry="58" fill="var(--wash-orange)" stroke="var(--s6)" stroke-dasharray="4,4"/>
-  <text x="660" y="165" text-anchor="middle" font-size="11" fill="var(--s6)" font-weight="600">matematika</text>
+  <text x="660" y="165" text-anchor="middle" font-size="11" fill="var(--s6)" font-weight="600">mathematics</text>
   <g font-size="12.5" class="svg-ink">
-    <circle cx="620" cy="215" r="4" fill="var(--s6)"/><text x="630" y="210">integrál</text>
-    <circle cx="690" cy="245" r="4" fill="var(--s6)"/><text x="700" y="240">derivált</text>
-    <circle cx="615" cy="258" r="4" fill="var(--s6)"/><text x="625" y="271">mátrix</text>
+    <circle cx="620" cy="215" r="4" fill="var(--s6)"/><text x="630" y="210">integral</text>
+    <circle cx="690" cy="245" r="4" fill="var(--s6)"/><text x="700" y="240">derivative</text>
+    <circle cx="615" cy="258" r="4" fill="var(--s6)"/><text x="625" y="271">matrix</text>
   </g>
-  <!-- analógia nyilak -->
+  <!-- analogy arrows -->
   <g>
-    <circle cx="430" cy="90" r="4" fill="var(--s7)"/><text x="438" y="84" font-size="12.5" class="svg-ink">király</text>
-    <circle cx="530" cy="60" r="4" fill="var(--s7)"/><text x="538" y="54" font-size="12.5" class="svg-ink">királynő</text>
-    <circle cx="415" cy="180" r="4" fill="var(--s7)"/><text x="423" y="175" font-size="12.5" class="svg-ink">férfi</text>
-    <circle cx="515" cy="150" r="4" fill="var(--s7)"/><text x="523" y="145" font-size="12.5" class="svg-ink">nő</text>
+    <circle cx="430" cy="90" r="4" fill="var(--s7)"/><text x="438" y="84" font-size="12.5" class="svg-ink">king</text>
+    <circle cx="530" cy="60" r="4" fill="var(--s7)"/><text x="538" y="54" font-size="12.5" class="svg-ink">queen</text>
+    <circle cx="415" cy="180" r="4" fill="var(--s7)"/><text x="423" y="175" font-size="12.5" class="svg-ink">man</text>
+    <circle cx="515" cy="150" r="4" fill="var(--s7)"/><text x="523" y="145" font-size="12.5" class="svg-ink">woman</text>
     <line x1="430" y1="90" x2="526" y2="62" stroke="var(--s7)" stroke-width="1.6" marker-end="url(#arr)"/>
     <line x1="415" y1="180" x2="511" y2="152" stroke="var(--s7)" stroke-width="1.6" stroke-dasharray="5,4" marker-end="url(#arr)"/>
-    <text x="470" y="130" font-size="10.5" fill="var(--s7)" transform="rotate(-16 470 130)">≈ ugyanaz az irány</text>
+    <text x="470" y="130" font-size="10.5" fill="var(--s7)" transform="rotate(-16 470 130)">≈ the same direction</text>
   </g>
-  <text x="75" y="330" font-size="10.5" class="svg-muted">A d-dimenziós tér 2D-vetülete — az ábra sematikus illusztráció</text>
+  <text x="75" y="330" font-size="10.5" class="svg-muted">A 2D projection of the d-dimensional space — the figure is a schematic illustration</text>
 </svg>
-<figcaption><span class="fig-num">3. ábra.</span> Az embedding-tér tanult geometriája (sematikusan, két dimenzióra vetítve). A hasonló jelentésű tokenek klasztereket alkotnak, és bizonyos jelentésbeli különbségek — itt a klasszikus „király→királynő ≈ férfi→nő” példa — megközelítőleg <em>konzisztens irányként</em> jelennek meg. Ez a megfigyelés a 8. fejezet lineáris reprezentációs hipotézisének őse.</figcaption>
+<figcaption><span class="fig-num">Figure 3.</span> The learned geometry of the embedding space (schematically, projected onto two dimensions). Tokens with similar meanings form clusters, and certain differences in meaning — here the classic “king→queen ≈ man→woman” example — appear as approximately <em>consistent directions</em>. This observation is the ancestor of the linear representation hypothesis in chapter 8.</figcaption>
 </figure>
 
-<h3>Mekkora ez a tér?</h3>
-<p>Az embedding-vektorok hossza a modell <strong>rejtett dimenziója</strong>, <span class="math">d<sub><span class="rm">model</span></sub></span> — kis modelleknél néhány száz, nagyoknál 4&nbsp;000–20&nbsp;000 körüli érték. Az összes token embeddingje egyetlen táblázatot alkot: egy <span class="math">V × d<sub><span class="rm">model</span></sub></span> méretű mátrixot (V a szótárméret). Egy 128k-s szótár és 8&nbsp;192-es dimenzió mellett ez önmagában több mint egymilliárd paraméter. Fontos előretekintés: ez a vektor csak a <em>kiindulópont</em> — a token szótári jelentése. A transzformer rétegei (4. fejezet) ezt a vektort fokozatosan a <em>szövegkörnyezetbeli</em> jelentéssé írják át: a „vár” token vektora a rétegeken áthaladva mássá válik a „a vár fokán” és a „rám vár” kontextusban.</p>
+<h3>How large is this space?</h3>
+<p>The length of the embedding vectors is the model's <strong>hidden dimension</strong>, <span class="math">d<sub><span class="rm">model</span></sub></span> — a few hundred in small models, around 4,000–20,000 in large ones. The embeddings of all tokens form a single table: a matrix of size <span class="math">V × d<sub><span class="rm">model</span></sub></span> (where V is the vocabulary size). With a 128k vocabulary and a dimension of 8,192, that alone is more than a billion parameters. An important look ahead: this vector is only the <em>starting point</em> — the dictionary meaning of the token. The transformer layers (chapter 4) gradually rewrite it into the <em>contextual</em> meaning: the vector of the token “bank” becomes something different after passing through the layers in “on the river bank” than in “the bank approved the loan”.</p>
 
 <details class="level l2">
-<summary><span class="badge b2">2. szint</span> Az embedding mint mátrixszorzás, és a hasonlóság mérése</summary>
+<summary><span class="badge b2">Level 2</span> The embedding as matrix multiplication, and measuring similarity</summary>
 <div class="body">
-<p>Az embedding-tábla a <span class="math"><b>W</b><sub>E</sub> ∈ ℝ<sup>V×d</sup></span> mátrix. Ha a <span class="math">i</span>-edik tokent a <span class="math"><b>e</b><sub>i</sub></span> one-hot vektorral kódoljuk (csupa nulla, egyetlen 1-essel az <span class="math">i</span>-edik helyen), akkor az embedding formálisan mátrixszorzás:</p>
+<p>The embedding table is the matrix <span class="math"><b>W</b><sub>E</sub> ∈ ℝ<sup>V×d</sup></span>. If we encode the <span class="math">i</span>-th token with the one-hot vector <span class="math"><b>e</b><sub>i</sub></span> (all zeros with a single 1 in position <span class="math">i</span>), then the embedding is formally a matrix multiplication:</p>
 <div class="eq"><b>x</b> = <b>e</b><sub>i</sub><sup>⊤</sup> <b>W</b><sub>E</sub> &nbsp;&nbsp;<span class="rm">(=</span> <b>W</b><sub>E</sub> <span class="rm">i-edik sora)</span></div>
-<p>A gyakorlatban ezt persze sorkivétellel (lookup) implementáljuk, de a mátrix-nézet fontos: így látszik, hogy <span class="math"><b>W</b><sub>E</sub></span> ugyanolyan tanulható súlymátrix, mint bármely másik, és a gradiens minden lépésben csak az aktuális batchben előforduló tokenek sorait frissíti.</p>
-<p>Két vektor hasonlóságának standard mértéke a <strong>koszinusz-hasonlóság</strong> — az irányok egyezése, a hossztól függetlenítve:</p>
+<p>In practice this is of course implemented as a row lookup, but the matrix view matters: it makes clear that <span class="math"><b>W</b><sub>E</sub></span> is a learnable weight matrix like any other, and that at every step the gradient updates only the rows of the tokens present in the current batch.</p>
+<p>The standard measure of similarity between two vectors is <strong>cosine similarity</strong> — the agreement of directions, independent of length:</p>
 <div class="eq"><span class="rm">cos</span>(<b>u</b>, <b>v</b>) = <span class="frac"><span><b>u</b> · <b>v</b></span><span>‖<b>u</b>‖ ‖<b>v</b>‖</span></span></div>
-<p>Értéke 1 közeli, ha a két irány majdnem azonos, 0 körüli, ha (közel) merőlegesek. A magas dimenzió itt kulcsszereplő: <span class="math">d</span> dimenzióban exponenciálisan sok <em>közel</em> merőleges irány fér el — ezért tud egy 10&nbsp;000 dimenziós tér százezernyi fogalmat egymástól jól elkülönítve tárolni. Ez a tény a 8.4. szakasz szuperpozíció-elméletének alapja is.</p>
-<p>Megjegyzés: a modell kimeneti oldalán ül egy hasonló <span class="math"><b>W</b><sub>U</sub></span> „unembedding” mátrix (4.7), amely a belső vektort vetíti vissza a szótárra. Kisebb modellekben a kettőt gyakran <em>megosztják</em> (weight tying, <span class="math"><b>W</b><sub>U</sub> = <b>W</b><sub>E</sub><sup>⊤</sup></span>), ami paramétert spórol és regularizál; a nagy modellek jellemzően külön tanítják őket.</p>
+<p>It is close to 1 when the two directions are nearly identical, and around 0 when they are (nearly) orthogonal. High dimensionality is the key player here: in <span class="math">d</span> dimensions there is room for exponentially many <em>nearly</em> orthogonal directions — which is why a 10,000-dimensional space can hold hundreds of thousands of concepts well separated from one another. This fact is also the basis of the superposition theory in section 8.4.</p>
+<p>A note: on the output side of the model sits a similar “unembedding” matrix <span class="math"><b>W</b><sub>U</sub></span> (4.7), which projects the internal vector back onto the vocabulary. In smaller models the two are often <em>shared</em> (weight tying, <span class="math"><b>W</b><sub>U</sub> = <b>W</b><sub>E</sub><sup>⊤</sup></span>), which saves parameters and regularizes; large models typically train them separately.</p>
 </div>
 </details>
 
 <details class="level l3">
-<summary><span class="badge b3">3. szint</span> Az embedding-geometria finomszerkezete</summary>
+<summary><span class="badge b3">Level 3</span> The fine structure of embedding geometry</summary>
 <div class="body">
-<p><strong>Anizotrópia.</strong> A naiv kép — egyenletesen szétszórt vektorok — empirikusan hamis: a tanult embeddingek jellemzően egy szűk kúpban koncentrálódnak, az átlagos páronkénti koszinusz-hasonlóság jóval nulla fölött van. Részben a gyakoriság torzít (a gyakori tokenek normája és elhelyezkedése szisztematikusan eltér a ritkákétól), részben az optimalizálás dinamikája. Emiatt a nyers koszinusz-hasonlóság félrevezető lehet, és a reprezentáció-elemzésben gyakran előbb kivonják az átlagvektort, vagy fehérítik a teret.</p>
-<p><strong>Mennyi „tudás” van már az embeddingben?</strong> Kevesebb, mint hinnénk. A statikus embedding csak a token <em>eloszlási profilját</em> tömöríti; a poliszémia (a „vár” minden jelentése <em>egyetlen</em> vektorban) feloldása, a szintaktikai szerep, a koreferencia mind a rétegek munkája. A modern nézet (8.2) szerint az embedding a <em>residual stream</em> kezdőállapota: egy kommunikációs sáv első üzenete, amelyet minden réteg olvas és felülír.</p>
-<p><strong>Lineáris reprezentációs hipotézis.</strong> A „jelentés ≈ irány” megfigyelés általánosítása az az állítás, hogy a modell belső jellemzői (features) jó közelítéssel <em>lineáris</em> irányokként vannak kódolva, és a rétegek ezekkel lineáris algebrai műveleteket végeznek. Ez ma a mechanistic interpretability munkahipotézise — erős empirikus támogatással (irány-aritmetika, lineáris próbák, SAE-eredmények, 8.5), de ismert ellenpéldákkal is: találtak cirkuláris, többdimenziós reprezentációkat (pl. a hét napjai egy síkbeli körön), amelyek nem írhatók le egyetlen iránnyal.</p>
+<p><strong>Anisotropy.</strong> The naive picture — vectors scattered evenly — is empirically false: learned embeddings typically concentrate in a narrow cone, and the average pairwise cosine similarity sits well above zero. Part of the distortion comes from frequency (the norm and placement of frequent tokens differ systematically from those of rare ones), part from the dynamics of optimization. As a result raw cosine similarity can mislead, and in representation analysis it is common to subtract the mean vector first, or to whiten the space.</p>
+<p><strong>How much “knowledge” is already in the embedding?</strong> Less than one would think. A static embedding compresses only the token's <em>distributional profile</em>; resolving polysemy (every sense of “bank” in a <em>single</em> vector), syntactic role and coreference are all the work of the layers. On the modern view (8.2) the embedding is the initial state of the <em>residual stream</em>: the first message on a communication channel that every layer reads and overwrites.</p>
+<p><strong>The linear representation hypothesis.</strong> The generalization of the “meaning ≈ direction” observation is the claim that the model's internal features are, to a good approximation, encoded as <em>linear</em> directions, and that the layers perform linear-algebraic operations on them. This is the working hypothesis of mechanistic interpretability today — with strong empirical support (direction arithmetic, linear probes, SAE results, 8.5), but also with known counterexamples: circular, multidimensional representations have been found (the days of the week on a circle in a plane, for instance) that cannot be described by a single direction.</p>
 </div>
 </details>
 
-<div class="note"><span class="label">Kulcsgondolat</span>
-Az embedding-réteg után minden nyelvi kérdés geometriává válik: hasonlóság = szög, jelentésváltozás = eltolás, jelentésárnyalat = irány. A transzformer ezen a geometrián dolgozik — a következő fejezet arról szól, hogyan.
+<div class="note"><span class="label">Key idea</span>
+After the embedding layer, every question about language becomes geometry: similarity = angle, change of meaning = displacement, shade of meaning = direction. The transformer works on this geometry — the next chapter is about how.
 </div>
 
 <div class="quiz" id="quiz-3" data-level="3">
@@ -2467,58 +2467,58 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       {
         id: 'emb-poliszemia',
         type: 'choice',
-        q: 'A „vár” szó két jelentése (épület, illetve várakozik) az embedding-táblában <em>ugyanazt</em> az egyetlen vektort kapja. Hogyan tud mégis helyesen folytatni a modell a „<em>a vár fokán</em>” és a „<em>rám vár</em>” mondatban?',
+        q: 'Both senses of the word “bank” (a financial institution and the edge of a river) receive <em>the same</em> single vector in the embedding table. How can the model still continue “<em>on the river bank</em>” and “<em>the bank approved the loan</em>” correctly?',
         options: [
-          { t: 'A vektor csak kiindulópont — a szótári jelentés. A transzformer rétegei ezt írják át fokozatosan szövegkörnyezetbeli jelentéssé, tehát a két mondatban a rétegek után már más vektor áll ugyanott.', ok: true },
-          { t: 'A tokenizáló a két jelentést két különböző tokenre bontja.' },
-          { t: 'Az embedding-tábla minden jelentéshez külön sort tárol, és a modell a megfelelőt választja ki.' },
-          { t: 'A pozíciókódolás elkülöníti a két jelentést egymástól.' }
+          { t: 'The vector is only a starting point — the dictionary meaning. The transformer layers gradually rewrite it into a contextual meaning, so after the layers the two sentences hold different vectors in that position.', ok: true },
+          { t: 'The tokenizer splits the two senses into two different tokens.' },
+          { t: 'The embedding table stores a separate row for each sense and the model picks the right one.' },
+          { t: 'Positional encoding separates the two senses from each other.' }
         ],
-        why: 'A statikus embedding a token <em>eloszlási profilját</em> tömöríti — mindent, amit a szó a környezetei alapján általában jelent —, egyetlen vektorba. A poliszémia feloldása, a szintaktikai szerep, a koreferencia mind a rétegek munkája. A modern nézőpont szerint az embedding a <strong>residual stream kezdőállapota</strong>: egy kommunikációs sáv első üzenete, amelyet minden réteg olvas és felülír. Ez magyarázza azt is, miért van értelme ugyanannak a tokennek különböző rétegmélységben megnézni a reprezentációját — a 8. fejezet nagyrészt erről szól.'
+        why: 'A static embedding compresses the token\u2019s <em>distributional profile</em> — everything the word tends to mean across its contexts — into a single vector. Resolving polysemy, syntactic role and coreference is the work of the layers. On the modern view the embedding is the <strong>initial state of the residual stream</strong>: the first message on a communication channel that every layer reads and overwrites. This also explains why it makes sense to inspect the representation of the same token at different layer depths — much of chapter 8 is about exactly that.'
       },
       {
         id: 'emb-tabla',
         type: 'number',
         answer: 400,
-        hint: 'Egész szám, millióban.',
-        q: 'Egy modellben <span class="math">d<sub><span class="rm">model</span></sub></span> = 4&nbsp;000, és a szótárat 100&nbsp;000-ről 200&nbsp;000 elemre növeled. Hány <strong>millió</strong> paraméterrel nő ettől az embedding-tábla?',
-        why: 'Az embedding-tábla egy <span class="math">V × d</span> méretű mátrix, tehát minden új token pontosan <span class="math">d</span> darab új paramétert jelent: 100&nbsp;000 × 4&nbsp;000 = 400&nbsp;000&nbsp;000, azaz <strong>400 millió</strong>. Itt válik konkréttá a 2. szinten látott kompromisszum: a nagyobb szótár rövidebb tokensorozatokat ad (olcsóbb futás soronként), de közvetlenül, lineárisan fizet érte az embedding- és az unembedding-mátrix méretében. Ráadásul a hozzáadott tokenek jellemzően a ritkábbak — vagyis a legdrágább sorok azok, amelyek a legkevesebb tanítást kapják.'
+        hint: 'A whole number, in millions.',
+        q: 'In a model with <span class="math">d<sub><span class="rm">model</span></sub></span> = 4,000 you grow the vocabulary from 100,000 to 200,000 entries. By how many <strong>million</strong> parameters does the embedding table grow?',
+        why: 'The embedding table is a matrix of size <span class="math">V × d</span>, so each new token means exactly <span class="math">d</span> new parameters: 100,000 × 4,000 = 400,000,000, that is <strong>400 million</strong>. This is where the trade-off from level 2 becomes concrete: a larger vocabulary gives shorter token sequences (cheaper per line to run) but pays for it directly and linearly in the size of the embedding and unembedding matrices. And the added tokens are typically the rarer ones — so the most expensive rows are the ones that get the least training.'
       },
       {
         id: 'emb-ritka',
         type: 'choice',
-        q: 'Miért marad rendre gyengébben tanult egy ritka token embeddingje, mint egy gyakorié — ugyanabban a tanításban, ugyanannyi lépés alatt?',
+        q: 'Why does the embedding of a rare token consistently end up less well trained than that of a frequent one — in the same training run, over the same number of steps?',
         options: [
-          { t: 'Mert az embedding-táblának mindig csak azok a sorai kapnak gradienst, amelyek tokenjei az adott batchben előfordulnak — a ritka token sora nagyságrendekkel kevesebb frissítést lát.', ok: true },
-          { t: 'Mert a ritka tokenek vektorának kisebb a normája, ezért gyengébben hatnak.' },
-          { t: 'Mert a gradiens az egész táblát frissíti, de a ritka tokenek zaja kioltja egymást.' },
-          { t: 'Mert a tokenizáló a ritka tokeneket véletlenszerűen választott sorokra képezi le.' }
+          { t: 'Because only those rows of the embedding table receive a gradient whose tokens occur in the current batch — the row of a rare token sees orders of magnitude fewer updates.', ok: true },
+          { t: 'Because the vectors of rare tokens have a smaller norm and therefore weaker effect.' },
+          { t: 'Because the gradient updates the whole table, but the noise from rare tokens cancels out.' },
+          { t: 'Because the tokenizer maps rare tokens to randomly chosen rows.' }
         ],
-        why: 'Az embedding formálisan mátrixszorzás egy one-hot vektorral, a gyakorlatban sorkivétel — és a gradiens is csak az érintett sorokra jut el. Egy tízezerszer ritkább token nagyjából tízezerszer kevesebb frissítést kap. Innen nézve a 2. szint <strong>glitch tokenjei</strong> nem kivételek, hanem ugyanennek a jelenségnek a szélső esete: ha a frissítések száma nem ritka, hanem <em>nulla</em>, a sor az inicializálási zajnál marad. Ugyanez a magyarázata annak is, miért kockázatos a szótárat vég nélkül növelni: a hozzáadott ritka sorok drágák és rosszul tanultak.'
+        why: 'The embedding is formally a matrix multiplication with a one-hot vector, in practice a row lookup — and the gradient reaches only the rows involved. A token that is ten thousand times rarer receives roughly ten thousand times fewer updates. Seen this way, the <strong>glitch tokens</strong> from level 2 are not exceptions but the extreme case of the same phenomenon: when the number of updates is not rare but <em>zero</em>, the row stays at initialization noise. This is also why growing the vocabulary without limit is risky: the added rare rows are expensive and poorly learned.'
       },
       {
         id: 'emb-dimenzio',
         type: 'choice',
-        q: 'Egy modell lényegesen több fogalmat különböztet meg, mint ahány dimenziója van (mondjuk százezret 10&nbsp;000 dimenzióban). Hogyan fér ez el?',
+        q: 'A model distinguishes considerably more concepts than it has dimensions (say a hundred thousand in 10,000 dimensions). How does that fit?',
         options: [
-          { t: 'Mert magas dimenzióban exponenciálisan sok <em>közel</em> merőleges irány létezik: a fogalmaknak nem kell egymásra pontosan merőlegesnek lenniük, elég, ha alig fednek át.', ok: true },
-          { t: 'Sehogy — a modell valójában csak annyi fogalmat tud megkülönböztetni, ahány dimenziója van.' },
-          { t: 'A modell tömöríti a fogalmakat, és futás közben kicsomagolja őket.' },
-          { t: 'A fogalmak többsége az embedding-tábla helyett a rétegek súlyaiban van tárolva, ezért nem foglal dimenziót.' }
+          { t: 'Because in high dimensions there are exponentially many <em>nearly</em> orthogonal directions: concepts do not have to be exactly orthogonal to one another, it is enough that they barely overlap.', ok: true },
+          { t: 'It does not — the model can really only distinguish as many concepts as it has dimensions.' },
+          { t: 'The model compresses the concepts and unpacks them at runtime.' },
+          { t: 'Most concepts are stored in the layer weights rather than in the embedding table, so they take up no dimensions.' }
         ],
-        why: 'Pontosan merőleges irányból <span class="math">d</span> dimenzióban csak <span class="math">d</span> darab van — de <em>közel</em> merőlegesből (mondjuk 0,1 alatti koszinusszal) exponenciálisan sok. Ezért tud egy 10&nbsp;000 dimenziós tér nagyságrendekkel több fogalmat egymástól jól elkülönítve hordozni. Az ár a kis átfedés: a fogalmak halványan „áthallanak” egymásba, ami interferenciát okoz. Ez a megfigyelés a 8.4. szakasz <strong>szuperpozíció</strong>-elméletének alapja, és egyben az egyik magyarázat arra, miért nem lehet a modell belső jellemzőit egyszerűen neuronokként kiolvasni.'
+        why: 'Of exactly orthogonal directions there are only <span class="math">d</span> in <span class="math">d</span> dimensions — but of <em>nearly</em> orthogonal ones (with a cosine below, say, 0.1) there are exponentially many. That is why a 10,000-dimensional space can carry orders of magnitude more concepts, well separated from one another. The price is the small overlap: concepts faintly “bleed” into each other, which causes interference. This observation is the basis of the <strong>superposition</strong> theory in section 8.4, and one explanation of why the model\u2019s internal features cannot simply be read off as neurons.'
       },
       {
         id: 'emb-anizotropia',
         type: 'choice',
-        q: 'Kiszámolod két, egymással semmilyen kapcsolatban nem álló token embeddingjének koszinusz-hasonlóságát, és 0,7-et kapsz. Mit érdemes ebből következtetni?',
+        q: 'You compute the cosine similarity between the embeddings of two tokens that have nothing to do with each other, and get 0.7. What should you conclude?',
         options: [
-          { t: 'Önmagában semmit: a tanult embeddingek egy szűk kúpban koncentrálódnak, így az átlagos páronkénti hasonlóság eleve jóval nulla fölött van — a 0,7-et ehhez az alapszinthez kell viszonyítani.', ok: true },
-          { t: 'Hogy a két token jelentése valójában rokon, csak nem vettük észre.' },
-          { t: 'Hogy a modell alultanított, mert jól tanított modellben minden hasonlóság 0 közeli.' },
-          { t: 'Hogy a két vektor normája nagyon eltérő.' }
+          { t: 'On its own, nothing: learned embeddings concentrate in a narrow cone, so the average pairwise similarity is well above zero to begin with — the 0.7 has to be read against that baseline.', ok: true },
+          { t: 'That the two tokens are in fact related and we simply had not noticed.' },
+          { t: 'That the model is undertrained, because in a well-trained model every similarity is close to 0.' },
+          { t: 'That the norms of the two vectors are very different.' }
         ],
-        why: 'A naiv kép — egyenletesen szétszórt vektorok egy gömbön — empirikusan hamis. A tanult embeddingek <strong>anizotrópok</strong>: részben a token-gyakoriság torzítása, részben az optimalizálás dinamikája miatt egy szűk kúpba tömörülnek. Emiatt a nyers koszinusz-érték nem értelmezhető abszolút skálán; a reprezentáció-elemzésben ezért szokás előbb kivonni az átlagvektort, vagy fehéríteni a teret. A gyakorlati tanulság általánosabb: egy belső mérőszám önmagában ritkán jelent valamit — mindig kell hozzá egy <em>alapvonal</em>, amihez viszonyítani lehet.'
+        why: 'The naive picture — vectors scattered evenly over a sphere — is empirically false. Learned embeddings are <strong>anisotropic</strong>: partly because of the distortion from token frequency, partly because of the dynamics of optimization, they crowd into a narrow cone. As a result a raw cosine value cannot be interpreted on an absolute scale; in representation analysis it is therefore customary to subtract the mean vector first, or to whiten the space. The practical lesson is more general: an internal metric rarely means anything on its own — it always needs a <em>baseline</em> to be measured against.'
       }
     ],
     4: [
