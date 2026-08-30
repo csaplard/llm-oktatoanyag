@@ -2128,39 +2128,39 @@ The thesis of mech interp: a trained network is not a black box but an <em>unkno
 </section>
 <section id="kepessegek" data-level="12">
 <div class="chapter-kicker">Chapter 9</div>
-<h2>Képességek és korlátok: mit várhatunk a gépezettől?</h2>
+<h2>Capabilities and limits: what can we expect from the machinery?</h2>
 
-<p>Az előző fejezetek gépezetéből néhány jellegzetes viselkedés <em>szükségszerűen</em> következik — jó és rossz egyaránt. Ez a fejezet a kettőt köti össze: a képességeket és a hibamódokat egyaránt a mechanizmusból vezeti le.</p>
+<p>A few characteristic behaviors follow <em>necessarily</em> from the machinery of the previous chapters — good and bad alike. This chapter ties the two together: it derives both the capabilities and the failure modes from the mechanism.</p>
 
-<h3>In-context learning: tanulás súlyfrissítés nélkül</h3>
-<p>Az egyik legkülönösebb képesség: a modell a promptban kapott néhány példából „megtanul” egy új feladatot — pedig egyetlen súlya sem változik. A magyarázat az architektúrában van: az attention <em>futásidőben</em> tud információt mozgatni a példákból az aktuális kérdéshez, az induction-jellegű áramkörök (8.3) pedig épp mintaillesztést és -folytatást valósítanak meg. Fontos azonban, hogy az induction head <em>nem</em> az in-context learning teljes magyarázata: Olsson és mtsai a fejek kialakulása és a képesség ugrásszerű megjelenése közti erős együttjárást mutatták ki, de a mai kép szerint az ICL-ben másoló fejek, feladat- és formátumreprezentációt hordozó MLP-rétegek, valamint jóval összetettebb figyelem-mintázatok is részt vesznek. Az induction-áramkör a legjobban <em>megértett</em> összetevő, nem az egyetlen. A kontextus tehát egyfajta <em>gyors, ideiglenes memória</em>, amelyben a modell a tanult általános algoritmusait az adott feladatra hangolja. Kutatói olvasatban: a transzformer előrefuttatása bizonyos feltételek közt implicit optimalizálási lépéseket valósít meg a kontextusban lévő példákon („mesa-optimalizáció” irodalom).</p>
+<h3>In-context learning: learning without a weight update</h3>
+<p>One of the strangest capabilities: from a few examples given in the prompt, the model “learns” a new task — even though not one of its weights changes. The explanation is architectural: attention can move information from the examples to the current question <em>at runtime</em>, and induction-style circuits (8.3) implement exactly pattern matching and continuation. It is important, however, that the induction head is <em>not</em> the complete explanation of in-context learning: Olsson et al. demonstrated a strong co-occurrence between the formation of these heads and the abrupt appearance of the ability, but on the current picture copying heads, MLP layers carrying task and format representations, and considerably more complex attention patterns all take part in ICL as well. The induction circuit is the best <em>understood</em> component, not the only one. The context is therefore a kind of <em>fast, temporary memory</em> in which the model tunes its learned general algorithms to the task at hand. In a research reading: under certain conditions the transformer's forward pass implements implicit optimization steps over the examples in the context (the “mesa-optimization” literature).</p>
 
-<h3>Lépésenkénti gondolkodás</h3>
-<p>Egy előrefuttatás <em>rögzített mélységű</em> számítás: N réteg, pont annyi. Amit nem lehet ennyi lépésben kiszámolni, azt a modell egyetlen tokenben nem tudja helyesen kiadni — de a <strong>generált tokenek maguk is számítási munkatárrá tehetők</strong>. A chain of thought (gondolatmenet kiírása) pontosan ez: a modell a köztes eredményeit tokenként externalizálja, és a következő lépésben már rájuk kondicionál — a szekvenciahossz irányában „mélyíti” a számítást. A modern reasoning-modellek ezt teszik rendszerré: RL-lel tanulják meg (5.6, 6. fejezet), hogy a gondolkodási tokeneket hatékonyan használják — hibát visszavonni, elágazást kipróbálni, ellenőrizni.</p>
+<h3>Step-by-step thinking</h3>
+<p>A forward pass is a computation of <em>fixed depth</em>: N layers, exactly that many. Whatever cannot be computed in that many steps, the model cannot produce correctly in a single token — but <strong>the generated tokens can themselves be turned into a computational scratchpad</strong>. The chain of thought (writing out the reasoning) is exactly this: the model externalizes its intermediate results as tokens and then conditions on them at the next step — “deepening” the computation along the sequence dimension. Modern reasoning models make a system of this: they learn through RL (5.6, chapter 6) to use thinking tokens efficiently — to undo an error, to try a branch, to check.</p>
 
-<h3>Miért hallucinál?</h3>
-<p>A hallucináció — magabiztosan előadott valótlanság — nem rejtélyes meghibásodás, hanem a tanítási cél árnyéka. A mechanizmusból több forrása is levezethető:</p>
+<h3>Why does it hallucinate?</h3>
+<p>Hallucination — a falsehood delivered with confidence — is not a mysterious malfunction but the shadow of the training objective. Several of its sources can be derived from the mechanism:</p>
 
 <ul>
-<li><strong>A loss folytatást jutalmaz, nem igazságot.</strong> A cross-entropy a <em>plauzibilis</em> szöveget díjazza; egy jól hangzó, hamis állítás loss-a alacsony, ha a felszíni mintázata gyakori. A „nem tudom” válasz ráadásul a legtöbb benchmarkon és preferencia-adatban rosszabbul pontoz, mint egy tippelés — az utótanítás így akaratlanul a magabiztos tippelésre nevelhet (a vizsgázó-stratégia: üresen hagyni biztos pontvesztés).</li>
-<li><strong>A tudás eloszlásba van tömörítve.</strong> A ritkán látott tények gyenge, zajos asszociációk (3. és 4.4 fejezet); a mintavétel (7. fejezet) egy rossz tokenje után a modell a saját hibájára kondicionál, és koherensen <em>továbbépíti</em> azt.</li>
-<li><strong>A visszaidézés és a fogalmazás szétválik.</strong> Az interp-esettanulmányok (8.6) szerint van külön „ezt az entitást ismerem” jelzés a hálóban: ha ez tévesen bekapcsol, a válaszgeneráló áramkörök gátlása feloldódik, és a modell kitölti a részleteket — a szerkezet megvan, a tartalom nem.</li>
+<li><strong>The loss rewards continuation, not truth.</strong> Cross-entropy rewards <em>plausible</em> text; a well-sounding false claim has a low loss if its surface pattern is common. On top of that, “I don't know” scores worse than a guess on most benchmarks and in most preference data — so post-training can inadvertently teach confident guessing (the exam-taker's strategy: leaving it blank is a guaranteed loss of points).</li>
+<li><strong>Knowledge is compressed into a distribution.</strong> Rarely seen facts are weak, noisy associations (chapters 3 and 4.4); after one bad token from sampling (chapter 7) the model conditions on its own mistake and coherently <em>builds on</em> it.</li>
+<li><strong>Recall and phrasing come apart.</strong> Interpretability case studies (8.6) find a separate “I know this entity” signal in the network: if it switches on mistakenly, the inhibition on the answer-generating circuits is released and the model fills in the details — the structure is there, the content is not.</li>
 </ul>
 
-<p>A mérséklés ma többsávos: kalibrációra és megtagadásra célzott utótanítás, visszakereséssel (RAG, eszközhasználat) külső tényforráshoz horgonyzás, valamint verifikáló-modellek és idézetkényszer. A jelenség azonban a jelen paradigmában teljesen el nem tüntethető: egy eloszlást modellező rendszer definíció szerint általánosít a bizonytalanban.</p>
+<p>Mitigation today runs on several tracks: post-training targeted at calibration and refusal, anchoring to an external source of fact through retrieval (RAG, tool use), plus verifier models and citation requirements. The phenomenon cannot be eliminated entirely within the present paradigm, however: a system that models a distribution generalizes, by definition, where it is uncertain.</p>
 
-<h3>További jellegzetes határok</h3>
+<h3>Further characteristic limits</h3>
 <table>
-<tr><th>Jelenség</th><th>Mechanikus ok</th></tr>
-<tr><td><strong>Reversal curse</strong> — „A szülője B”-ből nem következik automatikusan „B gyermeke A”</td><td>Az autoregresszív loss irányított asszociációkat tanít: a tény a „A → B” sorrendben kódolódott; a fordított irányú előhívás külön tanulást igényel.</td></tr>
-<tr><td><strong>Tokenszintű vakság</strong> — betűszámolás, anagrammák botladozása</td><td>A modell tokeneket lát, nem karaktereket (2. fejezet); a token belső szerkezete csak közvetve tanult.</td></tr>
-<tr><td><strong>„Elveszve a közepén”</strong> — a hosszú kontextus közepéről gyengébb a felidézés</td><td>Az attention-súlyok a pozíciós minták és a tanítóadat-eloszlás miatt a kontextus elejét-végét preferálják; a hosszú-kontextus tanítás ezt csak részben korrigálja.</td></tr>
-<tr><td><strong>Aritmetikai törékenység</strong></td><td>A számolás tanult áramkörökön fut (párhuzamos közelítő + pontosító utak, 8.6), nem szimbolikus algoritmuson — nagy operandusoknál az általánosítás elfogy. Eszközhasználat (kódfuttatás) a tiszta megoldás.</td></tr>
-<tr><td><strong>Prompt-érzékenység</strong></td><td>A kimenet feltételes eloszlás: a prompt minden felszíni jegye — sorrend, formázás, hangnem — legitim kondicionáló jel, és a modell használja is.</td></tr>
+<tr><th>Phenomenon</th><th>Mechanical cause</th></tr>
+<tr><td><strong>The reversal curse</strong> — “A's parent is B” does not automatically give “B's child is A”</td><td>The autoregressive loss teaches directed associations: the fact was encoded in the order “A → B”; recall in the reverse direction requires separate learning.</td></tr>
+<tr><td><strong>Token-level blindness</strong> — stumbling over letter counting and anagrams</td><td>The model sees tokens, not characters (chapter 2); the internal structure of a token is learned only indirectly.</td></tr>
+<tr><td><strong>“Lost in the middle”</strong> — recall is weaker from the middle of a long context</td><td>Because of positional patterns and the distribution of the training data, attention weights favor the beginning and the end of the context; long-context training corrects this only partly.</td></tr>
+<tr><td><strong>Arithmetic fragility</strong></td><td>Calculation runs on learned circuits (parallel approximate and refining paths, 8.6), not on a symbolic algorithm — at large operands the generalization runs out. Tool use (running code) is the clean solution.</td></tr>
+<tr><td><strong>Prompt sensitivity</strong></td><td>The output is a conditional distribution: every surface feature of the prompt — order, formatting, tone — is a legitimate conditioning signal, and the model does use it.</td></tr>
 </table>
 
-<div class="warn"><span class="label">A helyes mentális modell</span>
-Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (nem garantált a levezetés) — hanem egy tanult eloszlás fölött futó, kontextusra kondicionált <em>általánosító</em>. Ott a legerősebb, ahol a feladat illeszkedik a tanult mintázattérhez, és ott téved a legveszélyesebben, ahol a felszíni illeszkedés jó, de a mögöttes tény vagy számítás ritka. A jó használat — és a jó mérnöki integráció — ezt a profilt veszi alapul: ellenőrizhető kimenetek, külső tényforrás, eszközhasználat, ember a körben a nagy tétű döntéseknél.
+<div class="warn"><span class="label">The right mental model</span>
+An LLM is not a database (recall is not guaranteed), nor a logic engine (derivation is not guaranteed) — it is a <em>generalizer</em> running over a learned distribution, conditioned on context. It is strongest where the task fits the learned space of patterns, and it errs most dangerously where the surface fit is good but the underlying fact or computation is rare. Good use — and good engineering integration — takes this profile as its basis: verifiable outputs, an external source of fact, tool use, and a human in the loop for high-stakes decisions.
 </div>
 
 <div class="quiz" id="quiz-12" data-level="12">
@@ -2173,76 +2173,77 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
 </section>
 <section id="glosszarium">
 <div class="chapter-kicker">Chapter 10</div>
-<h2>Glosszárium</h2>
+<h2>Glossary</h2>
 <dl class="gloss">
-<dt>Attention (figyelem)</dt><dd>Mechanizmus, amellyel egy token-pozíció tanult relevancia-súlyokkal olvas információt a többi pozícióból (query–key illeszkedés, value-átvitel). 4.3.</dd>
-<dt>Autoregresszív</dt><dd>Tokenről tokenre haladó generálás, ahol minden új token az addigi teljes szövegre kondicionál. 1. fejezet.</dd>
-<dt>Backpropagation</dt><dd>A láncszabály hatékony, gráfalapú végrehajtása: minden paraméter gradiense egyetlen visszafuttatásban áll elő. 5.3.</dd>
-<dt>BPE (byte-pair encoding)</dt><dd>Szótárépítő algoritmus: a leggyakoribb szomszédos szimbólumpárok ismételt összevonása. 2. fejezet.</dd>
-<dt>Chain of thought (CoT)</dt><dd>A köztes gondolatmenet tokenként való kiírása, amely a számítást a szekvenciahossz irányában mélyíti. 9. fejezet.</dd>
-<dt>Circuit (áramkör)</dt><dd>A háló komponenseinek (fejek, neuronok, feature-ök) azonosítható, emberi fogalmakkal leírható algoritmust megvalósító együttműködése. 8. fejezet.</dd>
-<dt>Cross-entropy loss</dt><dd>A helyes token modell szerinti valószínűségének negatív logaritmusa; a tanítás célfüggvénye. 5.1.</dd>
-<dt>DPO (direct preference optimization)</dt><dd>Preferenciapárokból közvetlenül optimalizáló alignment-módszer, külön jutalommodell és RL-hurok nélkül. 6. fejezet.</dd>
-<dt>Embedding</dt><dd>Token → tanult vektor hozzárendelés; a jelentés geometriai reprezentációjának kiindulópontja. 3. fejezet.</dd>
-<dt>Feature (jellemző)</dt><dd>A modell belső reprezentációjának egy egysége — a munkahipotézis szerint jó közelítéssel egy irány az aktivációtérben. 8. fejezet.</dd>
-<dt>Gradiens</dt><dd>A loss parciális deriváltjainak vektora a paraméterek szerint; megmutatja, melyik paraméter kis változtatása mennyit javít. 5. fejezet.</dd>
-<dt>GQA (grouped-query attention)</dt><dd>Több query-fej osztozik kevesebb key/value-fejen — a KV-cache zsugorítása. 4.8.</dd>
-<dt>Induction head</dt><dd>Attention-fej, amely a kontextusban korábban látott mintázat ismétlődését találja meg és folytatja; az in-context learning egyik alapja. 8.3.</dd>
-<dt>Inferencia</dt><dd>A betanított modell futtatása (prefill + tokenenkénti dekódolás). 7. fejezet.</dd>
-<dt>KV-cache</dt><dd>A korábbi tokenek key/value-vektorainak tárolása, hogy dekódoláskor ne kelljen újraszámolni őket. 7. fejezet.</dd>
-<dt>KL-divergencia</dt><dd>Két eloszlás eltérésének mértéke; az RLHF-ben a referencia-modelltől való elsodródás fékje. 6. fejezet.</dd>
-<dt>Logit</dt><dd>A softmax előtti nyers pontszám egy-egy szótárelemre. 4.7.</dd>
-<dt>Logit lens</dt><dd>Diagnosztika: a residual stream köztes állapotának átvezetése az unembeddingen — rétegről rétegre látszik a formálódó jóslat. 8.2.</dd>
-<dt>LayerNorm / RMSNorm</dt><dd>A vektorok skálájának rétegenkénti standardizálása a tanítás stabilitásáért. 4.5.</dd>
-<dt>MLP (feed-forward réteg)</dt><dd>Pozíciónként futó fel-levetítés nemlinearitással; a paraméterek és a tárolt asszociációk zöme itt él. 4.4.</dd>
-<dt>MoE (mixture of experts)</dt><dd>Sok szakértő-MLP, amelyből tokenenként csak néhány aktiválódik — nagy kapacitás, kis per-token számítás. 4.8.</dd>
-<dt>Perplexitás</dt><dd>A loss exponenciálisa: átlagosan hányfelé „tanácstalan” a modell tokenenként. 5.1.</dd>
-<dt>Poliszemantikus neuron</dt><dd>Több, egymással össze nem függő fogalomra aktiválódó neuron — a szuperpozíció tünete. 8.4.</dd>
-<dt>Pretraining (előtanítás)</dt><dd>A nyers képességeket adó, óriáskorpuszos next-token-tanítás. 5. fejezet.</dd>
-<dt>Residual stream</dt><dd>A pozíciónkénti, rétegeken át additívan gazdagodó vektor — az architektúra kommunikációs gerince. 4.2.</dd>
-<dt>RLHF</dt><dd>Reinforcement learning from human feedback: emberi preferenciákból tanult jutalommodellel vezérelt policy-optimalizálás. 6. fejezet.</dd>
-<dt>RoPE (rotary position embedding)</dt><dd>Pozíciókódolás a query/key-vektorok pozícióarányos elforgatásával; az attention így relatív távolságot érzékel. 4.6.</dd>
-<dt>SAE (sparse autoencoder)</dt><dd>Segédháló, amely az aktivációkat bő, ritka, gyakran monoszemantikus feature-szótárra bontja. 8.5.</dd>
-<dt>Softmax</dt><dd>Pontszámvektor → valószínűség-eloszlás átalakítás exponenciálissal és normálással. 4.7.</dd>
-<dt>Szuperpozíció</dt><dd>Több jellemző tárolása, mint ahány dimenzió van — átfedő, közel merőleges irányokban, a ritkaság kihasználásával. 8.4.</dd>
-<dt>SFT (supervised fine-tuning)</dt><dd>Felügyelt finomhangolás minta-párbeszédeken; az asszisztens-viselkedés formájának megtanítása. 6. fejezet.</dd>
-<dt>Temperature</dt><dd>Mintavételi paraméter: a logitok osztója, az eloszlás élesítése/lapítása. 7. fejezet.</dd>
-<dt>Token</dt><dd>A szöveg atomi egysége a modell számára — jellemzően szó-rész (BPE-darab). 2. fejezet.</dd>
-<dt>Transzformer</dt><dd>Attention- és MLP-blokkok residual streamre épülő, párhuzamosan tanítható architektúrája. 4. fejezet.</dd>
-<dt>Unembedding</dt><dd>A végső streamvektort a szótár logitjaira vetítő mátrix. 4.7.</dd>
+<dt>Attention</dt><dd>The mechanism by which a token position reads information from other positions with learned relevance weights (query–key matching, value transfer). 4.3.</dd>
+<dt>Autoregressive</dt><dd>Generation proceeding token by token, where every new token is conditioned on the entire text so far. Chapter 1.</dd>
+<dt>Backpropagation</dt><dd>The efficient, graph-based execution of the chain rule: the gradient of every parameter is produced in a single backward pass. 5.3.</dd>
+<dt>BPE (byte-pair encoding)</dt><dd>A vocabulary-building algorithm: the repeated merging of the most frequent adjacent pairs of symbols. Chapter 2.</dd>
+<dt>Chain of thought (CoT)</dt><dd>Writing out the intermediate reasoning as tokens, which deepens the computation along the sequence dimension. Chapter 9.</dd>
+<dt>Circuit</dt><dd>An identifiable cooperation of network components (heads, neurons, features) that implements an algorithm describable in human terms. Chapter 8.</dd>
+<dt>Cross-entropy loss</dt><dd>The negative logarithm of the model's probability for the correct token; the objective of training. 5.1.</dd>
+<dt>DPO (direct preference optimization)</dt><dd>An alignment method that optimizes directly from preference pairs, without a separate reward model or RL loop. Chapter 6.</dd>
+<dt>Embedding</dt><dd>The assignment of a learned vector to a token; the starting point of the geometric representation of meaning. Chapter 3.</dd>
+<dt>Feature</dt><dd>A unit of the model's internal representation — on the working hypothesis, to a good approximation a direction in activation space. Chapter 8.</dd>
+<dt>Gradient</dt><dd>The vector of partial derivatives of the loss with respect to the parameters; it shows how much a small change to each parameter would improve things. Chapter 5.</dd>
+<dt>GQA (grouped-query attention)</dt><dd>Several query heads share fewer key/value heads — shrinking the KV cache. 4.8.</dd>
+<dt>Induction head</dt><dd>An attention head that finds and continues the repetition of a pattern seen earlier in the context; one of the foundations of in-context learning. 8.3.</dd>
+<dt>Inference</dt><dd>Running the trained model (prefill plus token-by-token decoding). Chapter 7.</dd>
+<dt>KV cache</dt><dd>Storing the key/value vectors of earlier tokens so that they need not be recomputed during decoding. Chapter 7.</dd>
+<dt>KL divergence</dt><dd>A measure of the difference between two distributions; in RLHF, the brake on drift away from the reference model. Chapter 6.</dd>
+<dt>Logit</dt><dd>The raw pre-softmax score for a given vocabulary entry. 4.7.</dd>
+<dt>Logit lens</dt><dd>A diagnostic: passing an intermediate state of the residual stream through the unembedding — the forming prediction becomes visible layer by layer. 8.2.</dd>
+<dt>LayerNorm / RMSNorm</dt><dd>Standardizing the scale of the vectors at each layer, for the stability of training. 4.5.</dd>
+<dt>MLP (feed-forward layer)</dt><dd>A per-position up- and down-projection with a nonlinearity; most of the parameters and stored associations live here. 4.4.</dd>
+<dt>MoE (mixture of experts)</dt><dd>Many expert MLPs, of which only a few activate per token — large capacity, small per-token computation. 4.8.</dd>
+<dt>Perplexity</dt><dd>The exponential of the loss: how many ways the model is “undecided” per token on average. 5.1.</dd>
+<dt>Polysemantic neuron</dt><dd>A neuron that activates for several unrelated concepts — a symptom of superposition. 8.4.</dd>
+<dt>Pretraining</dt><dd>Next-token training on a giant corpus, which gives the raw capabilities. Chapter 5.</dd>
+<dt>Residual stream</dt><dd>The per-position vector that grows richer additively through the layers — the communication backbone of the architecture. 4.2.</dd>
+<dt>RLHF</dt><dd>Reinforcement learning from human feedback: policy optimization guided by a reward model learned from human preferences. Chapter 6.</dd>
+<dt>RoPE (rotary position embedding)</dt><dd>Positional encoding by rotating the query/key vectors in proportion to position; attention thereby senses relative distance. 4.6.</dd>
+<dt>SAE (sparse autoencoder)</dt><dd>An auxiliary network that decomposes activations into a wide, sparse, often monosemantic dictionary of features. 8.5.</dd>
+<dt>Softmax</dt><dd>The transformation of a vector of scores into a probability distribution, by exponentiation and normalization. 4.7.</dd>
+<dt>Superposition</dt><dd>Storing more features than there are dimensions — in overlapping, nearly orthogonal directions, exploiting sparsity. 8.4.</dd>
+<dt>SFT (supervised fine-tuning)</dt><dd>Supervised fine-tuning on example dialogues; teaching the form of assistant behavior. Chapter 6.</dd>
+<dt>Temperature</dt><dd>A sampling parameter: the divisor of the logits, sharpening or flattening the distribution. Chapter 7.</dd>
+<dt>Token</dt><dd>The atomic unit of text for the model — typically a word piece (a BPE fragment). Chapter 2.</dd>
+<dt>Transformer</dt><dd>An architecture of attention and MLP blocks built on a residual stream, trainable in parallel. Chapter 4.</dd>
+<dt>Unembedding</dt><dd>The matrix that projects the final stream vector onto the logits of the vocabulary. 4.7.</dd>
 </dl>
 </section>
 
 <section id="irodalom">
 <div class="chapter-kicker">Chapter 11</div>
-<h2>Irodalom — a kánon, olvasási sorrendben</h2>
-<p>A lista szándékosan rövid: a terület alapszövegei, nagyjából a jelen anyag fejezeteinek sorrendjében. A címek keresőbe írva mind szabadon elérhetők (arXiv, ill. a distill.pub / transformer-circuits.pub oldalak).</p>
+<h2>Further reading — the canon, in reading order</h2>
+<p>The list is deliberately short: the foundational texts of the field, roughly in the order of this material's chapters. All the titles are freely available if you search for them (on arXiv, or on distill.pub / transformer-circuits.pub).</p>
 <ol class="refs">
-<li><b>Vaswani et al. (2017): Attention Is All You Need</b> — az eredeti transzformer-cikk. (4. fejezet)</li>
-<li><b>Radford et al. (2019): Language Models are Unsupervised Multitask Learners</b> (GPT-2) és <b>Brown et al. (2020): Language Models are Few-Shot Learners</b> (GPT-3) — a skálázás és az in-context learning felfedezése. (1., 9. fejezet)</li>
-<li><b>Sennrich et al. (2016): Neural Machine Translation of Rare Words with Subword Units</b> — a BPE bevezetése az NLP-be. (2. fejezet)</li>
-<li><b>Rumelhart, Hinton &amp; Williams (1986): Learning representations by back-propagating errors</b> — a backprop klasszikusa; modern kiegészítésként <b>Karpathy: Neural Networks: Zero to Hero</b> videósorozata a kézzel épített autogradtól a GPT-ig. (5. fejezet)</li>
-<li><b>Kingma &amp; Ba (2015): Adam</b> és <b>Loshchilov &amp; Hutter (2019): Decoupled Weight Decay Regularization</b> (AdamW). (5.4)</li>
-<li><b>Kaplan et al. (2020): Scaling Laws for Neural Language Models</b> és <b>Hoffmann et al. (2022): Training Compute-Optimal Large Language Models</b> (Chinchilla). (5.6)</li>
-<li><b>Su et al. (2021): RoFormer</b> — a RoPE. (4.6)</li>
-<li><b>Ouyang et al. (2022): Training language models to follow instructions with human feedback</b> (InstructGPT) — az RLHF-recept. (6. fejezet)</li>
-<li><b>Bai et al. (2022): Constitutional AI: Harmlessness from AI Feedback</b>. (6. fejezet)</li>
-<li><b>Rafailov et al. (2023): Direct Preference Optimization</b>. (6. fejezet)</li>
-<li><b>Dao et al. (2022): FlashAttention</b> és <b>Kwon et al. (2023): Efficient Memory Management for LLM Serving with PagedAttention</b> (vLLM). (7. fejezet)</li>
-<li><b>Leviathan et al. (2023): Fast Inference from Transformers via Speculative Decoding</b>. (7. fejezet)</li>
-<li><b>Elhage et al. (2021): A Mathematical Framework for Transformer Circuits</b> — a residual stream / QK–OV formalizmus. (8.2)</li>
+<li><b>Vaswani et al. (2017): Attention Is All You Need</b> — the original transformer paper. (Chapter 4)</li>
+<li><b>Radford et al. (2019): Language Models are Unsupervised Multitask Learners</b> (GPT-2) and <b>Brown et al. (2020): Language Models are Few-Shot Learners</b> (GPT-3) — the discovery of scaling and in-context learning. (Chapters 1 and 9)</li>
+<li><b>Sennrich et al. (2016): Neural Machine Translation of Rare Words with Subword Units</b> — the introduction of BPE into NLP. (Chapter 2)</li>
+<li><b>Rumelhart, Hinton &amp; Williams (1986): Learning representations by back-propagating errors</b> — the classic of backprop; as a modern complement, <b>Karpathy: Neural Networks: Zero to Hero</b>, a video series from a hand-built autograd to a GPT. (Chapter 5)</li>
+<li><b>Kingma &amp; Ba (2015): Adam</b> and <b>Loshchilov &amp; Hutter (2019): Decoupled Weight Decay Regularization</b> (AdamW). (5.4)</li>
+<li><b>Kaplan et al. (2020): Scaling Laws for Neural Language Models</b> and <b>Hoffmann et al. (2022): Training Compute-Optimal Large Language Models</b> (Chinchilla). (5.6)</li>
+<li><b>Su et al. (2021): RoFormer</b> — RoPE. (4.6)</li>
+<li><b>Ouyang et al. (2022): Training language models to follow instructions with human feedback</b> (InstructGPT) — the RLHF recipe. (Chapter 6)</li>
+<li><b>Bai et al. (2022): Constitutional AI: Harmlessness from AI Feedback</b>. (Chapter 6)</li>
+<li><b>Rafailov et al. (2023): Direct Preference Optimization</b>. (Chapter 6)</li>
+<li><b>Dao et al. (2022): FlashAttention</b> and <b>Kwon et al. (2023): Efficient Memory Management for LLM Serving with PagedAttention</b> (vLLM). (Chapter 7)</li>
+<li><b>Leviathan et al. (2023): Fast Inference from Transformers via Speculative Decoding</b>. (Chapter 7)</li>
+<li><b>Elhage et al. (2021): A Mathematical Framework for Transformer Circuits</b> — the residual stream / QK–OV formalism. (8.2)</li>
 <li><b>Olsson et al. (2022): In-context Learning and Induction Heads</b>. (8.3)</li>
 <li><b>Elhage et al. (2022): Toy Models of Superposition</b>. (8.4)</li>
-<li><b>Olshausen &amp; Field (1996): Emergence of simple-cell receptive field properties by learning a sparse code for natural images</b> — a ritka kódolás klasszikusa, az SAE-k gondolati őse. (8.5)</li>
-<li><b>Bricken et al. (2023): Towards Monosemanticity</b> és <b>Templeton et al. (2024): Scaling Monosemanticity</b> — SAE-k kis és frontier-méretben. (8.5)</li>
-<li><b>Lindsey et al. (2025): On the Biology of a Large Language Model</b> — attribúciós gráfok, esettanulmányok (tervezés, fejszámolás, hűtlen CoT). (8.6)</li>
-<li><b>Schaeffer et al. (2023): Are Emergent Abilities of Large Language Models a Mirage?</b> — az emergencia-vita. (5.6)</li>
-<li><b>Berglund et al. (2023): The Reversal Curse</b>. (9. fejezet)</li>
-<li><b>Greenblatt et al. (2024): Alignment Faking in Large Language Models</b>. (6. fejezet)</li>
+<li><b>Olshausen &amp; Field (1996): Emergence of simple-cell receptive field properties by learning a sparse code for natural images</b> — the classic of sparse coding, the conceptual ancestor of SAEs. (8.5)</li>
+<li><b>Bricken et al. (2023): Towards Monosemanticity</b> and <b>Templeton et al. (2024): Scaling Monosemanticity</b> — SAEs at small and frontier scale. (8.5)</li>
+<li><b>Lindsey et al. (2025): On the Biology of a Large Language Model</b> — attribution graphs, case studies (planning, mental arithmetic, unfaithful CoT). (8.6)</li>
+<li><b>Schaeffer et al. (2023): Are Emergent Abilities of Large Language Models a Mirage?</b> — the emergence debate. (5.6)</li>
+<li><b>Berglund et al. (2023): The Reversal Curse</b>. (Chapter 9)</li>
+<li><b>Greenblatt et al. (2024): Alignment Faking in Large Language Models</b>. (Chapter 6)</li>
 </ol>
 
-<p style="margin-top:36px; padding-top:18px; border-top:1px solid var(--border); font-size:13.5px; color:var(--ink-muted);">Ez az anyag oktatási céllal készült. A szakmai tartalom a terület <strong>2026. júliusi</strong> állapotát tükrözi; a kiadás utolsó frissítése <strong>2026. augusztus 30.</strong> — a kettő közti különbség a <a href="#valtozasnaplo">változásnaplóban</a> olvasható. A számszerű példák (méretek, arányok) tipikus nagyságrendeket illusztrálnak, nem konkrét termékek specifikációit. Az ábrák sematikusak. Hibajelzést, kiegészítési ötletet szívesen fogad a szerkesztő. ◆</p>
+<p style="margin-top:36px; padding-top:18px; border-top:1px solid var(--border); font-size:13.5px; color:var(--ink-muted);">This material was written for teaching. Its subject matter reflects the state of the field as of <strong>July 2026</strong>; the last update to this edition was <strong>30 August 2026</strong> — the difference between the two is set out in the <a href="#valtozasnaplo">changelog</a>. The numerical examples (sizes, ratios) illustrate typical orders of magnitude, not the specifications of particular products. The figures are schematic. Corrections and suggestions are welcome. ◆</p>
 </section>
+
 <section id="valtozasnaplo">
 <div class="chapter-kicker">Appendix</div>
 <h2>Changelog</h2>
@@ -2993,58 +2994,58 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       {
         id: 'cap-icl',
         type: 'choice',
-        q: 'A modell a promptban kapott néhány példából „megtanul” egy új feladatot, miközben egyetlen súlya sem változik. Melyik állítás pontos erről?',
+        q: 'From a few examples given in the prompt, the model “learns” a new task while not one of its weights changes. Which statement is accurate about this?',
         options: [
-          { t: 'Az attention futásidőben mozgat információt a példákból az aktuális kérdéshez — a kontextus gyors, ideiglenes memória. Az induction-áramkör ennek a legjobban megértett összetevője, de nem a teljes magyarázata.', ok: true },
-          { t: 'Az induction headek teljes egészében megmagyarázzák a jelenséget; más komponens nem vesz részt benne.' },
-          { t: 'A modell a beszélgetés alatt ideiglenesen módosítja a súlyait, majd a végén visszaállítja őket.' },
-          { t: 'A promptban lévő példák a tokenizálót hangolják át az adott feladatra.' }
+          { t: 'Attention moves information from the examples to the current question at runtime — the context is a fast, temporary memory. The induction circuit is its best-understood component, but not the complete explanation.', ok: true },
+          { t: 'Induction heads explain the phenomenon entirely; no other component takes part in it.' },
+          { t: 'The model temporarily modifies its weights during the conversation and restores them at the end.' },
+          { t: 'The examples in the prompt retune the tokenizer for the task at hand.' }
         ],
-        why: 'A képesség forrása az architektúra: az attention az egyetlen hely, ahol a pozíciók információt cserélhetnek, és ezt <em>futásidőben</em> teszi — súlyfrissítés nélkül. A második válasz csábító, mert az induction headekről szóló eredmény (a fejek kialakulása és a képesség ugrásszerű megjelenése közti erős együttjárás) könnyen olvasható teljes magyarázatként. A mai kép azonban árnyaltabb: másoló fejek, feladat- és formátumreprezentációt hordozó MLP-rétegek és jóval összetettebb figyelem-mintázatok is részt vesznek benne. Az induction-áramkör a legjobban <em>megértett</em> összetevő — ami nem ugyanaz, mint az egyetlen.'
+        why: 'The source of the ability is architectural: attention is the only place where positions can exchange information, and it does so <em>at runtime</em>, without any weight update. The second answer is tempting, because the induction-head result (a strong co-occurrence between the formation of those heads and the abrupt appearance of the ability) reads easily as a complete explanation. The current picture is more nuanced, however: copying heads, MLP layers carrying task and format representations, and considerably more complex attention patterns take part as well. The induction circuit is the best <em>understood</em> component — which is not the same as the only one.'
       },
       {
         id: 'cap-cot',
         type: 'number',
         answer: 12000,
-        hint: 'Egész szám.',
-        q: 'Egy 40 rétegű modell 300 gondolkodási tokent generál, mielőtt válaszolna. Hány rétegnyi számítást végzett ezalatt összesen?',
-        why: '40 × 300 = <strong>12&nbsp;000</strong> rétegnyi. Ez teszi kézzelfoghatóvá, miért segít egyáltalán a gondolatmenet kiíratása: egyetlen előrefuttatás <em>rögzített mélységű</em> számítás — 40 réteg, pont annyi —, és amit ennyi lépésben nem lehet kiszámolni, azt a modell egyetlen tokenben nem tudja helyesen kiadni. A generált tokenek viszont visszakerülnek a bemenetre, így a modell a szekvencia irányában „mélyíti” a számítást: a köztes eredményeket externalizálja, és a következő lépésben már rájuk támaszkodik. A reasoning-modellek ezt teszik rendszerré — RL-lel tanulják meg, hogyan használják jól ezt a munkateret.'
+        hint: 'A whole number.',
+        q: 'A 40-layer model generates 300 thinking tokens before answering. How many layers\u2019 worth of computation has it performed in total?',
+        why: '40 × 300 = <strong>12,000</strong> layers\u2019 worth. This makes tangible why writing out the reasoning helps at all: a single forward pass is a computation of <em>fixed depth</em> — 40 layers, exactly that many — and whatever cannot be computed in that many steps, the model cannot produce correctly in a single token. The generated tokens, however, go back into the input, so the model “deepens” the computation along the sequence: it externalizes intermediate results and then leans on them at the next step. Reasoning models make a system of this — they learn through RL how to use this workspace well.'
       },
       {
         id: 'cap-reversal',
         type: 'choice',
-        q: 'A modell tudja, hogy „X szülője Y”, de a „Ki Y gyermeke?” kérdésre nem válaszol helyesen. Mi ennek a mechanikus oka?',
+        q: 'The model knows that “X\u2019s parent is Y”, but does not answer the question “Whose child is Y?” correctly. What is the mechanical cause?',
         options: [
-          { t: 'Az autoregresszív loss <em>irányított</em> asszociációkat tanít: a tény abban a sorrendben kódolódott, ahogy a szövegben előfordult, és a fordított irányú előhívás külön tanulást igényel.', ok: true },
-          { t: 'A modell csak a tanítóadatban szó szerint szereplő mondatokat tudja visszaadni.' },
-          { t: 'A kérdés más tokenekre bomlik, ezért a modell nem ismeri fel ugyanazt az entitást.' },
-          { t: 'A fordított kérdés hosszabb kontextust igényel, mint amennyi a modell ablakába fér.' }
+          { t: 'The autoregressive loss teaches <em>directed</em> associations: the fact was encoded in the order it appeared in the text, and recall in the reverse direction requires separate learning.', ok: true },
+          { t: 'The model can only reproduce sentences that appeared verbatim in the training data.' },
+          { t: 'The question breaks into different tokens, so the model does not recognize the same entity.' },
+          { t: 'The reversed question requires a longer context than fits in the model\u2019s window.' }
         ],
-        why: 'Ez a „reversal curse”, és pontosan azért tanulságos, mert egy emberi intuíciót cáfol: a tudás nálunk szimmetrikus relációként áll, a modellben viszont <em>bejósolható folytatásként</em>. A next-token-cél mindig balról jobbra jutalmaz, tehát az „X szülője Y” minta az X → Y irányt erősíti; a Y → X irány ebből nem áll elő magától. Ugyanez a gondolat magyarázza a fejezet több más korlátját is: a modell nem tényeket tárol absztrakt relációkként, hanem folytatási mintázatokat, és minden képessége annak a lenyomata, hogy milyen sorrendben látta a szöveget.'
+        why: 'This is the “reversal curse”, and it is instructive precisely because it refutes a human intuition: for us knowledge stands as a symmetric relation, whereas in the model it is a <em>predictable continuation</em>. The next-token objective always rewards left to right, so the pattern “X\u2019s parent is Y” strengthens the X → Y direction; the Y → X direction does not follow from it by itself. The same idea explains several other limits in this chapter: the model does not store facts as abstract relations but as continuation patterns, and every capability it has is an imprint of the order in which it saw text.'
       },
       {
         id: 'cap-nemtudom',
         type: 'choice',
-        q: 'Miért nem oldja meg a hallucinációt önmagában az, hogy a modellt „mondja azt, hogy nem tudja, ha bizonytalan”?',
+        q: 'Why does simply telling the model to “say you don\u2019t know when you are unsure” not solve hallucination on its own?',
         options: [
-          { t: 'Mert az utótanítás mérőrendszere ellene dolgozik: a „nem tudom” a legtöbb benchmarkon és preferencia-adatban rosszabbul pontoz, mint egy tipp — a modell így a magabiztos tippelésre tanul rá.', ok: true },
-          { t: 'Mert a modell elvileg nem tud különbséget tenni aközött, amit tud és amit nem.' },
-          { t: 'Mert a „nem tudom” válasz tokenjei ritkák a szótárban, ezért nehezen generálhatók.' },
-          { t: 'Mert a bizonytalanság csak inferenciakor derül ki, tanításkor nem mérhető.' }
+          { t: 'Because the measurement system of post-training works against it: “I don\u2019t know” scores worse than a guess on most benchmarks and in most preference data — so the model learns confident guessing.', ok: true },
+          { t: 'Because the model is in principle unable to distinguish what it knows from what it does not.' },
+          { t: 'Because the tokens of “I don\u2019t know” are rare in the vocabulary and therefore hard to generate.' },
+          { t: 'Because uncertainty only becomes apparent at inference time and cannot be measured during training.' }
         ],
-        why: 'A vizsgázó-stratégia: üresen hagyni biztos pontvesztés, tippelni legalább esély. A modell pontosan ezt tanulja meg, ha a jutalomjel így van felépítve — nem hibából, hanem engedelmességből. Ez összeér a 8. szint kalibrációs kérdésével: ott láttuk, hogy az emberi preferencia a magabiztosságot jutalmazza; itt ugyanez a mérőrendszer oldaláról néz ki. A második válasz azért téves, mert a modellben <em>van</em> bizonytalanság-jelzés — az alapmodell valószínűségei meglepően jól kalibráltak, sőt az interp-esettanulmányok külön „ezt az entitást ismerem” jelzést is találtak. A baj nem a jel hiánya, hanem hogy a tanítás nem azt jutalmazza, hogy hallgasson rá.'
+        why: 'The exam-taker\u2019s strategy: leaving it blank is a guaranteed loss of points, guessing at least gives a chance. The model learns exactly this if the reward signal is built that way — not out of malfunction but out of obedience. This connects to the calibration question at level 8: there we looked at the same mechanism from the side of human preference; here from the side of benchmarks. The second answer is wrong because the model <em>does</em> carry an uncertainty signal — a base model\u2019s probabilities are surprisingly well calibrated, and interpretability case studies even found a separate “I know this entity” signal. The trouble is not the absence of the signal but that training does not reward listening to it.'
       },
       {
         id: 'cap-mentalis',
         type: 'choice',
-        q: 'Melyik a leghasznosabb mentális modell arról, hogy hol a legveszélyesebb egy LLM tévedése?',
+        q: 'Which is the most useful mental model of where an LLM\u2019s error is most dangerous?',
         options: [
-          { t: 'Ott, ahol a felszíni illeszkedés jó, de a mögöttes tény vagy számítás ritka: a modell tanult eloszlás fölött általánosít, tehát ilyenkor formailag kifogástalan, tartalmilag hibás választ ad.', ok: true },
-          { t: 'Ott, ahol a kérdés nyelvtanilag bonyolult, mert a hosszú mondatokat nehezebben dolgozza fel.' },
-          { t: 'Ott, ahol a kérdés teljesen ismeretlen témát érint, mert olyankor semmilyen válasza nincs.' },
-          { t: 'Ott, ahol a válasz hosszú, mert a hosszú válaszokban több hiba halmozódik fel.' }
+          { t: 'Where the surface fit is good but the underlying fact or computation is rare: the model generalizes over a learned distribution, so in such cases it gives a formally impeccable, substantively wrong answer.', ok: true },
+          { t: 'Where the question is grammatically complex, because long sentences are harder to process.' },
+          { t: 'Where the question touches on a completely unfamiliar topic, because then it has no answer at all.' },
+          { t: 'Where the answer is long, because more errors accumulate in long answers.' }
         ],
-        why: 'Az LLM nem adatbázis (nem garantált a visszaidézés) és nem logikai gép (nem garantált a levezetés), hanem tanult eloszlás fölött futó, kontextusra kondicionált <strong>általánosító</strong>. A veszélyes zóna épp ezért nem a nyilvánvalóan nehéz kérdés: ott a bizonytalanság látszik. A baj ott van, ahol a feladat <em>felszíne</em> ismerős — egy hivatkozás formája, egy szokásos számítási minta —, de a konkrét tartalom ritka volt a tanításban. Ilyenkor a forma tökéletes, a tartalom hamis, és épp a forma miatt nehéz észrevenni. Innen adódik a gyakorlati recept, amivel ez az anyag zárul: ellenőrizhető kimenetek, külső tényforrás, eszközhasználat, és ember a körben a nagy tétű döntéseknél.'
+        why: 'An LLM is not a database (recall is not guaranteed) and not a logic engine (derivation is not guaranteed), but a <strong>generalizer</strong> running over a learned distribution, conditioned on context. The dangerous zone is therefore not the obviously hard question: there the uncertainty shows. The trouble is where the <em>surface</em> of the task is familiar — the form of a citation, a routine computational pattern — but the specific content was rare in training. Then the form is perfect, the content is false, and it is the form that makes it hard to notice. Hence the practical recipe this material closes with: verifiable outputs, an external source of fact, tool use, and a human in the loop for high-stakes decisions.'
       }
     ]
   };
@@ -3530,9 +3531,9 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
      It counts page views only; learning progress is NEVER sent anywhere,
      it stays in the browser's local storage throughout.
 
-     A statisztika itt nézhető meg: https://csaplard.goatcounter.com/
-     Ha a szkript bármiért nem tölt be (reklámszűrő, offline olvasás),
-     az oldal minden más funkciója változatlanul működik.
+     The statistics can be viewed at https://csaplard.goatcounter.com/
+     If the script fails to load for any reason (an ad blocker, offline
+     reading), every other feature of the page keeps working unchanged.
      ──────────────────────────────────────────────────────────────── -->
 <script data-goatcounter="https://csaplard.goatcounter.com/count"
         async src="https://gc.zgo.at/count.js"></script>
