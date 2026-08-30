@@ -33,18 +33,18 @@
 <title>How do large language models work? — A comprehensive guide</title>
 <style>
 /* ════════════════════════════════════════════════════════════
-   KATEDRA — arculati változók.
-   Világos és sötét mód külön tervezve; a sötét NEM a világos
-   invertálása. A komponensekben nincs hexkód, minden innen jön.
-   A régi változónevek aliasként megmaradnak, hogy a 13 SVG-ábra
-   érintetlen maradhasson — csak az értékük változik.
-   FIGYELEM: a --s1…--s8 nevek az ábrák sorozatszíneit jelentik
-   (ezekre hivatkozik minden SVG), ezért a Katedra 4px-es
-   térközrácsa --sp1…--sp8 néven él.
+   KATEDRA — design tokens.
+   Light and dark modes are designed separately; dark is NOT an
+   inversion of light. Components contain no hex codes — everything
+   comes from here. The old variable names survive as aliases so that
+   the 13 SVG figures can stay untouched — only their values change.
+   NOTE: the names --s1…--s8 are the figures' series colors (every SVG
+   refers to them), which is why the Katedra 4px spacing grid lives
+   under the names --sp1…--sp8.
    ════════════════════════════════════════════════════════════ */
 :root {
   color-scheme: light;
-  /* — tipográfia: csak rendszerbetűk, külső betöltés nélkül — */
+  /* — typography: system fonts only, nothing loaded externally — */
   --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
   --font-text: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
@@ -56,25 +56,25 @@
   --fs-code: 13px;   --lh-code: 1.75; --measure-code: 80ch;
   --fs-caption: 13.5px; --lh-caption: 1.55;
   --fs-note: 12.5px;    --lh-note: 1.65;
-  /* — térköz: 4px-es rács, a 7-es és 8-as a szint- és fejezethatár — */
+  /* — spacing: a 4px grid; 7 and 8 are the level and chapter boundaries — */
   --sp1: 4px; --sp2: 8px; --sp3: 12px; --sp4: 20px;
   --sp5: 32px; --sp6: 48px; --sp7: 72px; --sp8: 104px;
   --radius: 2px;
-  /* — VILÁGOS: krétafehér papír, mély zöld tinta — */
+  /* — LIGHT: chalk-white paper, deep green ink — */
   --bg: #FCFCFA;
   --surface-1: #FFFFFF;
   --surface-2: #F2F4F2;
   --ink-1: #101413;
   --ink-2: #3D4644;
-  --ink-3: #67706D;      /* AA-ra sötétítve: 4,62–5,10 */
+  --ink-3: #67706D;      /* darkened to meet AA: 4.62–5.10 */
   --border: #E3E6E3;
   --border-strong: #C9CFCC;
   --accent: #0F5C52;
   --accent-hover: #0B4A42;
   --accent-soft: #E1EFEB;
   --on-accent: #FFFFFF;
-  --gold: #A8763E;       /* vonalak, ikonok, keretek — az arculati érték */
-  --gold-ink: #8C6334;   /* ugyanaz a szín kis szöveghez, AA-ra sötétítve */
+  --gold: #A8763E;       /* lines, icons, borders — the identity value */
+  --gold-ink: #8C6334;   /* the same color for small text, darkened to meet AA */
   --gold-soft: #F6EEE2;
   --ok: #1E6B4C;
   --ok-soft: #E4F0E9;
@@ -82,16 +82,16 @@
   --care-soft: #FAEEE4;
   --shadow-1: 0 1px 2px rgba(16,20,19,.06), 0 8px 24px -14px rgba(16,20,19,.16);
   --shadow-2: 0 24px 48px -26px rgba(16,20,19,.34);
-  /* — ábrák sorozatszínei, a palettába hangolva — */
-  --s1: #0F5C52;  /* elsődleges — akcentus */
-  --s2: #2E6B3A;  /* zöld */
-  --s3: #8E4F6B;  /* szilva */
-  --s4: #8A6A1F;  /* okker */
-  --s5: #2A7F8C;  /* petróleum */
-  --s6: #A24A2B;  /* égetett narancs */
-  --s7: #A8763E;  /* arany — 3. mélységi szint */
-  --s8: #96402F;  /* tégla */
-  /* — régi nevek, új értékek (az SVG-k ezeket hivatkozzák) — */
+  /* — the figures' series colors, tuned to the palette — */
+  --s1: #0F5C52;  /* primary — accent */
+  --s2: #2E6B3A;  /* green */
+  --s3: #8E4F6B;  /* plum */
+  --s4: #8A6A1F;  /* ochre */
+  --s5: #2A7F8C;  /* petrol */
+  --s6: #A24A2B;  /* burnt orange */
+  --s7: #A8763E;  /* gold — depth level 3 */
+  --s8: #96402F;  /* brick */
+  /* — old names, new values (the SVGs refer to these) — */
   --page: #FCFCFA;
   --ink-muted: #67706D;
   --grid: #E3E6E3;
@@ -102,9 +102,9 @@
   --wash-green: #E4F0E9;
   --wash-orange: #FAEEE4;
 }
-/* — SÖTÉT: saját paletta. A zöld világosodik és telítetlenebb,
-     a papír nem szürke hanem hidegzöldes, hogy az ábrák vékony
-     vonalai ne vibráljanak. — */
+/* — DARK: its own palette. The green lightens and desaturates, and the
+     paper is not gray but cold-green, so that the thin lines of the
+     figures do not vibrate. — */
 :root[data-theme="dark"] {
   color-scheme: dark;
   --bg: #0D1211;
@@ -112,7 +112,7 @@
   --surface-2: #1A2321;
   --ink-1: #EDF2F0;
   --ink-2: #AEB9B6;
-  --ink-3: #818C89;      /* AA-ra világosítva: 4,63–5,44 */
+  --ink-3: #818C89;      /* lightened to meet AA: 4.63–5.44 */
   --border: #232D2A;
   --border-strong: #36423E;
   --accent: #4FBFA8;
@@ -120,7 +120,7 @@
   --accent-soft: #0F2622;
   --on-accent: #06201C;
   --gold: #D6A867;
-  --gold-ink: #D6A867;   /* sötét módban az arany eleve 7,4:1 fölött van */
+  --gold-ink: #D6A867;   /* in dark mode the gold is already above 7.4:1 */
   --gold-soft: #2A2116;
   --ok: #56B98C;
   --ok-soft: #10241C;
@@ -214,7 +214,7 @@ pre {
   font-size: 13px; line-height: 1.55; max-width: 100%;
 }
 pre code { background: none; padding: 0; font-size: inherit; }
-/* Matematika */
+/* Mathematics */
 .math {
   font-family: Georgia, "Times New Roman", serif;
   font-style: italic; font-size: 1.02em; white-space: nowrap;
@@ -233,7 +233,7 @@ sub, sup { font-size: 0.72em; }
 .frac { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 3px; }
 .frac > span { display: block; padding: 0 4px; }
 .frac > span:first-child { border-bottom: 1px solid currentColor; }
-/* Mélységi szintek */
+/* Depth levels */
 details.level {
   margin: 20px 0; border-radius: 12px; border: 1px solid var(--border);
   overflow: hidden;
@@ -257,7 +257,7 @@ details.l3 > summary { color: var(--s7); }
 }
 .badge.b2 { background: var(--s1); color: #fff; }
 .badge.b3 { background: var(--s7); color: #fff; }
-/* Dobozok */
+/* Boxes */
 .note, .example, .warn {
   border-radius: 12px; padding: 14px 20px; margin: 20px 0;
   border: 1px solid var(--border); font-size: 15px;
@@ -272,7 +272,7 @@ details.l3 > summary { color: var(--s7); }
   display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
   margin-bottom: 4px;
 }
-/* Ábrák */
+/* Figures */
 figure.diagram {
   margin: 30px 0; padding: 20px 12px 10px;
   border: 1px solid var(--border); border-radius: 14px;
@@ -285,20 +285,20 @@ figcaption {
   line-height: 1.5;
 }
 figcaption .fig-num { font-weight: 700; color: var(--ink-1); }
-/* Táblázatok */
+/* Tables */
 table { border-collapse: collapse; margin: 18px 0; font-size: 14px; width: 100%; max-width: 760px; }
 th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); font-weight: 700; }
 th, td { padding: 8px 12px; border-bottom: 1px solid var(--grid); vertical-align: top; }
 td { color: var(--ink-2); }
 td:first-child { color: var(--ink-1); }
 tr:last-child td { border-bottom: 1px solid var(--baseline); }
-/* Glosszárium */
+/* Glossary */
 dl.gloss dt { font-weight: 650; margin-top: 14px; }
 dl.gloss dd { margin: 2px 0 0 0; color: var(--ink-2); font-size: 15px; max-width: 72ch; }
-/* Irodalom */
+/* Further reading */
 ol.refs li { margin: 10px 0; font-size: 14.5px; color: var(--ink-2); }
 ol.refs li b { color: var(--ink-1); font-weight: 600; }
-/* Téma-kapcsoló */
+/* Theme toggle */
 #themeToggle {
   position: fixed; top: 14px; right: 16px; z-index: 50;
   background: var(--surface-1); border: 1px solid var(--border); color: var(--ink-2);
@@ -306,7 +306,7 @@ ol.refs li b { color: var(--ink-1); font-weight: 600; }
   font-family: inherit;
 }
 #themeToggle:hover { color: var(--ink-1); }
-/* Interaktív demó */
+/* Interactive demo */
 .demo {
   border: 1px solid var(--border); border-radius: 14px; padding: 20px 24px; margin: 26px 0;
   background: var(--surface-1);
@@ -319,7 +319,7 @@ ol.refs li b { color: var(--ink-1); font-weight: 600; }
 .bar { width: 100%; max-width: 54px; background: var(--s1); border-radius: 4px 4px 0 0; transition: height 0.2s; min-height: 2px; }
 .bar-lbl { font-family: ui-monospace, monospace; font-size: 12px; color: var(--ink-2); }
 .bar-val { font-size: 11px; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
-/* SVG közös szövegstílus */
+/* Shared SVG text styles */
 svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
 svg .svg-mono { font-family: ui-monospace, "SF Mono", Consolas, monospace; }
 .svg-ink { fill: var(--ink-1); }
@@ -330,8 +330,8 @@ svg .svg-mono { font-family: ui-monospace, "SF Mono", Consolas, monospace; }
 .svg-box { fill: var(--surface-1); stroke: var(--baseline); }
 .tag { display:inline-block; font-size:11px; font-weight:700; border-radius: 4px; padding: 1px 7px; margin-right:6px; }
 /* ════════════════════════════════════════════════════════════
-   KATEDRA — alaptipográfia. A korábbi szabályokat írja felül,
-   ezért a stíluslap végén áll.
+   KATEDRA — base typography. It overrides the earlier rules, which is
+   why it sits at the end of the stylesheet.
    ════════════════════════════════════════════════════════════ */
 body {
   font-family: var(--font-text);
@@ -426,7 +426,7 @@ ol.refs li b { color: var(--ink-1); }
 .example .label { color: var(--care); }
 .warn .label { color: var(--accent); }
 
-/* — mélységkapcsolók: három növekvő hasáb jelzi a merülést — */
+/* — depth toggles: three rising bars mark how deep you are — */
 details.level { border: 1px solid var(--border); border-left: 2px solid var(--accent); border-radius: var(--radius); margin: var(--sp5) 0; background: var(--surface-1); }
 details.level > summary { padding: 13px 16px; font-family: var(--font-text); font-size: 14.5px; font-weight: 600; color: var(--ink-1); gap: var(--sp3); }
 details.level > summary:hover { background: var(--accent-soft); }
@@ -451,7 +451,7 @@ details.level > .body { padding: var(--sp4) 16px; border-top: none; }
 .badge.b3 { color: var(--gold-ink); }
 details.l2 > summary, details.l3 > summary { color: var(--ink-1); }
 
-/* — téma-kapcsoló — */
+/* — theme toggle — */
 #themeToggle {
   top: auto; bottom: 20px; right: 20px;
   background: var(--surface-1); border: 1px solid var(--border);
@@ -460,7 +460,7 @@ details.l2 > summary, details.l3 > summary { color: var(--ink-1); }
 }
 #themeToggle:hover { color: var(--ink-1); border-color: var(--border-strong); }
 #themeToggle { box-shadow: var(--shadow-1); }
-/* — lebegő dokk: nyelvválasztó + témakapcsoló — */
+/* — floating dock: language switcher + theme toggle — */
 #floatDock {
   position: fixed; bottom: 20px; right: 20px; z-index: 60;
   display: flex; align-items: center; gap: 8px;
@@ -476,7 +476,7 @@ details.l2 > summary, details.l3 > summary { color: var(--ink-1); }
 #langSwitch:hover { color: var(--ink-1); border-color: var(--border-strong); }
 #langSwitch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* — interaktív demó — */
+/* — interactive demo — */
 .demo { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-1); padding: var(--sp5); margin: var(--sp5) 0; }
 .demo .demo-title { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: var(--sp3); }
 .demo label { font-size: 14px; color: var(--ink-2); }
@@ -486,10 +486,10 @@ details.l2 > summary, details.l3 > summary { color: var(--ink-1); }
 .bar-val { color: var(--ink-3); }
 
 /* ════════════════════════════════════════════════════════════
-   KATEDRA — a szintrendszer komponensei
+   KATEDRA — components of the level system
    ════════════════════════════════════════════════════════════ */
 
-/* 01 · Haladássáv — 3px csík, alatta halk feliratsor */
+/* 01 · Progress bar — a 3px rule with a quiet caption line beneath */
 #progressBar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 60;
   background: var(--surface-1); border-bottom: 1px solid var(--border);
@@ -507,7 +507,7 @@ body { padding-top: 40px; }
 nav#toc { top: 40px; height: calc(100vh - 40px); border-right: 1px solid var(--border); padding: var(--sp5) var(--sp2) var(--sp7) var(--sp4); }
 @media (max-width: 700px) { #progressBar .pb-row { font-size: 10px; padding: 9px 12px; } }
 
-/* 02 · Tartalomjegyzék — három állapot, nem csak színnel */
+/* 02 · Table of contents — three states, and not by color alone */
 nav#toc .toc-title { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); font-weight: 400; margin: var(--sp3) 0 var(--sp2) 6px; }
 nav#toc a {
   display: block; padding: 7px 10px; border-left: 3px solid transparent;
@@ -535,7 +535,7 @@ nav#toc a.lvl-locked .toc-state { color: var(--ink-3); }
 nav#toc a.toc-unlocked { border-left-color: var(--gold); background: var(--gold-soft); }
 nav#toc a.toc-unlocked .toc-state { color: var(--gold-ink); }
 
-/* 03 · Zárolt fejezet — csábító, nem frusztráló */
+/* 03 · Locked chapter — inviting, not frustrating */
 section.locked > *:not(.lock-overlay):not(h2):not(.chapter-kicker) {
   filter: blur(4.5px); opacity: 0.5; pointer-events: none; user-select: none;
 }
@@ -554,7 +554,7 @@ section.locked > h2 { color: var(--ink-2); }
 .lock-overlay .lock-text { margin: 0; font-size: 14.5px; line-height: 1.6; color: var(--ink-2); max-width: none; }
 .lock-overlay a { font-weight: 600; }
 
-/* 05 · Kvízkártya */
+/* 05 · Quiz card */
 .quiz {
   border: 1px solid var(--border-strong); border-radius: 3px; background: var(--surface-1);
   padding: var(--sp5); margin: var(--sp7) 0; box-shadow: var(--shadow-1);
@@ -574,8 +574,8 @@ section.locked > h2 { color: var(--ink-2); }
   border: 1px solid var(--border); border-radius: var(--radius);
   background: var(--surface-1); color: var(--ink-1);
   font-family: var(--font-text); font-size: 15px; line-height: 1.45; text-align: left;
-  cursor: pointer;   /* szín-átmenet szándékosan nincs: var()-alapú színnél
-                        témaváltáskor a régi értéken ragadna (Chromium) */
+  cursor: pointer;   /* no color transition on purpose: with a var()-based color it would
+                        stick at the old value when the theme changes (Chromium) */
 }
 .quiz .quiz-opt .opt-key {
   flex: none; width: 26px; height: 26px; border-radius: 50%;
@@ -603,7 +603,7 @@ section.locked > h2 { color: var(--ink-2); }
 .quiz input.quiz-num.is-wrong { border: 1.5px solid var(--care); background: var(--care-soft); }
 .quiz .num-hint { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.08em; color: var(--ink-3); }
 
-/* 06 · Visszajelzés — ugyanaz a doboz, két hangulatban */
+/* 06 · Feedback — the same box in two moods */
 .quiz .q-feedback {
   margin-top: var(--sp4); padding: 18px 20px;
   border: 1px solid var(--border); border-left: 3px solid var(--border-strong);
@@ -629,7 +629,7 @@ section.locked > h2 { color: var(--ink-2); }
 .quiz .quiz-btn.ghost:hover { background: var(--surface-1); border-color: var(--ink-2); }
 .quiz .quiz-msg { font-size: 13px; color: var(--ink-3); margin: var(--sp3) 0 0; max-width: none; }
 
-/* 07 · Szint teljesítve — teljesítés-jelvény */
+/* 07 · Level completed */
 .quiz .quiz-result { margin: 0 0 var(--sp4); }
 .quiz .quiz-result.fail {
   border: 1px solid var(--border); border-left: 3px solid var(--care);
@@ -649,7 +649,7 @@ section.locked > h2 { color: var(--ink-2); }
 .cert .quiz-btn { margin-top: var(--sp5); padding: 0 28px; }
 .cert-again { display: block; margin: var(--sp3) auto 0; }
 
-/* — lábléc, változásnapló, jelvény-lábszöveg — */
+/* — footer, changelog, badge fine print — */
 .hero-meta { margin-top: var(--sp3); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
 .hero-meta .dot { color: var(--border-strong); margin: 0 4px; }
 dl.changelog dt { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-ink); margin-top: var(--sp4); }
@@ -658,14 +658,14 @@ dl.changelog dd { margin: var(--sp2) 0 0; color: var(--ink-2); font-size: 15.5px
 .page-footer .foot-line { font-size: var(--fs-note); line-height: var(--lh-note); color: var(--ink-3); margin: var(--sp2) 0; max-width: var(--measure-code); }
 .page-footer .foot-line strong { color: var(--ink-2); font-weight: 650; }
 
-/* — fókusz: billentyűzettel is követhető — */
+/* — focus: visible for keyboard users too — */
 .quiz .quiz-opt:focus-visible, .quiz .quiz-btn:focus-visible, .quiz input.quiz-num:focus-visible,
 #themeToggle:focus-visible, #resetProgress:focus-visible, nav#toc a:focus-visible,
 details.level > summary:focus-visible, main a:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 2px;
 }
 
-/* — újrakezdés — */
+/* — reset — */
 .reset-row { margin: var(--sp8) 0 0; padding-top: var(--sp4); border-top: 1px solid var(--border); }
 #resetProgress {
   font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase;
@@ -675,7 +675,7 @@ details.level > summary:focus-visible, main a:focus-visible {
 #resetProgress:hover { color: var(--care); border-color: var(--care); }
 
 /* ════════════════════════════════════════════════════════════
-   08 · A KABALA — egy SVG, öt osztály a gyökérelemen
+   08 · THE MASCOT — one SVG, five classes on the root element
    .bot.is-idle | .is-attentive | .is-correct | .is-gentle | .is-celebrate
    ════════════════════════════════════════════════════════════ */
 .bot { flex: none; }
@@ -725,12 +725,12 @@ details.level > summary:focus-visible, main a:focus-visible {
   22% { opacity: 1; }
   100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1); }
 }
-/* — tartalomjegyzék feloldása — */
+/* — unlocking a table-of-contents row — */
 .toc-unlocked { animation: toc-flash 1.6s ease-out 1; }
 .toc-unlocked .toc-shackle-open { animation: toc-open 1.6s ease-out 1; transform-box: fill-box; transform-origin: 100% 100%; }
 @keyframes toc-flash { 0% { opacity: 0; transform: translateX(-8px); } 30% { opacity: 1; transform: translateX(0); } }
 @keyframes toc-open { 0%, 30% { transform: rotate(0); } 60%,100% { transform: rotate(-26deg); } }
-/* — aki kikapcsolta az animációkat — */
+/* — for anyone who turned animations off — */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .bot, .bot *, .toc-unlocked, .toc-unlocked * { animation: none !important; transition: none !important; }
@@ -744,7 +744,7 @@ details.level > summary:focus-visible, main a:focus-visible {
 </head>
 <body>
 <div id="floatDock">
-  <a id="langSwitch" href="../" hreflang="hu" lang="hu" title="Olvasd magyarul">HU</a>
+  <a id="langSwitch" href="../" hreflang="hu" title="Read this page in Hungarian">HU</a>
   <button id="themeToggle" aria-label="Switch theme">◐ Dark mode</button>
 </div>
 <div id="progressBar" role="status" aria-live="polite">
@@ -824,19 +824,19 @@ details.level > summary:focus-visible, main a:focus-visible {
       <path d="M0,0 L8,4 L0,8 z" fill="var(--ink-muted)"/>
     </marker>
   </defs>
-  <!-- input szöveg -->
+  <!-- input text -->
   <rect x="10" y="80" width="128" height="56" rx="10" class="svg-box" stroke-width="1.2"/>
   <text x="74" y="103" text-anchor="middle" font-size="12.5" class="svg-ink" font-style="italic">“The cat</text>
   <text x="74" y="120" text-anchor="middle" font-size="12.5" class="svg-ink" font-style="italic">climbed up the”</text>
   <text x="74" y="160" text-anchor="middle" font-size="11" class="svg-muted">input text</text>
   <line x1="138" y1="108" x2="168" y2="108" stroke="var(--ink-muted)" stroke-width="1.3" marker-end="url(#arr)"/>
-  <!-- tokenizáló -->
+  <!-- tokenizer -->
   <rect x="170" y="72" width="100" height="72" rx="10" fill="var(--wash-orange)" stroke="var(--s6)" stroke-width="1.4"/>
   <text x="220" y="103" text-anchor="middle" font-size="13" font-weight="600" fill="var(--s6)">Tokenizer</text>
   <text x="220" y="122" text-anchor="middle" font-size="10.5" class="svg-ink2">BPE</text>
   <text x="220" y="160" text-anchor="middle" font-size="11" class="svg-muted">chapter 2</text>
   <line x1="270" y1="108" x2="300" y2="108" stroke="var(--ink-muted)" stroke-width="1.3" marker-end="url(#arr)"/>
-  <!-- token id-k -->
+  <!-- token ids -->
   <g class="svg-mono" font-size="10.5">
     <rect x="302" y="86" width="46" height="20" rx="4" fill="var(--wash-blue)" stroke="var(--s1)" stroke-width="1"/>
     <text x="325" y="100" text-anchor="middle" class="svg-ink">318</text>
@@ -852,7 +852,7 @@ details.level > summary:focus-visible, main a:focus-visible {
   <text x="432" y="122" text-anchor="middle" font-size="10.5" class="svg-ink2">ID → vector</text>
   <text x="432" y="160" text-anchor="middle" font-size="11" class="svg-muted">chapter 3</text>
   <line x1="482" y1="108" x2="512" y2="108" stroke="var(--ink-muted)" stroke-width="1.3" marker-end="url(#arr)"/>
-  <!-- transzformer -->
+  <!-- transformer -->
   <rect x="514" y="46" width="150" height="124" rx="12" fill="var(--wash-blue)" stroke="var(--s1)" stroke-width="1.6"/>
   <text x="589" y="72" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--s1)">Transformer</text>
   <rect x="530" y="84" width="118" height="22" rx="5" class="svg-box"/>
@@ -862,10 +862,10 @@ details.level > summary:focus-visible, main a:focus-visible {
   <text x="589" y="147" text-anchor="middle" font-size="11" class="svg-ink2">⋮ N layers ⋮</text>
   <text x="589" y="188" text-anchor="middle" font-size="11" class="svg-muted">chapter 4</text>
   <line x1="664" y1="108" x2="694" y2="108" stroke="var(--ink-muted)" stroke-width="1.3" marker-end="url(#arr)"/>
-  <!-- softmax / eloszlás -->
+  <!-- softmax / distribution -->
   <rect x="696" y="46" width="152" height="124" rx="12" class="svg-box" stroke-width="1.2"/>
   <text x="772" y="68" text-anchor="middle" font-size="12" font-weight="600" class="svg-ink">softmax(logits)</text>
-  <!-- mini oszlopok -->
+  <!-- mini bars -->
   <g>
     <rect x="714" y="88" width="26" height="62" fill="var(--s1)" rx="3"/>
     <rect x="746" y="122" width="26" height="28" fill="var(--s1)" opacity="0.55" rx="3"/>
@@ -880,7 +880,7 @@ details.level > summary:focus-visible, main a:focus-visible {
     <text x="823" y="163" text-anchor="middle">…</text>
   </g>
   <text x="772" y="188" text-anchor="middle" font-size="11" class="svg-muted">P(next token)</text>
-  <!-- visszacsatolás -->
+  <!-- feedback loop -->
   <path d="M 772 200 L 772 226 L 74 226 L 74 140" fill="none" stroke="var(--s6)" stroke-width="1.3" stroke-dasharray="5,4" marker-end="url(#arr)"/>
   <text x="420" y="220" text-anchor="middle" font-size="11" fill="var(--s6)">sampling → the chosen token is fed back into the input (autoregression)</text>
 </svg>
@@ -929,71 +929,71 @@ An LLM is neither a database nor a rule system: it is a single enormous differen
 
 <p>A neural network does not see letters, it sees numbers. The first step is therefore to cut the text into the entries of a fixed <strong>vocabulary</strong> — these are the <strong>tokens</strong> — and then to replace each piece with its index in that vocabulary. The question is: how big should the pieces be?</p>
 
-<p>Two extremes present themselves, and both are bad. If we tokenize <strong>character by character</strong>, the vocabulary is tiny (a few hundred entries), but the sequences become very long and the model would have to reassemble the meaning of every word from characters every single time. If we tokenize <strong>word by word</strong>, the sequences are short, but the vocabulary explodes (in an agglutinative language such as Hungarian, “ház, házam, házaimban, házaitokból…” would each be a separate entry), and every unfamiliar word — a new name, a typo, a rare compound — becomes unmanageable. The practical answer lies in between: <strong>subword tokenization</strong>, where frequent words get a single token and rare ones break into meaningful pieces. The dominant algorithm is <strong>byte-pair encoding (BPE)</strong>.</p>
+<p>Two extremes present themselves, and both are bad. If we tokenize <strong>character by character</strong>, the vocabulary is tiny (a few hundred entries), but the sequences become very long and the model would have to reassemble the meaning of every word from characters every single time. If we tokenize <strong>word by word</strong>, the sequences are short, but the vocabulary explodes (even in English, “play, plays, played, playing, player, players, replay, unplayable…” would each need a separate entry — and in morphologically richer languages the explosion is far worse), and every unfamiliar word — a new name, a typo, a rare compound — becomes unmanageable. The practical answer lies in between: <strong>subword tokenization</strong>, where frequent words get a single token and rare ones break into meaningful pieces. The dominant algorithm is <strong>byte-pair encoding (BPE)</strong>.</p>
 
 <p>The core idea of BPE is a compression principle: <em>whatever frequently occurs together, merge into one symbol</em>. The vocabulary is not written by hand but learned from data: we start from characters (more precisely, bytes) and repeatedly merge the most frequently adjacent pair in the corpus until the vocabulary reaches the desired size — typically somewhere between 32,000 and 260,000 entries.</p>
 
 <figure class="diagram">
 <svg viewBox="0 0 880 300" role="img" aria-label="BPE merge steps">
-  <text x="20" y="28" font-size="13" font-weight="700" class="svg-ink">How BPE builds a vocabulary — example: “alma almás almafa”</text>
-  <!-- 0. lépés -->
+  <text x="20" y="28" font-size="13" font-weight="700" class="svg-ink">How BPE builds a vocabulary — example: “play playful playtime”</text>
+  <!-- step 0 -->
   <text x="20" y="62" font-size="11.5" class="svg-muted">0. start (bytes):</text>
   <g class="svg-mono" font-size="12">
     <g transform="translate(200,46)">
-      <rect width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="13" y="16" text-anchor="middle" class="svg-ink">a</text>
+      <rect width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="13" y="16" text-anchor="middle" class="svg-ink">p</text>
       <rect x="30" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="43" y="16" text-anchor="middle" class="svg-ink">l</text>
-      <rect x="60" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="73" y="16" text-anchor="middle" class="svg-ink">m</text>
-      <rect x="90" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="103" y="16" text-anchor="middle" class="svg-ink">a</text>
+      <rect x="60" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="73" y="16" text-anchor="middle" class="svg-ink">a</text>
+      <rect x="90" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="103" y="16" text-anchor="middle" class="svg-ink">y</text>
       <rect x="120" width="26" height="24" rx="5" class="svg-box"/><text x="133" y="16" text-anchor="middle" class="svg-muted">␣</text>
-      <rect x="150" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="163" y="16" text-anchor="middle" class="svg-ink">a</text>
+      <rect x="150" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="163" y="16" text-anchor="middle" class="svg-ink">p</text>
       <rect x="180" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="193" y="16" text-anchor="middle" class="svg-ink">l</text>
-      <rect x="210" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="223" y="16" text-anchor="middle" class="svg-ink">m</text>
-      <rect x="240" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="253" y="16" text-anchor="middle" class="svg-ink">á</text>
-      <rect x="270" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="283" y="16" text-anchor="middle" class="svg-ink">s</text>
+      <rect x="210" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="223" y="16" text-anchor="middle" class="svg-ink">a</text>
+      <rect x="240" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="253" y="16" text-anchor="middle" class="svg-ink">y</text>
+      <rect x="270" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="283" y="16" text-anchor="middle" class="svg-ink">f</text>
       <text x="310" y="16" class="svg-muted" font-size="11">…</text>
     </g>
   </g>
-  <!-- 1. lépés -->
-  <text x="20" y="122" font-size="11.5" class="svg-muted">1. most frequent pair: (a,l) → “al”</text>
+  <!-- step 1 -->
+  <text x="20" y="122" font-size="11.5" class="svg-muted">1. most frequent pair: (p,l) → “pl”</text>
   <g class="svg-mono" font-size="12">
     <g transform="translate(230,106)">
-      <rect width="42" height="24" rx="5" fill="var(--wash-green)" stroke="var(--s2)" stroke-width="1.3"/><text x="21" y="16" text-anchor="middle" class="svg-ink">al</text>
-      <rect x="46" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="59" y="16" text-anchor="middle" class="svg-ink">m</text>
-      <rect x="76" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="89" y="16" text-anchor="middle" class="svg-ink">a</text>
+      <rect width="42" height="24" rx="5" fill="var(--wash-green)" stroke="var(--s2)" stroke-width="1.3"/><text x="21" y="16" text-anchor="middle" class="svg-ink">pl</text>
+      <rect x="46" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="59" y="16" text-anchor="middle" class="svg-ink">a</text>
+      <rect x="76" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="89" y="16" text-anchor="middle" class="svg-ink">y</text>
       <rect x="106" width="26" height="24" rx="5" class="svg-box"/><text x="119" y="16" text-anchor="middle" class="svg-muted">␣</text>
-      <rect x="136" width="42" height="24" rx="5" fill="var(--wash-green)" stroke="var(--s2)" stroke-width="1.3"/><text x="157" y="16" text-anchor="middle" class="svg-ink">al</text>
-      <rect x="182" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="195" y="16" text-anchor="middle" class="svg-ink">m</text>
-      <rect x="212" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="225" y="16" text-anchor="middle" class="svg-ink">á</text>
-      <rect x="242" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="255" y="16" text-anchor="middle" class="svg-ink">s</text>
+      <rect x="136" width="42" height="24" rx="5" fill="var(--wash-green)" stroke="var(--s2)" stroke-width="1.3"/><text x="157" y="16" text-anchor="middle" class="svg-ink">pl</text>
+      <rect x="182" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="195" y="16" text-anchor="middle" class="svg-ink">a</text>
+      <rect x="212" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="225" y="16" text-anchor="middle" class="svg-ink">y</text>
+      <rect x="242" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="255" y="16" text-anchor="middle" class="svg-ink">f</text>
       <text x="282" y="16" class="svg-muted" font-size="11">…</text>
     </g>
   </g>
-  <!-- 2. lépés -->
-  <text x="20" y="182" font-size="11.5" class="svg-muted">2. next pair: (al,m) → “alm”</text>
+  <!-- step 2 -->
+  <text x="20" y="182" font-size="11.5" class="svg-muted">2. next pair: (pl,a) → “pla”</text>
   <g class="svg-mono" font-size="12">
     <g transform="translate(230,166)">
-      <rect width="58" height="24" rx="5" fill="var(--wash-green)" stroke="var(--s2)" stroke-width="1.3"/><text x="29" y="16" text-anchor="middle" class="svg-ink">alm</text>
-      <rect x="62" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="75" y="16" text-anchor="middle" class="svg-ink">a</text>
+      <rect width="58" height="24" rx="5" fill="var(--wash-green)" stroke="var(--s2)" stroke-width="1.3"/><text x="29" y="16" text-anchor="middle" class="svg-ink">pla</text>
+      <rect x="62" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="75" y="16" text-anchor="middle" class="svg-ink">y</text>
       <rect x="92" width="26" height="24" rx="5" class="svg-box"/><text x="105" y="16" text-anchor="middle" class="svg-muted">␣</text>
-      <rect x="122" width="58" height="24" rx="5" fill="var(--wash-green)" stroke="var(--s2)" stroke-width="1.3"/><text x="151" y="16" text-anchor="middle" class="svg-ink">alm</text>
-      <rect x="184" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="197" y="16" text-anchor="middle" class="svg-ink">á</text>
-      <rect x="214" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="227" y="16" text-anchor="middle" class="svg-ink">s</text>
+      <rect x="122" width="58" height="24" rx="5" fill="var(--wash-green)" stroke="var(--s2)" stroke-width="1.3"/><text x="151" y="16" text-anchor="middle" class="svg-ink">pla</text>
+      <rect x="184" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="197" y="16" text-anchor="middle" class="svg-ink">y</text>
+      <rect x="214" width="26" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="227" y="16" text-anchor="middle" class="svg-ink">f</text>
       <text x="254" y="16" class="svg-muted" font-size="11">…</text>
     </g>
   </g>
-  <!-- 3. lépés -->
+  <!-- step 3 -->
   <text x="20" y="242" font-size="11.5" class="svg-muted">n. after many steps:</text>
   <g class="svg-mono" font-size="12">
     <g transform="translate(230,226)">
-      <rect width="74" height="24" rx="5" fill="var(--wash-green)" stroke="var(--s2)" stroke-width="1.3"/><text x="37" y="16" text-anchor="middle" class="svg-ink">alma</text>
-      <rect x="78" width="90" height="24" rx="5" fill="var(--wash-green)" stroke="var(--s2)" stroke-width="1.3"/><text x="123" y="16" text-anchor="middle" class="svg-ink">␣almás</text>
-      <rect x="172" width="90" height="24" rx="5" fill="var(--wash-green)" stroke="var(--s2)" stroke-width="1.3"/><text x="217" y="16" text-anchor="middle" class="svg-ink">␣alma</text>
-      <rect x="266" width="42" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="287" y="16" text-anchor="middle" class="svg-ink">fa</text>
+      <rect width="74" height="24" rx="5" fill="var(--wash-green)" stroke="var(--s2)" stroke-width="1.3"/><text x="37" y="16" text-anchor="middle" class="svg-ink">play</text>
+      <rect x="78" width="90" height="24" rx="5" fill="var(--wash-green)" stroke="var(--s2)" stroke-width="1.3"/><text x="123" y="16" text-anchor="middle" class="svg-ink">␣playful</text>
+      <rect x="172" width="90" height="24" rx="5" fill="var(--wash-green)" stroke="var(--s2)" stroke-width="1.3"/><text x="217" y="16" text-anchor="middle" class="svg-ink">␣play</text>
+      <rect x="266" width="42" height="24" rx="5" fill="var(--wash-blue)" stroke="var(--s1)"/><text x="287" y="16" text-anchor="middle" class="svg-ink">time</text>
     </g>
   </g>
-  <text x="20" y="284" font-size="11" class="svg-muted">Frequent units (“alma”) fuse into a single token; the rarer compound (“almafa”) stays in pieces: ␣alma + fa.</text>
+  <text x="20" y="284" font-size="11" class="svg-muted">Frequent units (“play”) fuse into a single token; the rarer compound (“playtime”) stays in pieces: ␣play + time.</text>
 </svg>
-<figcaption><span class="fig-num">Figure 2.</span> Building a BPE vocabulary, schematically. We start from bytes and always merge the most frequent adjacent pair in the corpus into a new token. The order of the merges <em>is</em> the vocabulary: when tokenizing, we replay exactly these rules in exactly this order. The ␣ marks a space — in most tokenizers the space attaches to the beginning of the following token. (The example is Hungarian: <em>alma</em> = apple, <em>almás</em> = apple-flavoured, <em>almafa</em> = apple tree.)</figcaption>
+<figcaption><span class="fig-num">Figure 2.</span> Building a BPE vocabulary, schematically. We start from bytes and always merge the most frequent adjacent pair in the corpus into a new token. The order of the merges <em>is</em> the vocabulary: when tokenizing, we replay exactly these rules in exactly this order. The ␣ marks a space — in most tokenizers the space attaches to the beginning of the following token.</figcaption>
 </figure>
 
 <div class="example"><span class="label">Example</span>
@@ -2254,7 +2254,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
 </section>
 <footer class="page-footer">
   <p class="foot-line"><strong>© 2026 Dániel Csaplár.</strong> This work is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="license noopener noreferrer" target="_blank">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC&nbsp;BY-NC-SA&nbsp;4.0)</a>: credit the author, do not use it commercially, and share any derivative work under the same terms.</p>
-  <p class="foot-line">v1.0 · last updated: 30 August 2026 · your progress is stored only in your own browser. · <a href="../">Magyar változat</a></p>
+  <p class="foot-line">v1.0 · last updated: 30 August 2026 · your progress is stored only in your own browser. · <a href="../" hreflang="hu">Hungarian version</a></p>
 </footer>
 <div class="reset-row">
   <button id="resetProgress" type="button">Reset progress</button>
@@ -2263,21 +2263,21 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
 </div>
 <script>
 (function(){
-  // Téma-kapcsoló
+  // Theme toggle
   var btn = document.getElementById('themeToggle');
   var root = document.documentElement;
   function setTheme(t){
     if(t === 'dark'){ root.setAttribute('data-theme','dark'); btn.textContent = '◑ Light mode'; }
     else { root.removeAttribute('data-theme'); btn.textContent = '◐ Dark mode'; }
   }
-  var theme = 'light';   // alapértelmezés: világos mód
+  var theme = 'light';   // default: light mode
   setTheme(theme);
   btn.addEventListener('click', function(){
     theme = (theme === 'dark') ? 'light' : 'dark';
     setTheme(theme);
   });
 
-  // Scroll-spy a tartalomjegyzékhez
+  // Scroll-spy for the table of contents
   var links = Array.prototype.slice.call(document.querySelectorAll('#toc a'));
   var targets = links.map(function(a){ return document.querySelector(a.getAttribute('href')); });
   function onScroll(){
@@ -2291,9 +2291,9 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
   window.addEventListener('scroll', onScroll, {passive:true});
   onScroll();
 
-  // Temperature-demó
+  // Temperature demo
   var logits = [3.2, 1.4, 0.9, 0.2, -0.5];
-  var labels = ['fára', 'fa', 'falra', 'fotelbe', 'felhőre'];
+  var labels = ['tree', 'roof', 'wall', 'chair', 'cloud'];
   var slider = document.getElementById('tslider');
   var tval = document.getElementById('tval');
   var barsEl = document.getElementById('tbars');
@@ -2323,13 +2323,13 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
     render();
   }
 
-  // ══ Szintrendszer: haladás, zár, kvíz ══
+  // ══ Level system: progress, locking, quizzes ══
   var STORE_KEY = 'llm-oktato-progress-v1';
   var SCHEMA_V = 1;
   var PASS_MIN = 4;
 
-  // Egyelőre csak az első három fejezet tartozik a szintrendszerhez;
-  // a többi addig nyitva marad, amíg meg nem kapja a saját kvízét.
+  // (Historical note: the level system started with three chapters and
+  // grew to twelve; every chapter now has its own quiz.)
   var LEVELS = [
     { n: 1, sec: 'bevezetes',   title: 'What is an LLM?' },
     { n: 2, sec: 'tokenizacio', title: 'Tokenization' },
@@ -3048,7 +3048,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
     ]
   };
 
-  // ── Állapot ──
+  // ── State ──
   function defaultProgress(){
     return { v: SCHEMA_V, unlocked: INITIAL_UNLOCKED.slice(), passed: {}, best: {}, wrong: {} };
   }
@@ -3058,7 +3058,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
     if(!raw) return defaultProgress();
     var obj = null;
     try { obj = JSON.parse(raw); } catch(e){ return defaultProgress(); }
-    // Séma-verzió eltérésnél nem migrálunk, hanem tiszta lappal indulunk.
+    // On a schema-version mismatch we do not migrate; we start clean.
     if(!obj || obj.v !== SCHEMA_V || Object.prototype.toString.call(obj.unlocked) !== '[object Array]'){
       return defaultProgress();
     }
@@ -3085,7 +3085,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
     return false;
   }
 
-  // ── Katedra: ikonkészlet és a kabala ──
+  // ── Katedra: icon set and the mascot ──
   var BOT_FIGURE =
     '<g class="bot-figure">' +
       '<g class="bot-antenna"><line x1="40" y1="24" x2="40" y2="13" stroke="var(--ink-2)" stroke-width="1.5" stroke-linecap="round"></line>' +
@@ -3113,7 +3113,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       (tokens ? BOT_TOKENS : '') + BOT_FIGURE + '</svg>';
   }
   function setBot(el, state){ if(el) el.setAttribute('class', 'bot ' + state); }
-  // egyes/többes szám a menet közben összerakott mondatokhoz
+  // singular/plural for sentences assembled at runtime
   function plural(n, one, many){ return n + ' ' + (n === 1 ? one : many); }
   var ICO = {
     done: '<svg class="toc-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 4.8" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>',
@@ -3126,8 +3126,8 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
   };
   var justUnlocked = null;
 
-  // A zárolt tartalom billentyűzettel se legyen bejárható: a lakat-kártyán
-  // kívül minden gyerekelem inert. Régebbi böngészőn tabindex-szel esünk vissza.
+  // Locked content must not be reachable by keyboard either: every child
+  // except the lock card is inert. Older browsers fall back to tabindex.
   var INERT_OK = ('inert' in HTMLElement.prototype);
   var FOCUSABLE = 'a[href], button, summary, input, select, textarea, [tabindex]';
   function setInert(sec, on){
@@ -3152,7 +3152,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
     }
   }
 
-  // ── Zárolás (vizuális: a tartalom a DOM-ban marad) ──
+  // ── Locking (visual only: the content stays in the DOM) ──
   function renderLocks(){
     LEVELS.forEach(function(lv){
       var sec = document.getElementById(lv.sec);
@@ -3182,7 +3182,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
     });
   }
 
-  // ── Haladássáv és tartalomjegyzék-állapotok ──
+  // ── Progress bar and table-of-contents states ──
   function renderProgress(){
     var current = 1, done = 0, pi;
     for(pi=0; pi<LEVELS.length; pi++){
@@ -3225,7 +3225,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
     });
   }
 
-  // ── Kvízmotor ──
+  // ── Quiz engine ──
   function shuffle(arr){
     var a = arr.slice(), i, j, t;
     for(i = a.length - 1; i > 0; i--){
@@ -3504,7 +3504,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
   var quizBoxes = document.querySelectorAll('.quiz[data-level]');
   Array.prototype.forEach.call(quizBoxes, initQuiz);
 
-  // ── Újrakezdés ──
+  // ── Reset ──
   var resetBtn = document.getElementById('resetProgress');
   if(resetBtn){
     resetBtn.addEventListener('click', function(){
