@@ -4,7 +4,7 @@
   © 2026 Csaplár Dániel · csaplar.d@gmail.com
   Licenc: CC BY-NC-SA 4.0 (Nevezd meg! · Ne add el! · Így add tovább!)
   https://creativecommons.org/licenses/by-nc-sa/4.0/deed.hu
-  v1.1.2 · utolsó frissítés: 2026. szeptember 19.
+  v1.1.3 · utolsó frissítés: 2026. szeptember 19.
 -->
 <html lang="hu">
 <head>
@@ -886,7 +886,7 @@ nav#toc .toc-learning { font-size:13px; color:var(--accent); padding-block:7px; 
   <div class="meta-line hero-meta">
     <span>Csaplár Dániel</span>
     <span class="dot">·</span>
-    <span>v1.1.2</span>
+    <span>v1.1.3</span>
     <span class="dot">·</span>
     <span>utolsó frissítés: 2026. szeptember 19.</span>
     <span class="dot">·</span>
@@ -2282,7 +2282,8 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
 <p>Ez az anyag gyorsan mozgó területről szól. Az alábbi lista fordított időrendben mutatja, mi változott — így látszik, mikori állapotot olvasol.</p>
 <dl class="changelog">
   <dt>2026. szeptember 19. — Elnevezések</dt><dd>Az interaktív példák egységes neve „Interaktív kísérletek” lett a menüben, a hivatkozásokban és a példák felirataiban.</dd>
-  <dt>v1.1.2 — 2026. szeptember 19.</dt><dd>Kvízek: a helyes válasz többé nem ismerhető fel pusztán arról, hogy a leghosszabb; a magyarázatok ismét elmondják, miért jó a helyes válasz és miért csábító a rossz. A tanulási elemek nyelvenként külön épülnek, így az angol kiadásba nem kerül magyar szöveg, és fordítva. Új megosztókártya. A haladásod megmarad.</dd>
+  <dt>v1.1.3 — 2026. szeptember 19.</dt><dd>Sorrendtől független kvízmagyarázatok; rokonsági, SAE-, Adam-, memória- és emergenciakérdések pontosítása; kezdőbarátabb megfogalmazás. Javított nyelvi build, új regressziós tesztekkel. A mentett haladás változatlan.</dd>
+  <dt>v1.1.2 — 2026. szeptember 19.</dt><dd>Kvízek: jelentősen csökkent a válaszhosszból adódó segítség; a magyarázatok ismét elmondják, miért jó a helyes válasz és miért csábító a rossz. A tanulási elemek nyelvenként külön épülnek, így az angol kiadásba nem kerül magyar szöveg, és fordítva. Új megosztókártya. A haladásod megmarad.</dd>
   <dt>v1.1.1 — 2026. szeptember 19.</dt><dd>Szakmai felülvizsgálat: attention- és MLP-képletek, bfloat16, skálázási törvények, spekulatív dekódolás, KV-cache és kalibráció javítása; 28 kvízkérdés pontosítása. Új, képletből számolt skálázási ábra. A javításokat és az eredeti forrásokat az <a href="https://github.com/csaplard/llm-oktatoanyag/blob/main/SCIENTIFIC_REVIEW.md">ellenőrzési jegyzőkönyv</a> sorolja fel. A haladásod megmarad.</dd>
   <dt>v1.1 — 2026. szeptember 19.</dt><dd>Tizennégy új interaktív műhely; végigszámolt alapozó példák; tizenkét hetes gyakorlási útvonal helyi feladatlistával; szabad és vezetett olvasás; külön elnevezés a magyarázati mélységnek és a haladási állomásoknak; szakmai pontosítások és kiegyensúlyozott bevezető kvízkérdések. Mindkét nyelvi változat önállóan, offline is működik.</dd>
   <dt>v1.0 — 2026. augusztus 30.</dt>
@@ -2291,7 +2292,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
 </section>
 <footer class="page-footer">
   <p class="foot-line"><strong>© 2026 Csaplár Dániel</strong> · <a href="mailto:csaplar.d@gmail.com">csaplar.d@gmail.com</a>. Ez a mű a <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.hu" rel="license noopener noreferrer" target="_blank">Creative Commons Nevezd meg! – Ne add el! – Így add tovább! 4.0 Nemzetközi (CC&nbsp;BY-NC-SA&nbsp;4.0)</a> licenc alatt érhető el: nevezd meg a szerzőt, ne használd kereskedelmi célra, és a származékos műveket ugyanilyen feltételekkel add tovább.</p>
-  <p class="foot-line">v1.1.2 · utolsó frissítés: 2026. szeptember 19. · a haladásod kizárólag a saját böngésződben tárolódik.</p>
+  <p class="foot-line">v1.1.3 · utolsó frissítés: 2026. szeptember 19. · a haladásod kizárólag a saját böngésződben tárolódik.</p>
 </footer>
 <div class="reset-row">
   <button id="resetProgress" type="button">Haladás törlése</button>
@@ -2513,7 +2514,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: 'Az embedding-tábla minden jelentéshez külön sort tárol, és a modell a szövegkörnyezet alapján a megfelelőt választja ki.' },
           { t: 'A pozíciókódolás elkülöníti a két jelentést, mert a szó a két mondatban más pozíción áll.' }
         ],
-        why: 'A „vár” mindkét mondatban ugyanazt a sort kapja az embedding-táblából — a kiindulópont tehát azonos. A különbség a rétegekben keletkezik: a kauzális attention a megelőző szöveget („kőből épült” vagy „rám”) beolvassa, és a rétegek ebből kontextusfüggő reprezentációt építenek. A harmadik válasz azért csábító, mert szótárszerű képet fest, de a tábla tokenenként egy sort tárol, nem jelentésenként. Egy finomság: a token <em>utáni</em> szöveg nem írja át visszamenőleg a korábbi pozíció állapotát — a kauzális modellben csak a múlt hat.'
+        why: 'A „vár” mindkét mondatban ugyanazt a sort kapja az embedding-táblából — a kiindulópont tehát azonos. A különbség a rétegekben keletkezik: a kauzális attention a megelőző szöveget („kőből épült” vagy „rám”) beolvassa, és a rétegek ebből kontextusfüggő reprezentációt építenek. A jelentésenként külön embedding-sort feltételező válasz azért csábító, mert szótárszerű képet fest, de a tábla tokenenként egy sort tárol, nem jelentésenként. Egy finomság: a token <em>utáni</em> szöveg nem írja át visszamenőleg a korábbi pozíció állapotát — a kauzális modellben csak a múlt hat.'
       },
       {
         id: 'emb-tabla',
@@ -2557,7 +2558,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: 'Hogy a modell alultanított, mert egy jól tanított modellben a független tokenek hasonlósága mindig 0 közeli.' },
           { t: 'Hogy a két vektor normája nagyon eltérő, és a koszinusz ezt a különbséget méri.' }
         ],
-        why: 'Egy szám csak viszonyítva jelent valamit. A tanult embeddingterek gyakran anizotropok: a vektorok egy szűk kúpba tömörülnek, így két teljesen független token koszinusza is lehet magas. A 0,7 tehát nem univerzális jelentésküszöb — a helyes lépés megnézni, mekkora a hasonlóság sok összehasonlítható, független pár esetén, és ehhez mérni. Az anizotrópia mértéke modell-, réteg- és adatfüggő. A negyedik válasz azért téves, mert a koszinusz épp a normától független: csak a szöget méri.'
+        why: 'Egy szám csak viszonyítva jelent valamit. A tanult embeddingterek gyakran anizotropok: a vektorok egy szűk kúpba tömörülnek, így két teljesen független token koszinusza is lehet magas. A 0,7 tehát nem univerzális jelentésküszöb — a helyes lépés megnézni, mekkora a hasonlóság sok összehasonlítható, független pár esetén, és ehhez mérni. Az anizotrópia mértéke modell-, réteg- és adatfüggő. A vektorok normájára hivatkozó válasz azért téves, mert a koszinusz épp a normától független: csak a szöget méri.'
       }
     ],
     4: [
@@ -2571,7 +2572,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: 'A modell egy külső memóriába menti a rétegek válaszait, és a késői rétegek onnan keresik vissza őket.' },
           { t: 'A tanítás fizikailag új, közvetlen vezetéket épít a két távoli réteg közé.' }
         ],
-        why: 'A residual stream a transzformer közös munkafelülete: minden alegység olvas belőle, és a saját eredményét <em>hozzáadja</em>. Amit a 3. réteg odaírt, az ott marad az összegben, és a 27. réteg MLP-je ugyanúgy kiolvashatja, mint bármi mást — nincs szükség közvetlen kapcsolatra. Az első válasz azért csábító, mert a „minden megmarad” képet adja, de a stream nem veszteségmentes archívum: egy későbbi frissítés ki is olthat vagy át is alakíthat korábbi összetevőket. Az identitásút a gradiens terjedését is segíti, bár a tanítás stabilitását önmagában nem garantálja.'
+        why: 'A residual stream a transzformer közös munkafelülete: minden alegység olvas belőle, és a saját eredményét <em>hozzáadja</em>. Amit a 3. réteg odaírt, az ott marad az összegben, és a 27. réteg MLP-je ugyanúgy kiolvashatja, mint bármi mást — nincs szükség közvetlen kapcsolatra. A veszteségmentes másolatot feltételező válasz azért csábító, mert a „minden megmarad” képet adja, de a stream nem veszteségmentes archívum: egy későbbi frissítés ki is olthat vagy át is alakíthat korábbi összetevőket. Az identitásút a gradiens terjedését is segíti, bár a tanítás stabilitását önmagában nem garantálja.'
       },
       {
         id: 'trf-maszk',
@@ -2603,7 +2604,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: 'Semmi érdemi, a skálázás csak numerikus kényelmi lépés, a softmax úgyis 1-re normalizálja a súlyokat.' },
           { t: 'A kauzális maszk hatástalanná válik, és a modell a jövőbeli tokenekbe is belelát.' }
         ],
-        why: 'Ha a query és a key komponensei függetlenek, nulla várható értékűek és egységnyi varianciájúak, akkor a skalárszorzatuk varianciája dₕ, a szórása √dₕ — vagyis nagy fejdimenziónál a pontszámok széttartanak. A softmax ilyenkor egyetlen pozícióra koncentrál, telítődik, és a gradiense közel nulla lesz: a fej nehezen tanul. A √dₕ-val való osztás pontosan ezt a méretfüggést ellensúlyozza. A harmadik válasz azért téves, mert a normalizálás az arányokat nem javítja meg — csak 1-re skálázza az összeget. Az is igaz ugyanakkor, hogy a tényleges skála a tanult súlyoktól és az esetleges QK-normalizálástól is függ, így az osztás elhagyása nem minden beállításban teszi lehetetlenné a tanulást.'
+        why: 'Ha a query és a key komponensei függetlenek, nulla várható értékűek és egységnyi varianciájúak, akkor a skalárszorzatuk varianciája dₕ, a szórása √dₕ — vagyis nagy fejdimenziónál a pontszámok széttartanak. A softmax ilyenkor egyetlen pozícióra koncentrál, telítődik, és a gradiense közel nulla lesz: a fej nehezen tanul. A √dₕ-val való osztás pontosan ezt a méretfüggést ellensúlyozza. A skálázást puszta numerikus kényelemnek tekintő válasz azért téves, mert a normalizálás az arányokat nem javítja meg — csak 1-re skálázza az összeget. Az is igaz ugyanakkor, hogy a tényleges skála a tanult súlyoktól és az esetleges QK-normalizálástól is függ, így az osztás elhagyása nem minden beállításban teszi lehetetlenné a tanulást.'
       },
       {
         id: 'trf-sulyok',
@@ -2641,7 +2642,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: 'Mert a tudás nem az MLP-ben, hanem kizárólag az attention-fejekben tárolódik.' },
           { t: 'Mert egy neuron mindig pontosan egy fogalmat kódol, csak túl sok neuron van ahhoz, hogy mindet végignézzük.' }
         ],
-        why: 'A kulcs–érték olvasat pontos algebra: sorvektoros jelölésben W_in oszlopai a neuronok bemeneti súlyai (a „kulcsok”), W_out sorai a kimeneti irányok (az „értékek”). Ebből viszont nem következik, hogy egy neuron egy fogalom. Egy neuron aktivációja több, egymással össze nem függő mintázathoz is kapcsolódhat, egy fogalom pedig sok neuron között oszolhat szét. Az utolsó válasz épp ezt a kényelmes, de téves feltevést teszi meg. A szuperpozíció ennek egyik kutatott magyarázata (8.4); és egy SAE-szótár sem automatikusan a modell teljes, egyedi fogalomlistája.'
+        why: 'A kulcs–érték olvasat pontos algebra: sorvektoros jelölésben W_in oszlopai a neuronok bemeneti súlyai (a „kulcsok”), W_out sorai a kimeneti irányok (az „értékek”). Ebből viszont nem következik, hogy egy neuron egy fogalom. Egy neuron aktivációja több, egymással össze nem függő mintázathoz is kapcsolódhat, egy fogalom pedig sok neuron között oszolhat szét. Az egy neuronhoz egy fogalmat rendelő válasz épp ezt a kényelmes, de téves feltevést teszi meg. A szuperpozíció ennek egyik kutatott magyarázata (8.4); és egy SAE-szótár sem automatikusan a modell teljes, egyedi fogalomlistája.'
       },
       {
         id: 'out-logit',
@@ -2662,7 +2663,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: 'Mert a kontextusablakot bármely modellnél szabadon át lehet állítani, a pozíciókódolás típusától és a tanítástól függetlenül.' },
           { t: 'Mert a RoPE minden lehetséges pozícióhoz előre tanult egy külön vektort, egészen 32k-ig.' }
         ],
-        why: 'A RoPE a query és a key vektort a pozíciójukkal arányos szöggel forgatja el, így a skalárszorzatukba — rögzített tartalom mellett — csak a két pozíció <em>különbsége</em> szól bele. Ezért van értelme átskálázni a forgatási frekvenciákat vagy a pozíciókat: a modell hosszabb távolságokat is a már megtanult szögtartományban lát. Ez tipikusan kevés további tanítással jár, de nem garancia: hogy a modell a hosszú kontextust ténylegesen jól használja-e, azt visszakeresési és feladattesztekkel kell ellenőrizni. A harmadik válasz túl sokat ígér — tanult abszolút pozíciótáblák is bővíthetők, de ahhoz külön megoldás kell.'
+        why: 'A RoPE a query és a key vektort a pozíciójukkal arányos szöggel forgatja el, így a skalárszorzatukba — rögzített tartalom mellett — csak a két pozíció <em>különbsége</em> szól bele. Ezért van értelme átskálázni a forgatási frekvenciákat vagy a pozíciókat: a modell hosszabb távolságokat is a már megtanult szögtartományban lát. Ez tipikusan kevés további tanítással jár, de nem garancia: hogy a modell a hosszú kontextust ténylegesen jól használja-e, azt visszakeresési és feladattesztekkel kell ellenőrizni. A kontextusablak szabad átállítását ígérő válasz túl sokat ígér — tanult abszolút pozíciótáblák is bővíthetők, de ahhoz külön megoldás kell.'
       },
       {
         id: 'norm-prenorm',
@@ -2697,7 +2698,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: 'Mert a loss nem differenciálható, ezért a különbségi módszer hibás eredményt adna.' },
           { t: 'Mert a gradiens iránya a paraméterek megpiszkálásából elvileg sem állapítható meg, csak a nagysága.' }
         ],
-        why: 'A leírt módszer (numerikus differenciálás) elvileg <em>működik</em> — és pontosan ez a baja: működik, csak reménytelenül drágán. A backprop zsenialitása nem a láncszabályban van, hiszen az középiskolás anyag, hanem a <strong>szervezésben</strong>: a loss és a mély paraméterek közti hosszú műveletláncok nagyrészt közösek, és ha visszafelé haladunk, minden csomópont gradiensét elég egyszer kiszámolni. Minden paraméter ott, a saját csomópontjánál veszi át a magáét. Ez fordítja át a költséget „paraméterenként egy futás”-ról „az egészre néhány futás”-ra.'
+        why: 'A leírt módszer (numerikus differenciálás) elvileg <em>működik</em> — és pontosan ez a baja: működik, csak reménytelenül drágán. A backprop a láncszabályt hatékony <strong>szervezéssel</strong> alkalmazza: a loss és a mély paraméterek közti hosszú műveletláncok nagyrészt közösek, és ha visszafelé haladunk, minden csomópont gradiensét elég egyszer kiszámolni. Minden paraméter ott, a saját csomópontjánál veszi át a magáét. Ez fordítja át a költséget „paraméterenként egy futás”-ról „az egészre néhány futás”-ra.'
       },
       {
         id: 'bp-gradiens',
@@ -2731,9 +2732,9 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: "Tanításkor a súlyokon felül aktivációk, gradiensek és optimalizálóállapot is szükséges.", ok: true },
           { t: 'A tanításhoz a modell két példányban van a memóriában: egy az előre-, egy a visszafuttatáshoz.' },
           { t: 'A tanítás nagyobb pontosságú számábrázolást igényel, ezért minden súly kétszer annyi helyet foglal.' },
-          { t: 'A gradiensek több helyet foglalnak, mint maguk a paraméterek.' }
+          { t: 'A teljes tanítóadatnak egyszerre a GPU memóriájában kell lennie.' }
         ],
-        why: 'Inferenciához elég a súlyokat és a futás közbeni ideiglenes tömböket tárolni (gyakran KV-cache-sel együtt). A tanításhoz viszont a visszaterjesztés miatt a köztes aktivációkat is meg kell őrizni vagy újra kell számolni, minden paraméterhez tartozik egy gradiens, és az optimalizáló is tart állapotot — Adam például két momentumértéket paraméterenként. Hogy ezek közül melyik a legnagyobb tétel, az a konfigurációtól függ: a batchmérettől, a szekvenciahossztól és az adattípusoktól. Az első rossz válasz azért csábító, mert a „kétszer annyi” intuitíve hihető, de nem ez a mechanizmus. A checkpointing az aktivációs memóriát csökkenti, újraszámolás árán.'
+        why: 'Inferenciához elég a súlyokat és a futás közbeni ideiglenes tömböket tárolni (gyakran KV-cache-sel együtt). A tanításhoz viszont a visszaterjesztés miatt a köztes aktivációkat is meg kell őrizni vagy újra kell számolni, minden paraméterhez tartozik egy gradiens, és az optimalizáló is tart állapotot — Adam például két momentumértéket paraméterenként. Hogy ezek közül melyik a legnagyobb tétel, az a konfigurációtól függ: a batchmérettől, a szekvenciahossztól és az adattípusoktól. A külön előre- és visszafuttatási modellpéldányt feltételező válasz azért csábító, mert a „kétszer annyi” intuitíve hihető, de nem ez a mechanizmus. A checkpointing az aktivációs memóriát csökkenti, újraszámolás árán.'
       }
     ],
     7: [
@@ -2747,7 +2748,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: 'Mert egy globális tanulási ráta megsértené a láncszabályt a mély rétegekben.' },
           { t: 'Mert így minden paraméter külön szálon számolható, ami a GPU-n jelentősen gyorsítja a tanítást.' }
         ],
-        why: 'A paraméterek gradiensei nagyságrendekkel eltérhetnek: ami az egyik koordinátának apró lépés, az a másiknak túl nagy. Az Adam ezért két mozgóátlagot vezet — a gradiensét (momentum) és a négyzetes gradiensét —, torzításkorrekciót alkalmaz, és a lépést koordinátánként a második gyökével osztja. Így a ritkán vagy kicsiny gradienst kapó paraméterek is érdemben mozdulnak. A második válasz azért téves, mert az iránnyal nincs baj: a gradiens iránya pontosan az, amerre menni kell; a gond a léptékkel van. Egy félreértés ellen érdemes védekezni: a lépések nem szükségképpen egységnyiek — nagyságukat továbbra is a tanulási ráta és a statisztikák határozzák meg, ezért a hangolás és az ellenőrzés sem marad el.'
+        why: 'A paraméterek gradiensei nagyságrendekkel eltérhetnek: ami az egyik koordinátának apró lépés, az a másiknak túl nagy. Az Adam ezért két mozgóátlagot vezet — a gradiensét (momentum) és a négyzetes gradiensét —, torzításkorrekciót alkalmaz, és a lépést koordinátánként a második gyökével osztja. Így a ritkán vagy kicsiny gradienst kapó paraméterek is érdemben mozdulnak. Minimalizáláskor a negatív gradiens ad helyi csökkenési irányt, kellően kis lépés mellett. Az Adam frissítése azonban a momentum és a koordinátánkénti átskálázás miatt általában nem párhuzamos az aktuális negatív gradienssel. Az irányeltérések „kiegyenlítésére” hivatkozó válasz ezért nem írja le a módszert. Egy félreértés ellen érdemes védekezni: a lépések nem szükségképpen egységnyiek — nagyságukat továbbra is a tanulási ráta és a statisztikák határozzák meg, ezért a hangolás és az ellenőrzés sem marad el.'
       },
       {
         id: 'opt-memoria',
@@ -2768,7 +2769,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
         tol: 0.5,
         hint: 'Egész szám, milliárd tokenben.',
         q: 'A Chinchilla-ökölszabály szerint a compute-optimális tanításhoz nagyjából 20 token jut egy paraméterre. Hány <strong>milliárd</strong> tanítótoken kell eszerint egy 7 milliárd paraméteres modellhez?',
-        why: '7 × 20 = <strong>140</strong> milliárd token. A szám önmagában egyszerű; a tartalma az érdekes. A Chinchilla-elemzés szerint adott compute mellett a paraméterszámot és a tokenszámot közel azonos ütemben érdemes növelni (az illesztett kitevők nagyjából 0,45 és 0,55) — ebből adódik a „~20 token/paraméter” ökölszabály. Két félreértés ellen érdemes védekezni. Ez nem fele-fele költségfelosztás: a tanítási compute a C ≈ 6ND <em>szorzattal</em> nő. És nem univerzális konstans: a konkrét optimum az illesztéstől, az adattól, és attól is függ, számolunk-e a későbbi inferencia költségével — erről szól a következő kérdés.'
+        why: '7 × 20 = <strong>140</strong> milliárd token. A szám önmagában egyszerű; a tartalma az érdekes. A Chinchilla-elemzés szerint adott compute mellett a paraméterszámot és a tokenszámot közel azonos ütemben érdemes növelni (az illesztett kitevők nagyjából 0,45 és 0,55) — ebből adódik a „~20 token/paraméter” ökölszabály. Két félreértés ellen érdemes védekezni. Ez nem fele-fele költségfelosztás: a tanítási compute a C ≈ 6ND <em>szorzattal</em> nő. És nem univerzális konstans: a konkrét optimum az illesztéstől, az adattól, és attól is függ, számolunk-e a későbbi inferencia költségével — ezt vizsgálja az inferenciaköltségről szóló kérdés is.'
       },
       {
         id: 'scale-inferencia',
@@ -2785,14 +2786,14 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       {
         id: 'scale-emergencia',
         type: 'choice',
-        q: 'Egy benchmarkon egy képesség „hirtelen megjelenik” egy bizonyos modellméretnél: a kisebb modellek nullához közel teljesítenek, a nagyobbak jól. Mit érdemes először ellenőrizni?',
+        q: 'Egy benchmarkon egy képesség „hirtelen megjelenik” egy bizonyos modellméretnél: a kisebb modellek nullához közel teljesítenek, a nagyobbak jól. Melyik mérési sajátosság hozhat létre ilyen látszólagos képességugrást?',
         options: [
-          { t: 'Hogy nem a küszöbös mérőszám okozza-e az ugrást: folytonos mércén sok „ugrás” eltűnik.', ok: true },
+          { t: 'A küszöbös mérőszám: folytonos mércén sok látszólagos „ugrás” eltűnik.', ok: true },
           { t: 'Semmit — az ugrás önmagában bizonyítja, hogy a modellben egy új belső mechanizmus keletkezett.' },
           { t: 'Hogy a kisebb modelleket nem rontotta-e el egy tanítási hiba, amely csak a kisebb méreteknél jelentkezett.' },
           { t: 'Hogy a benchmark kérdései nem szerepeltek-e szó szerint a nagyobb modellek tanítóadatában.' }
         ],
-        why: 'A látszólagos ugrás gyakran a mérés műterméke: ha egy feladatnál csak a tökéletes választ fogadjuk el, akkor a fokozatosan javuló képesség sokáig nullát ad, majd egyszer csak átlépi a küszöböt. Sima mércén nézve ugyanaz a folyamat folyamatos. Ettől még a kép árnyalt — a loss-térben is dokumentáltak <em>valódi</em> töréspontokat, például az induction headek kialakulásához kötődő fázisátmenetet a tanítás során (8.3). A helyes következtetés tehát nem az, hogy „nincs emergencia”, hanem hogy az ugrás önmagában nem bizonyíték: előbb a mérőszámot kell kizárni gyanúsítottként.'
+        why: 'A látszólagos ugrás gyakran a mérés műterméke: ha egy feladatnál csak a tökéletes választ fogadjuk el, akkor a fokozatosan javuló képesség sokáig nullát ad, majd egyszer csak átlépi a küszöböt. Sima mércén nézve ugyanaz a folyamat folyamatos. Ettől még a kép árnyalt — a loss-térben is dokumentáltak <em>valódi</em> töréspontokat, például az induction headek kialakulásához kötődő fázisátmenetet a tanítás során (8.3). A helyes következtetés tehát nem az, hogy „nincs emergencia”, hanem hogy az ugrás önmagában nem bizonyíték: a mérőszám hatását is ellenőrizni kell. A tanítóadat szennyezettségének és a tanítási hibáknak a vizsgálata szintén indokolt, de ezek más lehetséges okok; a kérdés kifejezetten a mérőszám hatásáról szól.'
       }
     ],
     8: [
@@ -2818,7 +2819,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: 'A modell teljesen elfelejti az előtanított tudását, és ettől kezdve véletlenszerű szöveget generál.' },
           { t: 'Semmi különös: a jutalommodell pontszáma és a valódi minőség egybeesik, a fék csak a tanítást lassítja.' }
         ],
-        why: 'A jutalommodell maga is egy tanult becslés az emberi preferenciáról — és mint minden becslésnek, vannak vakfoltjai. Ha a policy szabadon maximalizálhatja, megtalálja őket: magabiztos, de üres válaszok, hízelgés, mesterkélten hosszú szöveg — a pontszám nő, a tényleges minőség romlik. Ez a reward hacking. A KL-büntetés ezt fékezi: nem engedi, hogy a policy túl messzire sodródjon a referenciamodelltől, ahol a jutalommodell becslése még megbízható. Az utolsó válasz épp azt a feltevést teszi meg, ami itt nem igaz. Fontos korlát: KL mellett is előfordulhat reward hacking, ezért a minőséget mindig független méréssel kell ellenőrizni, nem a jutalompontszámmal.'
+        why: 'A jutalommodell maga is egy tanult becslés az emberi preferenciáról — és mint minden becslésnek, vannak vakfoltjai. Ha a policy szabadon maximalizálhatja, megtalálja őket: magabiztos, de üres válaszok, hízelgés, mesterkélten hosszú szöveg — a pontszám nő, a tényleges minőség romlik. Ez a reward hacking. A KL-büntetés ezt fékezi: nem engedi, hogy a policy túl messzire sodródjon a referenciamodelltől, ahol a jutalommodell becslése még megbízható. A jutalompontszámot a valódi minőséggel azonosító válasz épp azt a feltevést teszi meg, ami itt nem igaz. Fontos korlát: KL mellett is előfordulhat reward hacking, ezért a minőséget mindig független méréssel kell ellenőrizni, nem a jutalompontszámmal.'
       },
       {
         id: 'al-bradley',
@@ -2838,7 +2839,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: 'Mert a DPO nem használ referenciamodellt, így nincs mihez viszonyítani a két válasz valószínűségét.' },
           { t: 'Mert a DPO-ban a KL-fék a nyertes válaszokat is bünteti.' }
         ],
-        why: 'A DPO nem a nyertes válasz valószínűségét növeli, hanem egy <em>különbséget</em>: a nyertes és a vesztes válasz referenciához mért log-valószínűség-arányának különbségét. Ez a különbség úgy is nőhet, hogy a vesztes nagyon lemegy, a nyertes pedig kicsit szintén — a veszteség csökken, közben mindkét abszolút valószínűség alacsonyabb lett. Az első rossz válasz azért csábító, mert a név („preferenciaoptimalizálás”) éppen ezt sugallja. A tanulság gyakorlati: a csökkenő preferenciaveszteség önmagában nem igazolja, hogy jobb lett a modell, ezért külön mérni kell a válaszminőséget, a hossztorzítást és az általánosítást.'
+        why: 'A DPO nem a nyertes válasz valószínűségét növeli, hanem egy <em>különbséget</em>: a nyertes és a vesztes válasz referenciához mért log-valószínűség-arányának különbségét. Ez a különbség úgy is nőhet, hogy a vesztes nagyon lemegy, a nyertes pedig kicsit szintén — a veszteség csökken, közben mindkét abszolút valószínűség alacsonyabb lett. A nyertes valószínűségének garantált növekedését állító válasz azért csábító, mert a név („preferenciaoptimalizálás”) éppen ezt sugallja. A tanulság gyakorlati: a csökkenő preferenciaveszteség önmagában nem igazolja, hogy jobb lett a modell, ezért külön mérni kell a válaszminőséget, a hossztorzítást és az általánosítást.'
       },
       {
         id: 'al-kalibracio',
@@ -2850,7 +2851,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: 'Igen, feltéve hogy a temperature pontosan 1, mert ekkor a valószínűségek torzítatlanok.' },
           { t: 'Nem, mert a modell tokenvalószínűségei minden pozíción egyenlők.' }
         ],
-        why: 'A 70% arra vonatkozik, mennyire valószínű ez a <em>szövegdarab</em> ezen a helyen — nem arra, hogy a mondat, amelyben áll, igaz-e. Egy állítás sok tokenből áll, és ugyanaz az igaz tartalom sokféleképpen fogalmazható meg, tehát a kettő között nincs közvetlen átváltás. A helyesség kalibrációja külön kérdés: azt vizsgálja, hogy egy adott bizonyosságú válaszok milyen arányban helyesek egy meghatározott teszten. Ez modell-, feladat- és promptfüggő, és az utótanítás javíthatja vagy ronthatja. A harmadik válasz azért csábító, mert a T = 1 valóban a „nyers” eloszlás — de attól az még tokeneloszlás marad. És a magabiztos megfogalmazás egyiknek sem bizonyítéka.'
+        why: 'A 70% arra vonatkozik, mennyire valószínű ez a <em>szövegdarab</em> ezen a helyen — nem arra, hogy a mondat, amelyben áll, igaz-e. Egy állítás sok tokenből áll, és ugyanaz az igaz tartalom sokféleképpen fogalmazható meg, tehát a kettő között nincs közvetlen átváltás. A helyesség kalibrációja külön kérdés: azt vizsgálja, hogy egy adott bizonyosságú válaszok milyen arányban helyesek egy meghatározott teszten. Ez modell-, feladat- és promptfüggő, és az utótanítás javíthatja vagy ronthatja. A T = 1 beállításra hivatkozó válasz azért csábító, mert a T = 1 valóban a „nyers” eloszlás — de attól az még tokeneloszlás marad. És a magabiztos megfogalmazás egyiknek sem bizonyítéka.'
       }
     ],
     9: [
@@ -2876,7 +2877,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: 'A cache a modell súlyainak egy-egy teljes másolatát tartja minden rétegre külön, a gyorsabb elérés érdekében.' },
           { t: 'A cache a generált szöveget tárolja tokenizált formában, ami hosszú beszélgetésnél hatalmasra nő.' }
         ],
-        why: 'A KV-cache egy csere: a lépésenkénti költséget a szekvenciahossz négyzetesből lineárisra viszi, cserébe memóriát követel. Hogy mennyit, az pontosan látszik a szerkezetéből — rétegek × fejek × eddigi tokenek × fej-dimenzió × 2 (key és value) —, tehát minden új token fix mennyiséggel növeli. A második válasz azért csábító, mert a T×T-es pontszám-mátrix tényleg négyzetes, csakhogy azt nem tároljuk: menet közben keletkezik és eltűnik. Ez a lineáris növekedés a kiszolgáló-rendszerek tervezésének központi kényszere — innen a PagedAttention lapkezelése, a KV-cache kvantálása és a GQA, amely eleve kevesebb key/value-fejjel dolgozik.'
+        why: 'A KV-cache egy csere: a lépésenkénti költséget a szekvenciahossz négyzetesből lineárisra viszi, cserébe memóriát követel. Hogy mennyit, az pontosan látszik a szerkezetéből — rétegek × fejek × eddigi tokenek × fej-dimenzió × 2 (key és value) —, tehát minden új token fix mennyiséggel növeli. A teljes attention-mátrix tárolását feltételező válasz azért csábító, mert a T×T-es pontszám-mátrix tényleg négyzetes, csakhogy azt nem tároljuk: menet közben keletkezik és eltűnik. Ez a lineáris növekedés a kiszolgáló-rendszerek tervezésének központi kényszere — innen a PagedAttention lapkezelése, a KV-cache kvantálása és a GQA, amely eleve kevesebb key/value-fejjel dolgozik.'
       },
       {
         id: 'inf-spekulativ',
@@ -2908,7 +2909,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: 'Mert a modell valószínűségei nem elég pontosak ahhoz, hogy a maximumot megbízhatóan megtaláljuk bennük.' },
           { t: 'Mert a legvalószínűbb folytatás mindig szó szerint a tanítóadatból másolna.' }
         ],
-        why: 'A modell azt tanulta meg, mi a <em>valószínű</em> folytatás, nem azt, mi a <em>jó</em>. A kettő nyitott szövegfeladaton el is válhat: a biztonságos, általános, akár ismétlődő mondatok gyakran nagy valószínűséget kapnak, mert sok helyen illenek — miközben keveset mondanak. Ezért lehet a legvalószínűbb folytatás unalmas vagy körben forgó. A második válasz azért csábító, mert a keresés költsége valós probléma, de a feltevése hibás: a globális maximum sem feltétlenül a legjobb szöveg. A tanulság nem az, hogy a mohó vagy beam search rossz — zárt, egyértelmű feladatokon kiválóan működhet —, hanem hogy a dekódolást mindig a feladathoz kell mérni. A top-p és a temperature sem garantál igaz vagy hasznos választ.'
+        why: 'A modell azt tanulta meg, mi a <em>valószínű</em> folytatás, nem azt, mi a <em>jó</em>. A kettő nyitott szövegfeladaton el is válhat: a biztonságos, általános, akár ismétlődő mondatok gyakran nagy valószínűséget kapnak, mert sok helyen illenek — miközben keveset mondanak. Ezért lehet a legvalószínűbb folytatás unalmas vagy körben forgó. A keresés költségére hivatkozó válasz azért csábító, mert a keresés költsége valós probléma, de a feltevése hibás: a globális maximum sem feltétlenül a legjobb szöveg. A tanulság nem az, hogy a mohó vagy beam search rossz — zárt, egyértelmű feladatokon kiválóan működhet —, hanem hogy a dekódolást mindig a feladathoz kell mérni. A top-p és a temperature sem garantál igaz vagy hasznos választ.'
       }
     ],
     10: [
@@ -2980,7 +2981,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: 'Ha a modell elég mély, mert a későbbi rétegek minden esetben kiszűrik a korábbiak interferenciáját.' },
           { t: 'Ha a jellemzők egyenletesen és folyamatosan aktívak, mert így a zaj kiátlagolódik.' }
         ],
-        why: 'A szuperpozíció alkumérleg, és a ritkaság billenti a javára. Ha egyszerre sok jellemző lenne aktív, az átfedő irányok folyamatosan belebeszélnének egymásba, és a zaj felemésztené a nyereséget — a negyedik válasz épp ezért téves, noha az „kiátlagolódik” intuitívan megnyugtatóan hangzik. Ritka aktiváció mellett viszont az ütközés ritka esemény, a rekonstrukciós haszon pedig folyamatos. Ezért nem tehetetlenségből poliszemantikusak a neuronok: a szuperpozíció <em>tanult tömörítési stratégia</em>, amelyet az optimalizálás azért talál meg, mert megéri.'
+        why: 'A szuperpozíció alkumérleg, és a ritkaság billenti a javára. Ha egyszerre sok jellemző lenne aktív, az átfedő irányok folyamatosan belebeszélnének egymásba, és a zaj felemésztené a nyereséget — a folyamatos aktivitás melletti kiátlagolódást állító válasz épp ezért téves, noha a „kiátlagolódik” intuitívan megnyugtatóan hangzik. Ritka aktiváció mellett viszont az ütközés ritka esemény, a rekonstrukciós haszon pedig folyamatos. Ezért nem tehetetlenségből poliszemantikusak a neuronok: a szuperpozíció <em>tanult tömörítési stratégia</em>, amelyet az optimalizálás azért talál meg, mert megéri.'
       },
       {
         id: 'sae-szotar',
@@ -3012,7 +3013,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: 'Hogy a feature pontosan egyetlen neuronnak felel meg, amelyet közvetlenül meg lehet vizsgálni.' },
           { t: 'Hogy a rekonstrukció hibája nulla, tehát a feature bizonyítottan a modell valódi, belső változója.' }
         ],
-        why: 'Ez a mech interp módszertani gerince: nem elég korrelációt látni, oksági beavatkozással kell megmutatni a szerepet. Egy feature esetében ez azt jelenti, hogy ha felerősítjük, a viselkedés a várt irányba mozdul — a híres demó, a „Golden Gate Claude” minden beszélgetést a hídra terelt. A negyedik válasz azért téves, mert a rekonstrukció épp hogy <em>sosem</em> tökéletes: a maradék („dark matter”) a módszer ismert korlátja, ahogy a feature splitting és a seedfüggés is. A feature-ök tehát hasznos és kísérletileg igazolható közelítések — nem pedig bizonyítottan a modell „valódi” változói.'
+        why: 'Ez a mech interp módszertani gerince: nem elég korrelációt látni, oksági beavatkozással kell megmutatni a szerepet. Egy feature esetében ez azt jelenti, hogy ha felerősítjük, a viselkedés a várt irányba mozdul — a híres demó, a „Golden Gate Claude” minden beszélgetést a hídra terelt. A gyakorlatban jellemzően marad rekonstrukciós hiba; további korlát a feature splitting és a seedfüggés. A nulla hibára hivatkozó válasz mélyebb okból téves: még a tökéletes rekonstrukció sem bizonyítaná, hogy a szótár elemei a modell egyedi, valódi fogalmai. Az oksági beavatkozás a jellemző szerepét támasztja alá, nem a ráadott címke kizárólagos helyességét. A feature-ök tehát hasznos és kísérletileg igazolható közelítések — nem pedig bizonyítottan a modell „valódi” változói.'
       },
       {
         id: 'mi-huseg',
@@ -3024,7 +3025,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: 'Mert a gondolatmenet mindig csak a válasz utólagos átfogalmazása, és sosem végez valódi számítást.' },
           { t: 'Mert a mintavételezés miatt a gondolatmenet minden futásnál más, így semmilyen módszerrel nem elemezhető.' }
         ],
-        why: 'A „hűtlen CoT” az interpretability egyik legfőbb létjogosultsága. Kísérletekben elrejtettek egy tippet a promptban, a modell felhasználta, de a leírt gondolatmenetében meg sem említette — a beszámoló tehát nem hazugság a szó emberi értelmében, egyszerűen nem a számítás naplója. A harmadik válasz azért téves, mert túl erőset állít: a gondolatmenet gyakran <em>valódi</em> munkát végez, hiszen a leírt köztes lépések visszakerülnek a bemenetre (1. állomás). A helyes következtetés az, hogy az önbeszámoló nem helyettesíti a belső számítás auditját — és pontosan ezt ígérik az attribúciós gráfok, amelyek az ilyen eseteket kísérletileg is elkapják.'
+        why: 'A „hűtlen CoT” az interpretability egyik legfőbb létjogosultsága. Kísérletekben elrejtettek egy tippet a promptban, a modell felhasználta, de a leírt gondolatmenetében meg sem említette — a beszámoló tehát nem hazugság a szó emberi értelmében, egyszerűen nem a számítás naplója. A gondolatmenetet mindig utólagos átfogalmazásnak tekintő válasz azért téves, mert túl erőset állít: a gondolatmenet gyakran <em>valódi</em> munkát végez, hiszen a leírt köztes lépések visszakerülnek a bemenetre (1. állomás). A helyes következtetés az, hogy az önbeszámoló nem helyettesíti a belső számítás auditját — és pontosan ezt ígérik az attribúciós gráfok, amelyek az ilyen eseteket kísérletileg is elkapják.'
       }
     ],
     12: [
@@ -3038,7 +3039,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: 'A modell a beszélgetés alatt ideiglenesen módosítja a súlyait, majd a beszélgetés végén visszaállítja őket.' },
           { t: 'A promptban lévő példák a tokenizálót hangolják át az adott feladatra, új összevonási szabályokkal.' }
         ],
-        why: 'A képesség forrása az architektúra: az attention az egyetlen hely, ahol ugyanazon szekvencia pozíciói információt cserélhetnek, és ezt <em>futásidőben</em> teszi — súlyfrissítés nélkül. A második válasz csábító, mert az induction headekről szóló eredmény (a fejek kialakulása és a képesség ugrásszerű megjelenése közti erős együttjárás) könnyen olvasható teljes magyarázatként. A mai kép azonban árnyaltabb: másoló fejek, feladat- és formátumreprezentációt hordozó MLP-rétegek és jóval összetettebb figyelem-mintázatok is részt vesznek benne. Az induction-áramkör a legjobban <em>megértett</em> összetevő — ami nem ugyanaz, mint az egyetlen.'
+        why: 'A képesség forrása az architektúra: az attention az egyetlen hely, ahol ugyanazon szekvencia pozíciói információt cserélhetnek, és ezt <em>futásidőben</em> teszi — súlyfrissítés nélkül. A kizárólag induction headekre hivatkozó válasz csábító, mert az induction headekről szóló eredmény (a fejek kialakulása és a képesség ugrásszerű megjelenése közti erős együttjárás) könnyen olvasható teljes magyarázatként. A mai kép azonban árnyaltabb: másoló fejek, feladat- és formátumreprezentációt hordozó MLP-rétegek és jóval összetettebb figyelem-mintázatok is részt vesznek benne. Az induction-áramkör a legjobban <em>megértett</em> összetevő — ami nem ugyanaz, mint az egyetlen.'
       },
       {
         id: 'cap-cot',
@@ -3070,7 +3071,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: 'Mert a „nem tudom” válasz tokenjei ritkák a szótárban, ezért a modell nehezen generálja őket.' },
           { t: 'Mert a bizonytalanság csak inferenciakor derül ki, tanításkor semmilyen módon nem mérhető.' }
         ],
-        why: 'Gondolj a vizsgázó stratégiájára: ha az üresen hagyott válasz ugyanannyi pontot ér, mint a rossz tipp, akkor a tippelés sosem rosszabb, néha jobb. Ha egy modell értékelése így épül fel, a magabiztos tippelést tanulja meg — nem hibából, hanem engedelmességből. Ez nem minden benchmark vagy preferenciaadat szabálya, de gyakori. Egy mondatnyi utasítás ezen nem változtat, mert három külön képességet feltételezne: a bizonytalanság felismerését, annak közlését, és a válasz ellenőrzését. A második válasz azért téves, mert a modellekben mérhető bizonytalansági jel van — a gond nem a jel hiánya, hanem hogy a tanítás nem jutalmazza a figyelembevételét.'
+        why: 'Gondolj a vizsgázó stratégiájára: ha az üresen hagyott válasz ugyanannyi pontot ér, mint a rossz tipp, akkor a tippelés sosem rosszabb, néha jobb. Ha egy modell értékelése így épül fel, a magabiztos tippelést tanulja meg — nem hibából, hanem engedelmességből. Ez nem minden benchmark vagy preferenciaadat szabálya, de gyakori. Egy mondatnyi utasítás ezen nem változtat, mert három külön képességet feltételezne: a bizonytalanság felismerését, annak közlését, és a válasz ellenőrzését. Az önértékelést elvileg lehetetlennek tartó válasz azért téves, mert a modellekben mérhető bizonytalansági jel van — a gond nem a jel hiánya, hanem hogy a tanítás nem jutalmazza a figyelembevételét.'
       },
       {
         id: 'cap-mentalis',
@@ -3082,7 +3083,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: 'Ott, ahol a kérdés teljesen ismeretlen témát érint, mert olyankor a modellnek semmilyen válasza nincs.' },
           { t: 'Ott, ahol a válasz hosszú, mert a hosszú válaszokban több hiba halmozódik fel.' }
         ],
-        why: 'A veszélyes tévedés nem az, amelyik látszik. Ha egy válasz zavaros, azt az olvasó magától is kétkedve fogadja. A kockázat ott a legnagyobb, ahol a <em>forma</em> tökéletes — magabiztos, gördülékeny, szakszerűen hangzik, akár hivatkozással —, a benne álló tény vagy számítás viszont nincs ellenőrizve. Ilyenkor épp a forma teszi nehézzé a hiba észrevételét. A harmadik válasz azért téves, mert a modell ismeretlen témában is ad választ — gyakran ugyanolyan gördülékenyet. A ritka tartalom valóban kockázat, de nem minden ilyen válasz hibás, és gyakori témában is lehet tévedés. A gyakorlati recept ezért egyszerű: fontos állításnál a forrást vagy a számítást ellenőrizd, ne a stílusból következtess a megbízhatóságra.'
+        why: 'A veszélyes tévedés nem az, amelyik látszik. Ha egy válasz zavaros, azt az olvasó magától is kétkedve fogadja. A kockázat ott a legnagyobb, ahol a <em>forma</em> tökéletes — magabiztos, gördülékeny, szakszerűen hangzik, akár hivatkozással —, a benne álló tény vagy számítás viszont nincs ellenőrizve. Ilyenkor épp a forma teszi nehézzé a hiba észrevételét. Az ismeretlen témánál a válasz hiányát feltételező állítás azért téves, mert a modell ismeretlen témában is ad választ — gyakran ugyanolyan gördülékenyet. A ritka tartalom valóban kockázat, de nem minden ilyen válasz hibás, és gyakori témában is lehet tévedés. A gyakorlati recept ezért egyszerű: fontos állításnál a forrást vagy a számítást ellenőrizd, ne a stílusból következtess a megbízhatóságra.'
       }
     ]
   };

@@ -1,11 +1,29 @@
 # Változásnapló / Changelog
 
+## v1.1.3 — 2026-09-19
+
+### Magyar
+
+- A kevert kvízek magyarázatai tartalmuk alapján azonosítják a válaszokat, nem a helyük alapján. A kérdéssorrendtől függő hivatkozást is megszüntettük; regressziós teszt védi a javítást. A sorszámos hivatkozások már v1.0-ban is előfordultak.
+- Javított angol fordított rokonsági kérdés; pontosított SAE-rekonstrukció és Adam-frissítési irány. A SAE-kvíz túl erős állítása korábbi kiadásokban is szerepelt, a v1.1.1-es ellenőrzés sem javította ki.
+- Egyértelműsített memóriakvíz és mérőszámra szűkített emergenciakérdés; kezdőbarátabb backprop-magyarázat mindkét nyelven.
+- A build kezeli a hívásnév utáni szóközt, a beágyazott nyelvi hívások egymást tartalmazó szerkesztéseit és a kulcsszavak után álló reguláris kifejezéseket. Célzott tesztek ellenőrzik a létrejövő JavaScript futását mindkét nyelven.
+- Pontosított v1.1.2-es változásnapló. A kérdésazonosítók, számkulcsok és a mentett haladás formátuma változatlan.
+
+### English
+
+- Shuffled quiz explanations identify choices by their content, not their position. Removed a question-order reference too; regression coverage protects both. Positional references already occurred in v1.0.
+- Corrected the English inverse-family-relation question and the explanations of SAE reconstruction and Adam's update direction. The SAE overstatement persisted through earlier editions and was missed in the v1.1.1 review.
+- Removed an ambiguous memory distractor and narrowed the emergence question to the metric; made the backprop explanation more welcoming to beginners in both languages.
+- The build handles whitespace before call parentheses, overlapping edits in nested bilingual calls, and regex literals after keywords. Targeted tests execute the generated JavaScript in both languages.
+- Corrected the v1.1.2 release notes. Question IDs, numeric keys and the saved-progress format are unchanged.
+
 ## v1.1.2 — 2026-09-19
 
 ### Magyar
 
-- A kvízekben a helyes válasz többé nem ismerhető fel a hosszáról. Korábban a 48 feleletválasztós kérdésből 38-ban a helyes volt a leghosszabb; most 7-ben (az angolban 10-ben), ami a véletlen szint alatt van. A számkulcsok és a kérdésazonosítók nem változtak, a haladás megmarad.
-- A v1.1.1-ben tömörre vágott magyarázatok ismét tanítanak: elmondják, miért helyes a helyes válasz, és miért csábító a rossz. A szakmai javítások tartalma változatlan.
+- Jelentősen csökkent a válaszhosszból adódó segítség a kvízekben. Korábban a 48 feleletválasztós kérdésből 38-ban a helyes volt a leghosszabb; ebben a kiadásban 7-ben (az angolban 10-ben); ez önmagában nem bizonyítja minden hosszúsági támpont megszűnését. A számkulcsok és a kérdésazonosítók nem változtak, a haladás megmarad.
+- A v1.1.1-ben tömörre vágott magyarázatok ismét tanítanak: elmondják, miért helyes a helyes válasz, és miért csábító a rossz. A további ellenőrzés során talált hibák javítását a v1.1.3 bejegyzése részletezi.
 - Egy pontatlanság, amely a v1.1.1 saját felülvizsgálatával ellentétes volt: a pre-norm kvízválasza még azt állította, hogy a mély modellek „warmup-trükkök nélkül is stabilan tanulnak”. Most: jellemzően stabilabban, garancia nélkül.
 - A build nyelvenként külön csomagolja a tanulási elemeket: a magyar kiadásba csak magyar, az angolba csak angol szöveg kerül. A kétnyelvű forrás változatlan.
 - A `scripts/build.py` Windowson is fut (explicit UTF-8), és van `--check` módja, amelyet a teszt is használ.
@@ -13,8 +31,8 @@
 
 ### English
 
-- The correct quiz answer can no longer be identified by its length. Previously it was the longest option in 38 of 48 multiple-choice questions; now in 7 (Hungarian) and 10 (English), below chance level. Numeric keys and question IDs are unchanged; progress is kept.
-- Explanations shortened in v1.1.1 teach again: they say why the right answer is right and why the wrong one is tempting. The substance of the scientific corrections is unchanged.
+- Length-based clues to the correct quiz answer were substantially reduced. Previously it was the longest option in 38 of 48 multiple-choice questions; in this release, in 7 (Hungarian) and 10 (English); these counts alone do not establish that all length-based clues are gone. Numeric keys and question IDs are unchanged; progress is kept.
+- Explanations shortened in v1.1.1 teach again: they say why the right answer is right and why the wrong one is tempting. Corrections identified in the follow-up review are detailed under v1.1.3.
 - Fixed a leftover that contradicted v1.1.1’s own review: the pre-norm answer still claimed deep models “train stably without warmup tricks”. Now: typically more stably, with no guarantee.
 - The build bundles the learning components per language, so each edition carries only its own language. The bilingual sources are unchanged.
 - `scripts/build.py` runs on Windows (explicit UTF-8) and has a `--check` mode, used by the test suite.

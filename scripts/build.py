@@ -22,6 +22,8 @@ PAIR_ARRAY_MODULES = {'learning-path.js'}
 STRING_ONLY = re.compile(r"\s*(?:'(?:[^'\\]|\\.)*'|\"(?:[^\"\\]|\\.)*\")\s*$", re.S)
 IDENT = re.compile(r'[A-Za-z0-9_$]')
 REGEX_BEFORE = set('(,=:[!&|?{};+-*%<>~^')
+REGEX_AFTER_WORD = {'return', 'typeof', 'case', 'in', 'of', 'delete',
+                    'void', 'throw', 'new', 'else', 'do', 'yield', 'await'}
 
 
 def _skip_string(src, i):
@@ -72,6 +74,23 @@ def _prev_sig(src, i):
     return src[j] if j >= 0 else ''
 
 
+def _regex_allowed(src, i):
+    """Recognize expression-start punctuation and keywords before a regex.
+
+    This is a scanner for the component sources, not a full JS parser.
+    A property such as obj.return is an operand, not a return keyword.
+    """
+    j = i - 1
+    while j >= 0 and src[j].isspace():
+        j -= 1
+    if j < 0 or src[j] in REGEX_BEFORE:
+        return True
+    end = j + 1
+    while j >= 0 and IDENT.match(src[j]):
+        j -= 1
+    return src[j + 1:end] in REGEX_AFTER_WORD and _prev_sig(src, j + 1) != '.'
+
+
 def _scan(src, i, close, edits=None, keep=None, arrays=False):
     """Scan code from i until the unmatched `close` character.
 
@@ -92,7 +111,7 @@ def _scan(src, i, close, edits=None, keep=None, arrays=False):
         if src.startswith('/*', i):
             i = src.index('*/', i) + 2
             continue
-        if c == '/' and _prev_sig(src, i) in REGEX_BEFORE:
+        if c == '/' and _regex_allowed(src, i):
             i = _skip_regex(src, i)
             continue
         if c == close:
@@ -109,11 +128,13 @@ def _scan(src, i, close, edits=None, keep=None, arrays=False):
             if edits is not None:
                 if opener == '(':
                     name_end = i
+                    while name_end > 0 and src[name_end - 1].isspace():
+                        name_end -= 1
                     k = name_end - 1
                     while k >= 0 and IDENT.match(src[k]):
                         k -= 1
                     name = src[k + 1:name_end]
-                    before = src[k] if k >= 0 else ''
+                    before = _prev_sig(src, k + 1)
                     declared = re.search(r'\bfunction\s*$', src[max(0, k - 12):k + 1])
                     spec = PAIR_CALLS.get(name)
                     if spec and before != '.' and not declared and len(inner) == spec[2]:
@@ -138,7 +159,16 @@ def single_language(js, keep, arrays=False):
     """Blank the other language in every bilingual pair of `js`."""
     edits = []
     _scan(js + '\x00', 0, '\x00', edits, keep, arrays)
-    for s, e in sorted(set(edits), reverse=True):
+    # Keep outer edits only. Applying an inner edit first changes the offsets
+    # of an enclosing edit; the entire inner expression is being discarded anyway.
+    outer = []
+    for s, e in sorted(set(edits), key=lambda span: (span[0], -span[1])):
+        if outer and s < outer[-1][1]:
+            if e > outer[-1][1]:
+                raise ValueError('Partially overlapping language edits')
+            continue
+        outer.append((s, e))
+    for s, e in reversed(outer):
         seg = js[s:e]
         if not seg.strip():
             continue

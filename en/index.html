@@ -4,7 +4,7 @@
   © 2026 Dániel Csaplár · csaplar.d@gmail.com
   License: CC BY-NC-SA 4.0 (Attribution · NonCommercial · ShareAlike)
   https://creativecommons.org/licenses/by-nc-sa/4.0/
-  v1.1.2 · last updated: 19 September 2026
+  v1.1.3 · last updated: 19 September 2026
   Hungarian original: https://csaplard.github.io/llm-oktatoanyag/
 -->
 <html lang="en">
@@ -887,7 +887,7 @@ nav#toc .toc-learning { font-size:13px; color:var(--accent); padding-block:7px; 
   <div class="meta-line hero-meta">
     <span>Dániel Csaplár</span>
     <span class="dot">·</span>
-    <span>v1.1.2</span>
+    <span>v1.1.3</span>
     <span class="dot">·</span>
     <span>last updated: 19 September 2026</span>
     <span class="dot">·</span>
@@ -2284,7 +2284,8 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
 <p>This material covers a fast-moving field. The list below is in reverse chronological order, so you can see how current the version you are reading is.</p>
 <dl class="changelog">
   <dt>19 September 2026 — Labels</dt><dd>The navigation, links and example labels now consistently use “Interactive experiments”.</dd>
-  <dt>v1.1.2 — 19 September 2026</dt><dd>Quizzes: the correct answer can no longer be spotted merely by being the longest; the explanations once again say why the right answer is right and why the wrong one is tempting. The learning components are built separately per language, so the English edition carries no Hungarian text, and vice versa. New share card. Your progress is kept.</dd>
+  <dt>v1.1.3 — 19 September 2026</dt><dd>Order-independent quiz explanations; corrected family-relation, SAE, Adam, memory and emergence questions; more beginner-friendly wording. Fixed language-specific builds with new regression coverage. Saved progress is unchanged.</dd>
+  <dt>v1.1.2 — 19 September 2026</dt><dd>Quizzes: length-based clues to the correct answer were substantially reduced; the explanations once again say why the right answer is right and why the wrong one is tempting. The learning components are built separately per language, so the English edition carries no Hungarian text, and vice versa. New share card. Your progress is kept.</dd>
   <dt>v1.1.1 — 19 September 2026</dt><dd>Scientific review: corrected attention/MLP formulas, bfloat16, scaling laws, speculative decoding, KV caching and calibration; revised 28 quiz items. Replaced the scaling sketch with computed curves. See the <a href="https://github.com/csaplard/llm-oktatoanyag/blob/main/SCIENTIFIC_REVIEW.md">review notes</a> for corrections and primary sources. Existing progress is preserved.</dd>
   <dt>v1.1 — 19 September 2026</dt><dd>Fourteen new interactive workshops; worked foundations; a twelve-week practice path with local checklists; free reading and guided learning modes; distinct depth and progress labels; scientific corrections and balanced introductory quiz choices. Both editions remain self-contained and work offline.</dd>
   <dt>v1.0 — 30 August 2026</dt>
@@ -2294,7 +2295,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
 </section>
 <footer class="page-footer">
   <p class="foot-line"><strong>© 2026 Dániel Csaplár</strong> · <a href="mailto:csaplar.d@gmail.com">csaplar.d@gmail.com</a>. This work is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="license noopener noreferrer" target="_blank">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC&nbsp;BY-NC-SA&nbsp;4.0)</a>: credit the author, do not use it commercially, and share any derivative work under the same terms.</p>
-  <p class="foot-line">v1.1.2 · last updated: 19 September 2026 · your progress is stored only in your own browser. · <a href="../" hreflang="hu">Hungarian version</a></p>
+  <p class="foot-line">v1.1.3 · last updated: 19 September 2026 · your progress is stored only in your own browser. · <a href="../" hreflang="hu">Hungarian version</a></p>
 </footer>
 <div class="reset-row">
   <button id="resetProgress" type="button">Reset progress</button>
@@ -2516,7 +2517,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
           { t: 'The embedding table stores a separate row for each meaning, and the model picks the right one from the context.' },
           { t: 'Positional encoding separates the two meanings, because the word sits at a different position in each sentence.' }
         ],
-        why: 'In both sentences the word receives the same row of the embedding table — the starting point is identical. The difference arises in the layers: causal attention reads in the preceding text, and the layers build a context-dependent representation from it. The third answer is tempting because it paints a dictionary-like picture, but the table stores one row per token, not per meaning. One subtlety: text <em>after</em> the token does not retroactively rewrite the state of an earlier position — in a causal model only the past has an effect.'
+        why: 'In both sentences the word receives the same row of the embedding table — the starting point is identical. The difference arises in the layers: causal attention reads in the preceding text, and the layers build a context-dependent representation from it. The answer proposing a separate embedding row per meaning is tempting because it paints a dictionary-like picture, but the table stores one row per token, not per meaning. One subtlety: text <em>after</em> the token does not retroactively rewrite the state of an earlier position — in a causal model only the past has an effect.'
       },
       {
         id: 'emb-tabla',
@@ -2560,7 +2561,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
           { t: 'That the model is undertrained, because in a well-trained model unrelated tokens always have similarity near 0.' },
           { t: 'That the norms of the two vectors differ greatly, and cosine measures that difference.' }
         ],
-        why: 'A number only means something relative to something else. Learned embedding spaces are often anisotropic: the vectors crowd into a narrow cone, so even two completely unrelated tokens can have a high cosine. So 0.7 is not a universal threshold of meaning — the right step is to look at the similarity across many comparable, unrelated pairs and measure against that. How anisotropic a space is depends on the model, the layer and the data. The fourth answer is wrong because cosine is precisely independent of the norm: it measures only the angle.'
+        why: 'A number only means something relative to something else. Learned embedding spaces are often anisotropic: the vectors crowd into a narrow cone, so even two completely unrelated tokens can have a high cosine. So 0.7 is not a universal threshold of meaning — the right step is to look at the similarity across many comparable, unrelated pairs and measure against that. How anisotropic a space is depends on the model, the layer and the data. The answer about vector norms is wrong because cosine is precisely independent of the norm: it measures only the angle.'
       }
     ],
     4: [
@@ -2606,7 +2607,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
           { t: 'Nothing substantial; the scaling is a numerical convenience, since the softmax normalizes the weights to 1 anyway.' },
           { t: 'The causal mask stops working, and the model can see into future tokens as well.' }
         ],
-        why: 'If the components of the query and key are independent, with zero mean and unit variance, then the variance of their dot product is dₕ and its standard deviation √dₕ — so with a large head dimension the scores spread apart. The softmax then concentrates on a single position, saturates, and its gradient is close to zero: the head learns with difficulty. Dividing by √dₕ offsets exactly this dependence on size. The third answer is wrong because normalizing does not repair the ratios — it only scales the sum to 1. It is also true that the actual scale depends on the learned weights and on any QK normalization, so dropping the division does not make learning impossible in every setting.'
+        why: 'If the components of the query and key are independent, with zero mean and unit variance, then the variance of their dot product is dₕ and its standard deviation √dₕ — so with a large head dimension the scores spread apart. The softmax then concentrates on a single position, saturates, and its gradient is close to zero: the head learns with difficulty. Dividing by √dₕ offsets exactly this dependence on size. The answer treating scaling as a mere numerical convenience is wrong because normalizing does not repair the ratios — it only scales the sum to 1. It is also true that the actual scale depends on the learned weights and on any QK normalization, so dropping the division does not make learning impossible in every setting.'
       },
       {
         id: 'trf-sulyok',
@@ -2644,7 +2645,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
           { t: 'Because knowledge is stored not in the MLP but exclusively in the attention heads.' },
           { t: 'Because a neuron always encodes exactly one concept; there are just too many neurons to inspect every one of them.' }
         ],
-        why: 'The key–value reading is exact algebra: in row-vector notation the columns of W_in are the neurons’ input weights (the “keys”) and the rows of W_out the output directions (the “values”). It does not follow, though, that one neuron is one concept. A neuron’s activation can be tied to several unrelated patterns, and a concept can be spread across many neurons. The last answer makes exactly this convenient but wrong assumption. Superposition is one researched explanation for it (8.4); and an SAE dictionary is not automatically the model’s complete, unique list of concepts either.'
+        why: 'The key–value reading is exact algebra: in row-vector notation the columns of W_in are the neurons’ input weights (the “keys”) and the rows of W_out the output directions (the “values”). It does not follow, though, that one neuron is one concept. A neuron’s activation can be tied to several unrelated patterns, and a concept can be spread across many neurons. The one-neuron-per-concept answer makes exactly this convenient but wrong assumption. Superposition is one researched explanation for it (8.4); and an SAE dictionary is not automatically the model’s complete, unique list of concepts either.'
       },
       {
         id: 'out-logit',
@@ -2665,7 +2666,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
           { t: 'Because the context window of any model can be changed freely, regardless of the positional encoding and the training.' },
           { t: 'Because RoPE learned a separate vector in advance for every possible position, all the way up to 32k.' }
         ],
-        why: 'RoPE rotates the query and key vectors by an angle proportional to their position, so for fixed content only the <em>difference</em> of the two positions enters their dot product. That is why rescaling the rotation frequencies or the positions makes sense: the model sees longer distances within the angle range it has already learned. This typically takes little extra training, but it is no guarantee: whether the model actually uses the long context well has to be checked with retrieval and task tests. The third answer promises too much — learned absolute position tables can be extended too, but that needs a separate solution.'
+        why: 'RoPE rotates the query and key vectors by an angle proportional to their position, so for fixed content only the <em>difference</em> of the two positions enters their dot product. That is why rescaling the rotation frequencies or the positions makes sense: the model sees longer distances within the angle range it has already learned. This typically takes little extra training, but it is no guarantee: whether the model actually uses the long context well has to be checked with retrieval and task tests. The answer claiming any context window can be changed freely promises too much — learned absolute position tables can be extended too, but that needs a separate solution.'
       },
       {
         id: 'norm-prenorm',
@@ -2700,7 +2701,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
           { t: 'Because the loss is not differentiable, so the difference method would give a wrong result.' },
           { t: 'Because the direction of the gradient cannot in principle be found by nudging parameters, only its magnitude.' }
         ],
-        why: 'The method described (numerical differentiation) does <em>work</em> in principle — and that is precisely its problem: it works, just hopelessly expensively. The genius of backprop is not in the chain rule, which is school mathematics, but in the <strong>organization</strong>: the long chains of operations between the loss and deep parameters are largely shared, and moving backwards, the gradient at each node needs to be computed only once. Every parameter picks up its own right there, at its own node. That is what turns the cost from “one run per parameter” into “a few runs for the whole thing”.'
+        why: 'The method described (numerical differentiation) does <em>work</em> in principle — and that is precisely its problem: it works, just hopelessly expensively. Backprop applies the chain rule with efficient <strong>organization</strong>: the long chains of operations between the loss and deep parameters are largely shared, and moving backwards, the gradient at each node needs to be computed only once. Every parameter picks up its own right there, at its own node. That is what turns the cost from “one run per parameter” into “a few runs for the whole thing”.'
       },
       {
         id: 'bp-gradiens',
@@ -2750,7 +2751,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
           { t: 'Because a single global learning rate would violate the chain rule in the deep layers.' },
           { t: 'Because this way each parameter can be computed on its own thread, which speeds up training considerably on a GPU.' }
         ],
-        why: 'The gradients of different parameters can differ by orders of magnitude: a tiny step for one coordinate is far too large for another. Adam therefore keeps two moving averages — of the gradient (momentum) and of the squared gradient — applies bias correction, and divides the step for each coordinate by the square root of the second. Parameters that receive rare or small gradients thus still move meaningfully. The second answer is wrong because the direction is not the problem: the gradient points exactly where to go; the trouble is the scale. One misunderstanding is worth guarding against: the steps are not necessarily of unit size — their magnitude is still set by the learning rate and the statistics, so tuning and checking do not go away.'
+        why: 'The gradients of different parameters can differ by orders of magnitude: a tiny step for one coordinate is far too large for another. Adam therefore keeps two moving averages — of the gradient (momentum) and of the squared gradient — applies bias correction, and divides the step for each coordinate by the square root of the second. Parameters that receive rare or small gradients thus still move meaningfully. For minimization, the negative gradient gives a local descent direction for a sufficiently small step. Adam’s update, however, is generally not parallel to the current negative gradient because of momentum and coordinate-wise rescaling. The answer about evening out differences in direction therefore does not describe the method. One misunderstanding is worth guarding against: the steps are not necessarily of unit size — their magnitude is still set by the learning rate and the statistics, so tuning and checking do not go away.'
       },
       {
         id: 'opt-memoria',
@@ -2771,7 +2772,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
         tol: 0.5,
         hint: 'A whole number, in billions of tokens.',
         q: 'By the Chinchilla rule of thumb, compute-optimal training uses roughly 20 tokens per parameter. How many <strong>billion</strong> training tokens does that imply for a 7-billion-parameter model?',
-        why: '7 × 20 = <strong>140</strong> billion tokens. The number itself is simple; what it stands for is the interesting part. According to the Chinchilla analysis, for a given compute budget the parameter count and the token count are best grown at nearly the same rate (the fitted exponents are roughly 0.45 and 0.55) — hence the “~20 tokens per parameter” rule of thumb. Two misunderstandings are worth guarding against. It is not a fifty-fifty split of cost: training compute grows with the <em>product</em> C ≈ 6ND. And it is no universal constant: the actual optimum depends on the fit, the data, and whether later inference cost is taken into account — which is what the next question is about.'
+        why: '7 × 20 = <strong>140</strong> billion tokens. The number itself is simple; what it stands for is the interesting part. According to the Chinchilla analysis, for a given compute budget the parameter count and the token count are best grown at nearly the same rate (the fitted exponents are roughly 0.45 and 0.55) — hence the “~20 tokens per parameter” rule of thumb. Two misunderstandings are worth guarding against. It is not a fifty-fifty split of cost: training compute grows with the <em>product</em> C ≈ 6ND. And it is no universal constant: the actual optimum depends on the fit, the data, and whether later inference cost is taken into account — as explored in the question about inference cost.'
       },
       {
         id: 'scale-inferencia',
@@ -2788,14 +2789,14 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
       {
         id: 'scale-emergencia',
         type: 'choice',
-        q: 'On a benchmark, an ability “appears suddenly” at a certain model size: smaller models score near zero, larger ones do well. What should you check first?',
+        q: 'On a benchmark, an ability “appears suddenly” at a certain model size: smaller models score near zero, larger ones do well. Which property of the measurement can produce such an apparent capability jump?',
         options: [
-          { t: 'Whether a thresholded metric is causing the jump: on a continuous measure many “jumps” disappear.', ok: true },
+          { t: 'A thresholded metric: on a continuous measure many apparent “jumps” disappear.', ok: true },
           { t: 'Nothing — the jump by itself proves that a new internal mechanism has formed in the model.' },
           { t: 'Whether the smaller models were damaged by a training bug that appeared only at the smaller sizes.' },
           { t: 'Whether the benchmark questions appeared word for word in the training data of the larger models.' }
         ],
-        why: 'An apparent jump is often an artifact of measurement: if only a perfect answer counts, a gradually improving ability gives zero for a long time and then crosses the threshold all at once. Viewed on a smooth measure, the same process is continuous. That said, the picture is nuanced — <em>genuine</em> breakpoints have also been documented in loss space, for example the phase transition tied to the formation of induction heads during training (8.3). The right conclusion is therefore not “there is no emergence” but that a jump is not evidence by itself: the metric has to be ruled out as the suspect first.'
+        why: 'An apparent jump is often an artifact of measurement: if only a perfect answer counts, a gradually improving ability gives zero for a long time and then crosses the threshold all at once. Viewed on a smooth measure, the same process is continuous. That said, the picture is nuanced — <em>genuine</em> breakpoints have also been documented in loss space, for example the phase transition tied to the formation of induction heads during training (8.3). The right conclusion is therefore not “there is no emergence” but that a jump is not evidence by itself: the effect of the metric also needs checking. Training-data contamination and training bugs are worth investigating too, but they are other possible causes; this question specifically concerns the effect of the metric.'
       }
     ],
     8: [
@@ -2821,7 +2822,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
           { t: 'The model completely forgets its pretrained knowledge and from then on generates random text.' },
           { t: 'Nothing unusual: the reward score and true quality coincide, and the brake only slows training down.' }
         ],
-        why: 'The reward model is itself a learned estimate of human preference — and like every estimate, it has blind spots. If the policy may maximize it freely, it finds them: confident but empty answers, flattery, artificially long text — the score rises while actual quality falls. This is reward hacking. The KL penalty brakes it: it keeps the policy from drifting too far from the reference model, into regions where the reward model’s estimate is no longer reliable. The last answer makes exactly the assumption that does not hold here. An important limit: reward hacking can occur with a KL term too, so quality must always be checked with an independent measure, not with the reward score.'
+        why: 'The reward model is itself a learned estimate of human preference — and like every estimate, it has blind spots. If the policy may maximize it freely, it finds them: confident but empty answers, flattery, artificially long text — the score rises while actual quality falls. This is reward hacking. The KL penalty brakes it: it keeps the policy from drifting too far from the reference model, into regions where the reward model’s estimate is no longer reliable. The answer equating the reward score with true quality makes exactly the assumption that does not hold here. An important limit: reward hacking can occur with a KL term too, so quality must always be checked with an independent measure, not with the reward score.'
       },
       {
         id: 'al-bradley',
@@ -2841,7 +2842,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
           { t: 'Because DPO uses no reference model, so there is nothing to compare the two answers’ probabilities with.' },
           { t: 'Because in DPO the KL brake penalizes the winning answers too.' }
         ],
-        why: 'DPO does not raise the probability of the winning answer; it raises a <em>difference</em>: the difference between the winner’s and the loser’s log-probability ratio relative to the reference. That difference can grow while the loser drops a lot and the winner drops a little too — the loss falls, and meanwhile both absolute probabilities have gone down. The first wrong answer is tempting because the name (“preference optimization”) suggests exactly that. The lesson is practical: a falling preference loss does not by itself show that the model improved, so answer quality, length bias and generalization have to be measured separately.'
+        why: 'DPO does not raise the probability of the winning answer; it raises a <em>difference</em>: the difference between the winner’s and the loser’s log-probability ratio relative to the reference. That difference can grow while the loser drops a lot and the winner drops a little too — the loss falls, and meanwhile both absolute probabilities have gone down. The answer claiming the winner’s probability must increase is tempting because the name (“preference optimization”) suggests exactly that. The lesson is practical: a falling preference loss does not by itself show that the model improved, so answer quality, length bias and generalization have to be measured separately.'
       },
       {
         id: 'al-kalibracio',
@@ -2853,7 +2854,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
           { t: 'Yes, provided the temperature is exactly 1, because then the probabilities are unbiased.' },
           { t: 'No, because the model’s token probabilities are equal at every position.' }
         ],
-        why: 'The 70% concerns how likely this <em>piece of text</em> is at this point — not whether the sentence it sits in is true. A claim consists of many tokens, and the same true content can be phrased in many ways, so there is no direct conversion between the two. Calibration of correctness is a separate question: it asks how often answers given with a certain confidence turn out to be right on a defined test. That depends on the model, the task and the prompt, and post-training can improve or worsen it. The third answer is tempting because T = 1 really is the “raw” distribution — but it remains a token distribution. And confident phrasing is evidence of neither.'
+        why: 'The 70% concerns how likely this <em>piece of text</em> is at this point — not whether the sentence it sits in is true. A claim consists of many tokens, and the same true content can be phrased in many ways, so there is no direct conversion between the two. Calibration of correctness is a separate question: it asks how often answers given with a certain confidence turn out to be right on a defined test. That depends on the model, the task and the prompt, and post-training can improve or worsen it. The answer relying on T = 1 is tempting because T = 1 really is the “raw” distribution — but it remains a token distribution. And confident phrasing is evidence of neither.'
       }
     ],
     9: [
@@ -2879,7 +2880,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
           { t: 'The cache keeps a complete copy of the model weights for every layer separately, for faster access.' },
           { t: 'The cache stores the generated text in tokenized form, which grows enormous in a long conversation.' }
         ],
-        why: 'The KV cache is a trade: it takes the per-step cost from quadratic to linear in sequence length, and demands memory in return. How much is visible from its structure — layers × heads × tokens so far × head dimension × 2 (key and value) — so every new token adds a fixed amount. The second answer is tempting because the T×T score matrix really is quadratic; but we do not store it: it comes into being and disappears in the course of the computation. This linear growth is the central constraint in designing serving systems — hence PagedAttention\u2019s page management, KV-cache quantization, and GQA, which works with fewer key/value heads in the first place.'
+        why: 'The KV cache is a trade: it takes the per-step cost from quadratic to linear in sequence length, and demands memory in return. How much is visible from its structure — layers × heads × tokens so far × head dimension × 2 (key and value) — so every new token adds a fixed amount. The answer proposing storage of the full attention matrix is tempting because the T×T score matrix really is quadratic; but we do not store it: it comes into being and disappears in the course of the computation. This linear growth is the central constraint in designing serving systems — hence PagedAttention\u2019s page management, KV-cache quantization, and GQA, which works with fewer key/value heads in the first place.'
       },
       {
         id: 'inf-spekulativ',
@@ -2911,7 +2912,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
           { t: 'Because the model’s probabilities are not accurate enough to locate the maximum in them reliably.' },
           { t: 'Because the most probable continuation would always copy the training data word for word.' }
         ],
-        why: 'The model learned what a <em>probable</em> continuation is, not what a <em>good</em> one is. On an open-ended text task the two can come apart: safe, generic, even repetitive sentences often get high probability because they fit in many places — while saying little. That is why the most probable continuation can be dull or go round in circles. The second answer is tempting because search cost is a real problem, but its premise is wrong: even the global maximum is not necessarily the best text. The lesson is not that greedy or beam search is bad — on closed, unambiguous tasks it can work very well — but that decoding must always be judged against the task. Top-p and temperature do not guarantee a true or useful answer either.'
+        why: 'The model learned what a <em>probable</em> continuation is, not what a <em>good</em> one is. On an open-ended text task the two can come apart: safe, generic, even repetitive sentences often get high probability because they fit in many places — while saying little. That is why the most probable continuation can be dull or go round in circles. The answer about search cost is tempting because search cost is a real problem, but its premise is wrong: even the global maximum is not necessarily the best text. The lesson is not that greedy or beam search is bad — on closed, unambiguous tasks it can work very well — but that decoding must always be judged against the task. Top-p and temperature do not guarantee a true or useful answer either.'
       }
     ],
     10: [
@@ -2983,7 +2984,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
           { t: 'When the model is deep enough, because later layers always filter out the interference of earlier ones.' },
           { t: 'When features are active evenly and continuously, because the noise then averages out.' }
         ],
-        why: 'Superposition is a bargain, and sparsity is what tips it in favor. If many features were active at once, the overlapping directions would constantly talk into one another and the noise would eat the gain — which is exactly why the fourth answer is wrong, however reassuring “averages out” sounds. With sparse activation, collisions are rare events while the reconstruction gain is continuous. Neurons are therefore not polysemantic out of inertia: superposition is a <em>learned compression strategy</em>, one that optimization finds because it pays.'
+        why: 'Superposition is a bargain, and sparsity is what tips it in favor. If many features were active at once, the overlapping directions would constantly talk into one another and the noise would eat the gain — which is exactly why the answer claiming interference averages out under continuous activation is wrong, however reassuring “averages out” sounds. With sparse activation, collisions are rare events while the reconstruction gain is continuous. Neurons are therefore not polysemantic out of inertia: superposition is a <em>learned compression strategy</em>, one that optimization finds because it pays.'
       },
       {
         id: 'sae-szotar',
@@ -3015,7 +3016,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
           { t: 'That the feature corresponds to exactly one neuron, which can be examined directly.' },
           { t: 'That its reconstruction error is zero, so the feature is proven to be a real, internal variable of the model.' }
         ],
-        why: 'This is the methodological backbone of mech interp: seeing a correlation is not enough, the role has to be demonstrated by causal intervention. For a feature this means that if we amplify it, behavior moves in the expected direction — the famous demo, “Golden Gate Claude”, steered every conversation to the bridge. The fourth answer is wrong because the reconstruction is precisely <em>never</em> perfect: the residual (“dark matter”) is a known limitation of the method, as are feature splitting and seed dependence. Features are therefore useful and experimentally verifiable approximations — not proven to be the model\u2019s “true” variables.'
+        why: 'This is the methodological backbone of mech interp: seeing a correlation is not enough, the role has to be demonstrated by causal intervention. For a feature this means that if we amplify it, behavior moves in the expected direction — the famous demo, “Golden Gate Claude”, steered every conversation to the bridge. In practice, reconstruction error typically remains; feature splitting and seed dependence are further limitations. The zero-error answer is wrong for a deeper reason: even perfect reconstruction would not establish that the dictionary entries are the model’s unique, true concepts. A causal intervention supports a feature’s role, not the exclusive correctness of its human label. Features are therefore useful and experimentally verifiable approximations — not proven to be the model\u2019s “true” variables.'
       },
       {
         id: 'mi-huseg',
@@ -3027,7 +3028,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
           { t: 'Because the reasoning is always just a rephrasing of the answer after the fact and never does real computation.' },
           { t: 'Because sampling makes the reasoning different on every run, so no method can analyse it.' }
         ],
-        why: '“Unfaithful CoT” is one of interpretability\u2019s main justifications. In experiments a hint was hidden in the prompt, the model used it, and its written reasoning never mentioned it — the report is therefore not a lie in the human sense, it simply is not a log of the computation. The third answer is wrong because it claims too much: the chain of thought often does <em>real</em> work, since the written intermediate steps go back into the input (stage 1). The right conclusion is that self-report does not substitute for an audit of the internal computation — and that is exactly what attribution graphs promise, catching such cases experimentally.'
+        why: '“Unfaithful CoT” is one of interpretability\u2019s main justifications. In experiments a hint was hidden in the prompt, the model used it, and its written reasoning never mentioned it — the report is therefore not a lie in the human sense, it simply is not a log of the computation. The answer treating reasoning as always a retrospective rephrasing is wrong because it claims too much: the chain of thought often does <em>real</em> work, since the written intermediate steps go back into the input (stage 1). The right conclusion is that self-report does not substitute for an audit of the internal computation — and that is exactly what attribution graphs promise, catching such cases experimentally.'
       }
     ],
     12: [
@@ -3041,7 +3042,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
           { t: 'The model temporarily modifies its weights during the conversation and restores them when the conversation ends.' },
           { t: 'The examples in the prompt retune the tokenizer for the task at hand, with new merge rules.' }
         ],
-        why: 'The source of the ability is architectural: attention is the only place where positions of the same sequence can exchange information, and it does so <em>at runtime</em>, without any weight update. The second answer is tempting, because the induction-head result (a strong co-occurrence between the formation of those heads and the abrupt appearance of the ability) reads easily as a complete explanation. The current picture is more nuanced, however: copying heads, MLP layers carrying task and format representations, and considerably more complex attention patterns take part as well. The induction circuit is the best <em>understood</em> component — which is not the same as the only one.'
+        why: 'The source of the ability is architectural: attention is the only place where positions of the same sequence can exchange information, and it does so <em>at runtime</em>, without any weight update. The answer attributing all in-context learning to induction heads is tempting, because the induction-head result (a strong co-occurrence between the formation of those heads and the abrupt appearance of the ability) reads easily as a complete explanation. The current picture is more nuanced, however: copying heads, MLP layers carrying task and format representations, and considerably more complex attention patterns take part as well. The induction circuit is the best <em>understood</em> component — which is not the same as the only one.'
       },
       {
         id: 'cap-cot',
@@ -3054,7 +3055,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
       {
         id: 'cap-reversal',
         type: 'choice',
-        q: 'The model knows that “X\u2019s parent is Y”, but does not answer the question “Whose child is Y?” correctly. What is the mechanical cause?',
+        q: 'The model knows that “X\u2019s parent is Y”, but does not answer the question “Who is Y’s child?” correctly. What is the mechanical cause?',
         options: [
           { t: 'A fact learned in one direction does not guarantee recall in the reverse; this depends on data and task.', ok: true },
           { t: 'The model can only reproduce sentences that appeared word for word in the training data, nothing else.' },
@@ -3073,7 +3074,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
           { t: 'Because the tokens of “I don’t know” are rare in the vocabulary, so the model finds them hard to generate.' },
           { t: 'Because uncertainty only shows up at inference time and cannot be measured in any way during training.' }
         ],
-        why: 'Think of an exam-taker’s strategy: if a blank answer scores the same as a wrong guess, guessing is never worse and sometimes better. If a model’s evaluation is built that way, it learns confident guessing — not out of malfunction but out of obedience. This is not the rule of every benchmark or preference dataset, but it is common. A one-sentence instruction does not change it, because it would presuppose three separate abilities: recognizing uncertainty, communicating it, and checking the answer. The second answer is wrong because models do carry a measurable uncertainty signal — the trouble is not its absence but that training does not reward taking it into account.'
+        why: 'Think of an exam-taker’s strategy: if a blank answer scores the same as a wrong guess, guessing is never worse and sometimes better. If a model’s evaluation is built that way, it learns confident guessing — not out of malfunction but out of obedience. This is not the rule of every benchmark or preference dataset, but it is common. A one-sentence instruction does not change it, because it would presuppose three separate abilities: recognizing uncertainty, communicating it, and checking the answer. The answer claiming self-assessment is impossible in principle is wrong because models do carry a measurable uncertainty signal — the trouble is not its absence but that training does not reward taking it into account.'
       },
       {
         id: 'cap-mentalis',
@@ -3085,7 +3086,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
           { t: 'Where the question touches a completely unfamiliar topic, because then the model has no answer at all.' },
           { t: 'Where the answer is long, because more errors accumulate in long answers.' }
         ],
-        why: 'The dangerous error is not the visible one. If an answer is muddled, the reader doubts it anyway. The risk is greatest where the <em>form</em> is flawless — confident, fluent, professional-sounding, perhaps with a citation — while the fact or calculation in it has not been checked. There, the form itself makes the error hard to notice. The third answer is wrong because the model does answer on unfamiliar topics — often just as fluently. Rare content really is a risk, but not every such answer is wrong, and errors happen on common topics too. The practical recipe is therefore simple: for an important claim, check the source or the calculation; do not infer reliability from style.'
+        why: 'The dangerous error is not the visible one. If an answer is muddled, the reader doubts it anyway. The risk is greatest where the <em>form</em> is flawless — confident, fluent, professional-sounding, perhaps with a citation — while the fact or calculation in it has not been checked. There, the form itself makes the error hard to notice. The answer claiming the model has no answer on unfamiliar topics is wrong because the model does answer on unfamiliar topics — often just as fluently. Rare content really is a risk, but not every such answer is wrong, and errors happen on common topics too. The practical recipe is therefore simple: for an important claim, check the source or the calculation; do not infer reliability from style.'
       }
     ]
   };

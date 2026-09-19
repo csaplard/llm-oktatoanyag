@@ -30,3 +30,14 @@ test('Revised bilingual quizzes retain IDs, one correct option and consistent nu
   }
  }
 });
+
+test('Quiz explanations identify shuffled choices by content, not position',()=>{
+ const positional=/(?:első|második|harmadik|negyedik|utolsó)\s+(?:rossz\s+)?válasz|\b(?:first|second|third|fourth|last)\s+(?:wrong\s+)?answer\b/iu;
+ for(const file of ['index.html','en/index.html']) {
+  for(const q of Object.values(quizzes(file)).flat()) {
+   const explanation=q.why.replace(/<[^>]*>/g,' ');
+   assert.doesNotMatch(explanation,positional,file+': '+q.id);
+   assert.doesNotMatch(explanation,/következő kérdés|\bnext question\b/iu,file+': '+q.id);
+  }
+ }
+});

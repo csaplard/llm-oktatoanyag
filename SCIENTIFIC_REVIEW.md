@@ -70,3 +70,13 @@ Sources checked on 2026-09-19. Original research is used to verify foundational 
 - Nem futott valódi LLM-tanítás, teljesítménybenchmark vagy SAE-kutatás. A laborok determinisztikus oktatási modellek; a működésük nem bizonyítja egy nagy modell konkrét belső mechanizmusát.
 
 Numerical regressions cover causal masking, softmax normalization, finite-difference gradients, RoPE shift invariance, KV-cache units and the toy DPO derivative. DOM checks exercise both editions, lab control bounds and saved progress. Quiz checks cover IDs, unique correct choices and numerical keys. No real LLM training, performance benchmark or SAE research experiment was conducted; the labs are deterministic teaching models.
+
+## Utóellenőrzés / Follow-up review — v1.1.3 (2026-09-19)
+
+A korábbi áttekintés nem talált meg minden hibát. A SAE-kvízben v1.0 óta megmaradt a „sosem tökéletes” rekonstrukció állítása: ezt most „a gyakorlatban jellemzően marad rekonstrukciós hiba” váltja fel. Még nulla rekonstrukciós hiba sem bizonyítja a felbontás egyediségét vagy az emberi címkék kizárólagos helyességét. Az angol fordított rokonsági kérdés most Y gyermekét keresi. Az Adam-magyarázat különválasztja a negatív gradiens helyi csökkenési irányát és a momentumos, koordinátánként átskálázott frissítést. A memóriakvíz már nem minősíti tévesnek a vegyes pontosságnál lehetséges nagyobb gradiensmemóriát. Az emergenciakérdés kifejezetten a mérőszám hatását kérdezi; a szennyezettség vizsgálatának indokoltságát nem vitatja.
+
+The earlier review missed some errors. The SAE quiz had retained the “never perfect” reconstruction claim since v1.0; it now describes typical practical reconstruction error and explains that even zero error cannot establish a unique decomposition or uniquely correct human labels. The English inverse-family question now asks for Y's child. The Adam explanation distinguishes the negative gradient's local descent direction from a momentum-based, coordinate-wise rescaled update. The memory quiz no longer marks larger gradient storage, possible in mixed precision, as false. The emergence question explicitly asks about the metric; checking contamination remains valid.
+
+A kevert válaszok sorszámára hivatkozó magyarázatokat mindkét nyelven tartalmi hivatkozások váltották fel. Ezek a hibák már korábbi kiadásokban is előfordultak. / Explanations in both languages now identify shuffled choices by content rather than position. These errors also occurred in earlier releases.
+
+Források / Sources: [Adam](https://arxiv.org/abs/1412.6980), [SAE evaluation](https://arxiv.org/abs/2406.04093), [Reversal Curse](https://arxiv.org/abs/2309.12288).
