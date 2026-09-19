@@ -1,5 +1,10 @@
 # Változásnapló / Changelog
 
+## 2026-09-19 — Elnevezések / Labels
+
+- Az interaktív példák neve a menüben, a hivatkozásokban és a feliratokon: **Interaktív kísérletek**.
+- English navigation, links and example labels now use **Interactive experiments**.
+
 ## v1.1.1 — 2026-09-19
 
 ### Magyar

@@ -16,9 +16,9 @@ all chapters without granting quiz credit. Guided learning unlocks the next
 stage after four correct answers out of five. Both modes preserve existing quiz
 results. Explanations appear for correct and incorrect answers alike.
 
-Version 1.1 adds **14 interactive workshops**, worked mathematical foundations
+Version 1.1 adds **14 interactive experiments**, worked mathematical foundations
 and a **12-week practice path** with local checklists. The original temperature
-demo remains available too. The workshops calculate actual results in your
+demo remains available too. The experiments calculate actual results in your
 browser; hand-built teaching models are explicitly distinguished from measured
 LLM behavior.
 
@@ -90,7 +90,7 @@ sees your quiz results.
 - Authoring modules live in `src/`; `python3 scripts/build.py` regenerates the
   marked inline blocks in both editions. Original editorial content remains
   directly editable in each HTML file.
-- 13 original SVG figures plus 14 new interactive workshops, with no external
+- 13 original SVG figures plus 14 new interactive experiments, with no external
   image dependencies.
 - Light and dark mode with separately designed palettes (dark is not an inversion
   of light). Default: light.
@@ -109,14 +109,14 @@ English — BPE vocabulary building uses `play / playful / playtime`, polysemy u
 (bird or lifting machine). The geometry of the figures is identical in both
 editions.
 
-## Workshops
+## Experiments
 
 BPE merge steps · vector direction and length · matrix transformations · softmax
 and entropy · causal attention · gradient descent · scalar backpropagation ·
 residual addition · LayerNorm/RMSNorm · RoPE · KV-cache memory · superposition ·
 activation patching · binary preference training.
 
-Each workshop includes labeled keyboard-operable controls, calculated values,
+Each experiment includes labeled keyboard-operable controls, calculated values,
 a reset button, a challenge and an explanation of the example’s assumptions.
 
 ## Development and verification
@@ -129,7 +129,7 @@ npm test
 
 Node is needed only for development tests; Python 3 builds the self-contained
 HTML editions. The tests check mathematical invariants and finite-difference
-gradients, every workshop control at its bounds in both languages, free/guided
+gradients, every experiment control at its bounds in both languages, free/guided
 reading behavior, progress preservation, local-storage failure, links and
 bundled-source consistency. DOM tests do not replace browser visual checks.
 

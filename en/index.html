@@ -2284,6 +2284,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
 <h2>Changelog</h2>
 <p>This material covers a fast-moving field. The list below is in reverse chronological order, so you can see how current the version you are reading is.</p>
 <dl class="changelog">
+  <dt>19 September 2026 — Labels</dt><dd>The navigation, links and example labels now consistently use “Interactive experiments”.</dd>
   <dt>v1.1.1 — 19 September 2026</dt><dd>Scientific review: corrected attention/MLP formulas, bfloat16, scaling laws, speculative decoding, KV caching and calibration; revised 28 quiz items. Replaced the scaling sketch with computed curves. See the <a href="https://github.com/csaplard/llm-oktatoanyag/blob/main/SCIENTIFIC_REVIEW.md">review notes</a> for corrections and primary sources. Existing progress is preserved.</dd>
   <dt>v1.1 — 19 September 2026</dt><dd>Fourteen new interactive workshops; worked foundations; a twelve-week practice path with local checklists; free reading and guided learning modes; distinct depth and progress labels; scientific corrections and balanced introductory quiz choices. Both editions remain self-contained and work offline.</dd>
   <dt>v1.0 — 30 August 2026</dt>
@@ -3625,7 +3626,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
     var card = document.createElement('figure');
     card.className = 'learning-lab'; card.id = 'lab-' + spec.id;
     card.setAttribute('aria-labelledby', card.id + '-title');
-    card.innerHTML = '<figcaption><span class="lab-kicker">' + t({hu:'Interaktív műhely',en:'Interactive workshop'}) + '</span><h4 id="' + card.id + '-title">' + esc(t(spec.title)) + '</h4><p>' + esc(t(spec.intro)) + '</p></figcaption><div class="lab-controls"></div><div class="lab-result" aria-live="off"></div><p class="lab-challenge"><strong>' + t({hu:'Próbáld ki: ',en:'Try it: '}) + '</strong>' + esc(t(spec.challenge)) + '</p><details class="lab-boundary"><summary>' + t({hu:'Mit mutat ez a példa?',en:'What does this example show?'}) + '</summary><p>' + esc(t(spec.limitation)) + '</p></details><div class="lab-actions"><button type="button" class="lab-reset">' + t({hu:'Alaphelyzet',en:'Reset example'}) + '</button><a href="#lab-directory">' + t({hu:'Összes műhely ↑',en:'All workshops ↑'}) + '</a></div>';
+    card.innerHTML = '<figcaption><span class="lab-kicker">' + t({hu:'Interaktív kísérlet',en:'Interactive experiment'}) + '</span><h4 id="' + card.id + '-title">' + esc(t(spec.title)) + '</h4><p>' + esc(t(spec.intro)) + '</p></figcaption><div class="lab-controls"></div><div class="lab-result" aria-live="off"></div><p class="lab-challenge"><strong>' + t({hu:'Próbáld ki: ',en:'Try it: '}) + '</strong>' + esc(t(spec.challenge)) + '</p><details class="lab-boundary"><summary>' + t({hu:'Mit mutat ez a példa?',en:'What does this example show?'}) + '</summary><p>' + esc(t(spec.limitation)) + '</p></details><div class="lab-actions"><button type="button" class="lab-reset">' + t({hu:'Alaphelyzet',en:'Reset example'}) + '</button><a href="#lab-directory">' + t({hu:'Összes kísérlet ↑',en:'All experiments ↑'}) + '</a></div>';
     var state = {}, inputs = {}, outputs = {};
     var controls = card.querySelector('.lab-controls');
     spec.controls.forEach(function (c) {
@@ -3687,13 +3688,13 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
   function addReadingControls() {
     var hero = document.querySelector('.hero');
     var box = document.createElement('div'); box.className = 'reading-tools';
-    box.innerHTML = '<label for="reading-mode">' + t({hu:'Olvasási mód',en:'Reading mode'}) + '</label><select id="reading-mode"><option value="free">' + t({hu:'Szabad olvasás · minden fejezet elérhető',en:'Free reading · all chapters available'}) + '</option><option value="guided">' + t({hu:'Vezetett tanulás · kvízekkel lépésenként',en:'Guided learning · unlock with quizzes'}) + '</option></select><p id="reading-mode-note">' + t({hu:'A kvízeredményeket mindkét módban megőrizzük. A szabad olvasás nem jelöl teljesítettnek semmit.',en:'Quiz results are kept in both modes. Free reading does not mark anything as completed.'}) + '</p><div class="reading-shortcuts"><a href="#alapok">' + t({hu:'Alapozó segítség',en:'Foundation help'}) + '</a><a href="#lab-directory">' + t({hu:'14 interaktív műhely',en:'14 interactive workshops'}) + '</a><a href="#tanulasi-ut">' + t({hu:'12 hetes útvonal',en:'12-week path'}) + '</a></div>';
+    box.innerHTML = '<label for="reading-mode">' + t({hu:'Olvasási mód',en:'Reading mode'}) + '</label><select id="reading-mode"><option value="free">' + t({hu:'Szabad olvasás · minden fejezet elérhető',en:'Free reading · all chapters available'}) + '</option><option value="guided">' + t({hu:'Vezetett tanulás · kvízekkel lépésenként',en:'Guided learning · unlock with quizzes'}) + '</option></select><p id="reading-mode-note">' + t({hu:'A kvízeredményeket mindkét módban megőrizzük. A szabad olvasás nem jelöl teljesítettnek semmit.',en:'Quiz results are kept in both modes. Free reading does not mark anything as completed.'}) + '</p><div class="reading-shortcuts"><a href="#alapok">' + t({hu:'Alapozó segítség',en:'Foundation help'}) + '</a><a href="#lab-directory">' + t({hu:'14 interaktív kísérlet',en:'14 interactive experiments'}) + '</a><a href="#tanulasi-ut">' + t({hu:'12 hetes útvonal',en:'12-week path'}) + '</a></div>';
     hero.appendChild(box);
     var select = box.querySelector('select'); select.setAttribute('aria-describedby','reading-mode-note');
     select.value = window.KatedraProgress ? window.KatedraProgress.mode() : 'free';
     select.addEventListener('change', function () { if (window.KatedraProgress) window.KatedraProgress.setMode(select.value); });
     var toc = document.getElementById('toc'), first = toc.querySelector('a');
-    [{id:'alapok',hu:'Alapozó segítség',en:'Foundation help'},{id:'lab-directory',hu:'Interaktív műhelyek',en:'Interactive workshops'},{id:'tanulasi-ut',hu:'12 hetes útvonal',en:'12-week path'}].forEach(function (entry) {
+    [{id:'alapok',hu:'Alapozó segítség',en:'Foundation help'},{id:'lab-directory',hu:'Interaktív kísérletek',en:'Interactive experiments'},{id:'tanulasi-ut',hu:'12 hetes útvonal',en:'12-week path'}].forEach(function (entry) {
       var a = document.createElement('a'); a.href = '#' + entry.id; a.className = 'toc-learning'; a.textContent = t(entry); toc.insertBefore(a, first);
     });
   }
@@ -4548,7 +4549,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
         t('6. nap: állítsd össze a heti eredményt, és magyarázd el jegyzet nélkül. A hiányzó részhez térj vissza.', 'Day 6: assemble the week’s deliverable and explain it without notes. Revisit anything missing.')].map(function (day) { return '<li>' + day + '</li>'; }).join('') + '</ol></details>' +
       '<p id="learn-progress" class="learn-status" role="status" aria-live="polite"></p><p id="learn-storage" class="learn-storage"></p>' +
       '<div class="learn-weeks">' + weeks.map(renderWeek).join('') + '</div></section>' +
-      '<section id="lab-directory" class="learn-section"><h2>' + t('Interaktív ábrák és kísérletek', 'Interactive diagrams and experiments') + '</h2><p>' + t('Előbb jósolj, aztán módosíts egy változót. Figyeld a számokat is az ábra mellett: egy szemléletes kép önmagában nem bizonyítja, hogyan működik egy valódi modell.', 'Make a prediction, then change one variable. Inspect the numbers alongside the diagram: a compelling picture alone does not establish how a real model works.') + '</p><div class="learn-lab-links" data-lab-links></div></section>';
+      '<section id="lab-directory" class="learn-section"><h2>' + t('Interaktív kísérletek', 'Interactive experiments') + '</h2><p>' + t('Előbb jósolj, aztán módosíts egy változót. Figyeld a számokat is az ábra mellett: egy szemléletes kép önmagában nem bizonyítja, hogyan működik egy valódi modell.', 'Make a prediction, then change one variable. Inspect the numbers alongside the diagram: a compelling picture alone does not establish how a real model works.') + '</p><div class="learn-lab-links" data-lab-links></div></section>';
     first.parentNode.insertBefore(container, first);
     container.addEventListener('change', function (event) {
       var el = event.target;

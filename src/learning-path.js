@@ -283,7 +283,7 @@
         t('6. nap: állítsd össze a heti eredményt, és magyarázd el jegyzet nélkül. A hiányzó részhez térj vissza.', 'Day 6: assemble the week’s deliverable and explain it without notes. Revisit anything missing.')].map(function (day) { return '<li>' + day + '</li>'; }).join('') + '</ol></details>' +
       '<p id="learn-progress" class="learn-status" role="status" aria-live="polite"></p><p id="learn-storage" class="learn-storage"></p>' +
       '<div class="learn-weeks">' + weeks.map(renderWeek).join('') + '</div></section>' +
-      '<section id="lab-directory" class="learn-section"><h2>' + t('Interaktív ábrák és kísérletek', 'Interactive diagrams and experiments') + '</h2><p>' + t('Előbb jósolj, aztán módosíts egy változót. Figyeld a számokat is az ábra mellett: egy szemléletes kép önmagában nem bizonyítja, hogyan működik egy valódi modell.', 'Make a prediction, then change one variable. Inspect the numbers alongside the diagram: a compelling picture alone does not establish how a real model works.') + '</p><div class="learn-lab-links" data-lab-links></div></section>';
+      '<section id="lab-directory" class="learn-section"><h2>' + t('Interaktív kísérletek', 'Interactive experiments') + '</h2><p>' + t('Előbb jósolj, aztán módosíts egy változót. Figyeld a számokat is az ábra mellett: egy szemléletes kép önmagában nem bizonyítja, hogyan működik egy valódi modell.', 'Make a prediction, then change one variable. Inspect the numbers alongside the diagram: a compelling picture alone does not establish how a real model works.') + '</p><div class="learn-lab-links" data-lab-links></div></section>';
     first.parentNode.insertBefore(container, first);
     container.addEventListener('change', function (event) {
       var el = event.target;
