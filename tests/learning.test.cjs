@@ -92,11 +92,26 @@ for (const file of ['index.html','en/index.html']) {
     }
   });
 }
-test('Both published HTML files contain the current component sources',()=>{
-  const modules=['labs-core.js','labs-foundations.js','labs-advanced.js','learning-path.js'];
-  for(const file of ['index.html','en/index.html']) {
-    const html=fs.readFileSync(file,'utf8');
-    for(const name of modules) assert.ok(html.includes(fs.readFileSync('src/'+name,'utf8')),file+' includes '+name);
-    assert.ok(html.includes(fs.readFileSync('src/learning.css','utf8')));
+test('Both published HTML files are built from the current component sources',()=>{
+  // Each edition carries only its own language, so the sources are no longer
+  // embedded verbatim; the build script itself decides whether the output is stale.
+  const {spawnSync}=require('node:child_process');
+  let run;
+  for(const python of ['python3','python']) {
+    run=spawnSync(python,['scripts/build.py','--check'],{encoding:'utf8'});
+    if(!run.error) break;
   }
+  assert.ok(!run.error,'Python is available to verify the build');
+  // The check covers the stylesheet too, independent of the checkout's line endings.
+  assert.equal(run.status,0,run.stdout+run.stderr);
+});
+
+test('Each edition ships only its own language in the component bundle',()=>{
+  const bundle=file=>{const h=fs.readFileSync(file,'utf8');return h.slice(h.indexOf('<!-- LEARNING-JS:START -->'),h.indexOf('<!-- LEARNING-JS:END -->'));};
+  // The optional Hungarian example corpus of the BPE lab is deliberate data, not interface text.
+  const en=bundle('en/index.html').replace(/garden: \[\[.*?\]\],/,'');
+  assert.doesNotMatch(en,/[őűáéíóöúüŐŰÁÉÍÓÖÚÜ]/,'no Hungarian text in the English bundle');
+  const hu=bundle('index.html');
+  for(const phrase of ['Try it yourself','Worked example','By the end of the week','Reading mode'])
+    assert.ok(!hu.includes(phrase),'no English interface text in the Hungarian bundle: '+phrase);
 });

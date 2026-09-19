@@ -1,5 +1,25 @@
 # Változásnapló / Changelog
 
+## v1.1.2 — 2026-09-19
+
+### Magyar
+
+- A kvízekben a helyes válasz többé nem ismerhető fel a hosszáról. Korábban a 48 feleletválasztós kérdésből 38-ban a helyes volt a leghosszabb; most 7-ben (az angolban 10-ben), ami a véletlen szint alatt van. A számkulcsok és a kérdésazonosítók nem változtak, a haladás megmarad.
+- A v1.1.1-ben tömörre vágott magyarázatok ismét tanítanak: elmondják, miért helyes a helyes válasz, és miért csábító a rossz. A szakmai javítások tartalma változatlan.
+- Egy pontatlanság, amely a v1.1.1 saját felülvizsgálatával ellentétes volt: a pre-norm kvízválasza még azt állította, hogy a mély modellek „warmup-trükkök nélkül is stabilan tanulnak”. Most: jellemzően stabilabban, garancia nélkül.
+- A build nyelvenként külön csomagolja a tanulási elemeket: a magyar kiadásba csak magyar, az angolba csak angol szöveg kerül. A kétnyelvű forrás változatlan.
+- A `scripts/build.py` Windowson is fut (explicit UTF-8), és van `--check` módja, amelyet a teszt is használ.
+- Új megosztókártya az aktuális szóhasználattal; a „Katedra” felirat kikerült a látható szövegből és a megosztási metaadatokból.
+
+### English
+
+- The correct quiz answer can no longer be identified by its length. Previously it was the longest option in 38 of 48 multiple-choice questions; now in 7 (Hungarian) and 10 (English), below chance level. Numeric keys and question IDs are unchanged; progress is kept.
+- Explanations shortened in v1.1.1 teach again: they say why the right answer is right and why the wrong one is tempting. The substance of the scientific corrections is unchanged.
+- Fixed a leftover that contradicted v1.1.1’s own review: the pre-norm answer still claimed deep models “train stably without warmup tricks”. Now: typically more stably, with no guarantee.
+- The build bundles the learning components per language, so each edition carries only its own language. The bilingual sources are unchanged.
+- `scripts/build.py` runs on Windows (explicit UTF-8) and has a `--check` mode, used by the test suite.
+- New share cards with current wording; the “Katedra” label is gone from visible text and share metadata.
+
 ## 2026-09-19 — Elnevezések / Labels
 
 - Az interaktív példák neve a menüben, a hivatkozásokban és a feliratokon: **Interaktív kísérletek**.
@@ -34,7 +54,7 @@
 - A zárókvíz teljesítése önmagában többé nem jelenti a teljes kurzus elvégzését.
 - Pontosított magyarázatok a tokenizálásról, linearitásról, logitokról és valószínűségekről, embeddingekről, reziduális kapcsolatokról és interpretálhatóságról. Kiegyensúlyozottabb bevezető kvízválaszok.
 - Magyar és angol kiadás, önálló HTML-fájlokba épített gyakorlatokkal. Az egyszerűsített szemléltető modellek korlátai külön olvashatók.
-- A Katedra arculatához illeszkedő világos és sötét megjelenés, mobilon görgethető széles ábrák és billentyűzettel kezelhető vezérlők.
+- Az oldal palettájához illeszkedő világos és sötét megjelenés, mobilon görgethető széles ábrák és billentyűzettel kezelhető vezérlők.
 - 22 sikeres automatizált teszt a numerikus számításokra, interakciókra, haladáskezelésre és hibás vagy nem elérhető helyi tárolóra.
 
 ### English
@@ -48,6 +68,6 @@
 
 ## v1.0 — 2026-08-30
 
-Első nyilvános kiadás: 12 fejezet, fejezetenként 5 kérdéses kvíz, 4/5-ös átmenőküszöb, helyben mentett haladás és Katedra arculat.
+Első nyilvános kiadás: 12 fejezet, fejezetenként 5 kérdéses kvíz, 4/5-ös átmenőküszöb, helyben mentett haladás, világos és sötét mód.
 
-Initial public edition: twelve chapters, five-question chapter quizzes, a four-of-five pass threshold, local progress storage and Katedra styling.
+Initial public edition: twelve chapters, five-question chapter quizzes, a four-of-five pass threshold, local progress storage, and light and dark modes.

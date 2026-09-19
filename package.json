@@ -1,7 +1,7 @@
 {
   "name": "katedra-llm-guide",
   "private": true,
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Offline-capable bilingual LLM learning guide",
   "scripts": {
     "build": "python3 scripts/build.py",
