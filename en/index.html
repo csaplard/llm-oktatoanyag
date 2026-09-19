@@ -4,7 +4,7 @@
   © 2026 Dániel Csaplár · csaplar.d@gmail.com
   License: CC BY-NC-SA 4.0 (Attribution · NonCommercial · ShareAlike)
   https://creativecommons.org/licenses/by-nc-sa/4.0/
-  v1.1 · last updated: 19 September 2026
+  v1.1.1 · last updated: 19 September 2026
   Hungarian original: https://csaplard.github.io/llm-oktatoanyag/
 -->
 <html lang="en">
@@ -1087,7 +1087,7 @@ Why do so many models miscount the letter “r” in <code>strawberry</code>? Be
 </div>
 
 <h3>The vocabulary and special tokens</h3>
-<p>Most of a finished vocabulary consists of learned subwords, but a handful of <strong>special tokens</strong> are defined by hand: <code>&lt;|endoftext|&gt;</code> marking the end of a text, the markers separating conversational roles (for example <code>&lt;|user|&gt;</code>, <code>&lt;|assistant|&gt;</code>), and tool-call delimiters. These must never be producible from ordinary text — the integrity of the chat format depends on it. Vocabulary size is a trade-off: a larger vocabulary gives shorter sequences (less computation per line) but a larger embedding matrix, and tokens that are seen more rarely and therefore learned less well.</p>
+<p>A vocabulary may contain learned subwords and reserved <strong>special token IDs</strong> for text endings, role boundaries or tool calls. Typing a marker as text is different from inserting the actual control token. The tokenizer API and chat serializer determine when special tokens are allowed; BPE alone does not guarantee this separation. Untrusted input must be encoded as content rather than as a role boundary. This alone does not prevent prompt injection. <a href="https://github.com/openai/tiktoken/blob/main/tiktoken/core.py">Example: tiktoken allowed_special / disallowed_special</a>. A larger vocabulary may shorten sequences but increases the embedding table.</p>
 
 <details class="level l2">
 <summary><span class="badge b2">Mathematics</span> The BPE algorithm precisely, and the main alternative</summary>
@@ -1103,14 +1103,14 @@ while |vocab| &lt; V:
     merge_rules.append((x, y) → new_token)
     corpus = replace every occurrence of (x, y) with new_token</code></pre>
 <p><strong>Tokenizing (use time):</strong> we break the input into bytes, then apply the merge rules <em>in the order they were learned</em>, for as long as they apply. That order is what makes the result deterministic. In practice the split is preceded by a regular-expression pre-segmentation (separating words, numbers and punctuation) so that merges cannot cross word boundaries.</p>
-<p>Starting at the <strong>byte level</strong> (standard since GPT-2) guarantees that <em>any</em> input — emoji, a Chinese character, binary garbage — can be tokenized; an unknown symbol cannot exist. The main alternative is tokenization based on a <strong>unigram language model</strong>: it starts from a large candidate vocabulary and iteratively drops the entries whose removal degrades the corpus probability least — being a probabilistic model, it can also score several segmentations. <a href="https://github.com/google/sentencepiece">SentencePiece</a> is a tokenizer library supporting both BPE and unigram tokenization, not another name for unigram. Both the method and the training data determine the resulting segmentation.</p>
+<p>BPE starting from all 256 bytes can represent every byte of encoded text, avoiding unknown tokens at the vocabulary level. An API may still require valid Unicode text and perform preprocessing: this does not mean arbitrary binary data can be passed in unchanged. Not every tokenizer is byte-level BPE; SentencePiece supports both BPE and unigram models.</p>
 </div>
 </details>
 
 <details class="level l3">
 <summary><span class="badge b3">Research</span> Research angles: glitch tokens, linguistic inequality, token-free models</summary>
 <div class="body">
-<p><strong>Glitch tokens.</strong> On the most likely explanation, if a token was frequent in the vocabulary-building corpus but was left out of the model's training data (because of different filtering), its embedding stays essentially untrained — close to initialization noise. Such “glitch tokens” (a famous example from the GPT-2/3 vocabulary is <code>SolidGoldMagikarp</code>, a Reddit username) provoke bizarre behavior: the model cannot say them, misreads them, or answers irrelevantly. The precise causal chain in individual cases is not established — the phenomenon, however, is reproducible. The lesson: the tokenizer and the model are <em>two separately trained systems</em>, and the mismatch between them is a measurable source of error.</p>
+<p><strong>Rare and unusual tokens.</strong> A token with little direct training exposure can trigger erroneous or unusual behavior. A mismatch between tokenizer and language-model training is a possible cause, not a proven explanation for every case. Rarity alone does not establish that an embedding remains unchanged initialization noise: tied output weights, weight decay and optimizer state may modify it. Investigate the specific model and token empirically.</p>
 <p><strong>Fertility and linguistic fairness.</strong> A vocabulary built mostly on English tokenizes English compactly and other languages wastefully — the same content in Hungarian can take substantially more tokens (higher “fertility”), and its agglutinative morphology is often broken at points that are not morpheme boundaries. This is not only a cost question: a longer token sequence means less effective context and a diluted per-token learning signal. Newer, larger vocabularies (100k–260k) built on multilingual corpora reduce this considerably.</p>
 <p><strong>Do we need a tokenizer at all?</strong> Replacing tokenization is an active research direction: byte-level models (ByT5), and dynamic, learned segmentation in which the model itself decides where to draw the boundaries (the Byte Latent Transformer, for instance, forms variable-sized “patches” based on predictability — entropy). The motivation is that the BPE vocabulary and merge rules are <strong>learned separately from data</strong>, but ordinary gradient-based language-model training does not update the discrete tokenization procedure. Its fixed granularity contributes to several difficulties above; it is not their only possible cause. The price is the compute demanded by longer sequences — the open question is when hierarchical architectures will make that back.</p>
 </div>
@@ -1288,7 +1288,7 @@ The residual stream is a <em>communication channel</em>: early layers write mess
 </div>
 
 <h3 id="attention">4.3 · Attention: which token should read from where?</h3>
-<p>To understand a sentence, tokens have to know about one another. In “The crane nested high”, the meaning of “crane” — the bird or the machine? — is settled by “nested”; the pronoun “it” has to find what it refers to. Attention solves this problem elegantly, by a <em>learned lookup</em>. Every position takes on three roles:</p>
+<p>Attention moves information between tokens, but <strong>causal direction matters</strong>. In “The crane nested high”, the position of “crane” cannot yet see the later word “nested”. The position of “nested” and subsequent positions can combine the earlier “crane” with evidence for the bird meaning. Attention can help through learned retrieval. Each position has three roles:</p>
 
 <ul>
 <li><strong>Query</strong> — “what am I looking for?”: the token states what information it needs.</li>
@@ -1296,7 +1296,7 @@ The residual stream is a <em>communication channel</em>: early layers write mess
 <li><strong>Value</strong> — “what do I hand over if chosen?”: the content actually to be passed on.</li>
 </ul>
 
-<p>The mechanism: the token's query vector is compared with the key vectors of all earlier tokens (by a dot product: <span class="math">q · k = ‖q‖ ‖k‖ cos θ</span>, so both direction and vector lengths matter). Wherever the match is strong, a large weight goes; softmax normalizes the weights into a distribution; and finally the token receives the <em>weighted average</em> of the value vectors and adds it to its own stream. So it does not read from a single addressee but from everyone at once, in proportion to relevance.</p>
+<p>The mechanism: the token's query vector is compared with the key vectors of the current and all earlier tokens (by a dot product: <span class="math">q · k = ‖q‖ ‖k‖ cos θ</span>, so both direction and vector lengths matter). Wherever the match is strong, a large weight goes; softmax normalizes the weights into a distribution; and finally the token receives the <em>weighted average</em> of the value vectors and adds it to its own stream. So it does not read from a single addressee but from everyone at once, in proportion to relevance.</p>
 
 <figure class="diagram">
 <svg viewBox="0 0 920 430" role="img" aria-label="The steps of the attention mechanism">
@@ -1449,7 +1449,7 @@ The residual stream is a <em>communication channel</em>: early layers write mess
     <rect x="0" y="46" width="18" height="14" fill="var(--s1)"/><text x="24" y="57" font-size="10.5" class="svg-ink2">large</text>
   </g>
 </svg>
-<figcaption><span class="fig-num">Figure 6.</span> The weight matrix of one attention head: each row is the post-softmax weight distribution of one query position over the key positions (the rows sum to 1). The upper triangle — the future — is masked. The first token can only attend to itself. It is clearly visible that the query “nested” reads “crane” strongly: this head is helping precisely with disambiguation.</figcaption>
+<figcaption><span class="fig-num">Figure 6.</span> Hand-chosen schematic attention weights, not measurements from a real model. Future positions are masked; the first token can attend only to itself. “Nested” can read the earlier “crane”. Darker cells indicate greater weight but do not by themselves demonstrate disambiguation or causal importance.</figcaption>
 </figure>
 
 <details class="level l2">
@@ -1460,19 +1460,19 @@ The residual stream is a <em>communication channel</em>: early layers write mess
 <p>The output of the head is the famous formula:</p>
 <div class="eq"><span class="rm">Attn</span>(<b>Q</b>, <b>K</b>, <b>V</b>) = <span class="rm">softmax</span><span class="rm">(</span><span class="frac"><span><b>Q</b><b>K</b><sup>⊤</sup> + <b>M</b></span><span>√<span style="border-top:1px solid currentColor">d<sub>h</sub></span></span></span><span class="rm">)</span> <b>V</b></div>
 <p>where <span class="math"><b>M</b></span> is the causal mask: <span class="math">M<sub>ij</sub> = 0</span> if <span class="math">j ≤ i</span>, and <span class="math">−∞</span> otherwise. The softmax runs row by row, so row <span class="math">i</span> is a probability distribution over positions <span class="math">1…i</span>.</p>
-<p><strong>Why divide by √d<sub>h</sub>?</strong> If the components of q and k are independent variables with unit variance, the standard deviation of their dot product grows with √d<sub>h</sub>. At large d<sub>h</sub> the spread of the scores would be such that the softmax saturates to practically one-hot — and there the gradient vanishes. The scaling keeps the scores in the “sensitive” range of the softmax.</p>
+<p><strong>Why divide by √d<sub>h</sub>?</strong> If the components of q and k are independent, zero-mean variables with unit variance, the standard deviation of their dot product grows with √d<sub>h</sub>. At large d<sub>h</sub> the spread of the scores would be such that the softmax saturates to practically one-hot — and there the gradient vanishes. The scaling keeps the scores in the “sensitive” range of the softmax.</p>
 <p><strong>Concatenating the heads.</strong> The outputs of the H heads are concatenated and projected back with a learned matrix <span class="math"><b>W</b><sub>O</sub> ∈ ℝ<sup>d×d</sup></span>:</p>
 <div class="eq"><span class="rm">MHA</span>(<b>X</b>) = <span class="rm">Concat</span>(<span class="rm">fej</span><sub>1</sub>, …, <span class="rm">fej</span><sub>H</sub>) <b>W</b><sub>O</sub></div>
-<p><strong>Cost.</strong> The product <span class="math"><b>Q</b><b>K</b><sup>⊤</sup></span> gives a T×T matrix: the time and memory of attention are <em>quadratic</em> in sequence length — O(T²·d). This is the central bottleneck in scaling the transformer; chapter 7 (KV cache, FlashAttention) and section 4.8 (sparse/linear variants) are in part answers to it.</p>
+<p><strong>Cost.</strong> For full attention, QK and AV products together require O(T²d) arithmetic. Naively stored attention matrices use O(HT²) elements across H heads; Q/K/V arrays use O(Td). Projections separately cost O(Td²). <a href="https://arxiv.org/abs/2205.14135">FlashAttention</a> avoids storing the full T × T matrix while retaining the quadratic arithmetic of dense attention. KV caching reuses previous K/V computations during token-by-token decoding.</p>
 </div>
 </details>
 
 <details class="level l3">
-<summary><span class="badge b3">Research</span> The QK and OV circuits: attention as two independent circuits</summary>
+<summary><span class="badge b3">Research</span> The QK and OV circuits: two analyzable parts of attention</summary>
 <div class="body">
-<p>One of the most productive observations of mechanistic interpretability (Elhage et al., 2021, “A Mathematical Framework for Transformer Circuits”) is that an attention head in fact implements <strong>two mutually independent linear circuits</strong>, and that these can be analyzed separately:</p>
-<p><strong>The QK circuit:</strong> the product matrix <span class="math"><b>W</b><sub>Q</sub><b>W</b><sub>K</sub><sup>⊤</sup> ∈ ℝ<sup>d×d</sup></span> decides <em>where</em> the head attends — the score is a bilinear form between the stream vectors of the two positions: <span class="math">s<sub>ij</sub> = <b>x</b><sub>i</sub><sup>⊤</sup>(<b>W</b><sub>Q</sub><b>W</b><sub>K</sub><sup>⊤</sup>)<b>x</b><sub>j</sub>/√d<sub>h</sub></span>. Q and K are not even well defined on their own (for any invertible R, <span class="math"><b>W</b><sub>Q</sub>R, <b>W</b><sub>K</sub>R<sup>−⊤</sup></span> gives the same circuit) — only their product is.</p>
-<p><strong>The OV circuit:</strong> the product <span class="math"><b>W</b><sub>V</sub><b>W</b><sub>O</sub></span> decides <em>what</em> the head writes into the stream once it attends somewhere. This is a purely linear map from the stream of the source position into the stream of the target position.</p>
+<p>Two useful weight products in an attention head are <strong>QK</strong> and <strong>OV</strong>. This simplified account uses row vectors; X is the actual projection input, already normalized in a pre-norm block. Biases, RoPE and QK normalization are omitted here. The two parts jointly determine the output; full attention is not two independent linear functions.</p>
+<p><strong>The QK circuit:</strong> <span class="math">s<sub>ij</sub> = x<sub>i</sub>(W<sub>Q</sub>W<sub>K</sub><sup>⊤</sup>)x<sub>j</sub><sup>⊤</sup>/√d<sub>h</sub></span>. The d × d product defines a bilinear score between two row vectors; masking and softmax turn scores into weights. In this simplified setting, replacing the projections by <span class="math">W<sub>Q</sub>R, W<sub>K</sub>R<sup>−⊤</sup></span> for invertible R preserves scores. An arbitrary change of basis generally ceases to be a symmetry when RoPE or QK normalization is present.</p>
+<p><strong>The OV circuit:</strong> multiply this head’s <span class="math">W<sub>V</sub> ∈ ℝ<sup>d×d<sub>h</sub></sup></span> by its row block of the full output projection, <span class="math">W<sub>O</sub><sup>(h)</sup> ∈ ℝ<sup>d<sub>h</sub>×d</sup></span>. Thus <span class="math">W<sub>V</sub>W<sub>O</sub><sup>(h)</sup> ∈ ℝ<sup>d×d</sup></span>. This maps source content into a residual-stream update; attention weights combine contributions from different source positions.</p>
 <p>A consequence: the head's “moving” operation is linear in the value content; when attention weights are held fixed. The full input-dependent operation is not linear: QK scores are bilinear and softmax transforms the <em>weights</em> nonlinearly. This is why compositions of heads — one head's output modifying another's query or key (Q-, K- and V-composition) — can be studied as algebraic objects, as so-called <em>virtual weights</em>. The discovery of the induction head (8.3) fell out of this framework.</p>
 <p>Further research observations: the <strong>attention sink</strong> phenomenon (heads “park” surplus weight on the first token, because the softmax must always sum to 1 — newer architectures therefore add a learned sink token or an “off” option); weights are <strong>not explanations</strong> (a large attention weight does not necessarily mean causal importance — ablation tests often refute it, 8.6); and <strong>positional heads</strong> (many heads learn a purely positional pattern: previous token, start of sentence, rhythmic offsets).</p>
 </div>
@@ -1488,11 +1488,11 @@ The residual stream is a <em>communication channel</em>: early layers write mess
 </section>
 <section id="architektura2" data-level="5">
 <h3 id="mlp">4.4 · The MLP layer: the processing and knowledge unit</h3>
-<p>The other half of the block, the MLP (multi-layer perceptron, also called the feed-forward layer), runs at every position <em>separately, with the same weights</em> — no information flows between positions here. Its structure is simple: a large matrix <strong>projects up</strong> the stream vector into a much wider space (typically about 4× the model dimension), an element-wise <strong>nonlinearity</strong> acts on it there, and another matrix <strong>projects it back down</strong> into the original dimension. Most of the parameters — roughly two thirds — sit in these matrices.</p>
+<p>The other half of the block, the MLP (multi-layer perceptron, also called the feed-forward layer), runs at every position <em>separately, with the same weights</em> — no new information flows directly between positions here. Its structure is simple: a large matrix <strong>projects up</strong> the stream vector into a much wider space (typically about 4× the model dimension), an element-wise <strong>nonlinearity</strong> acts on it there, and another matrix <strong>projects it back down</strong> into the original dimension. Most of the parameters — roughly two thirds — sit in these matrices.</p>
 
-<p>What is it for? In a conventional two-projection MLP, removing the activation collapses the projections into one <strong>affine map</strong> (linear when there are no biases). This reduces the MLP's expressiveness; <strong>the full transformer remains nonlinear</strong>, because attention and normalization remain nonlinear. Gated variants also introduce nonlinearity through multiplication. <a href="https://arxiv.org/abs/1706.03762">The original architecture</a> describes these as separate components. More intuitively: the MLP can also be read as a <strong>key–value memory</strong>. Every row of the up-projection matrix is a <em>pattern detector</em> (a key): to what degree is a particular combination of features present in the input? The nonlinearity thresholds — weakly matching detectors fall silent — and the corresponding row of the down-projection matrix (the value) writes the content belonging to the activated detectors into the stream. Many factual associations — “Eiffel Tower → Paris” — are demonstrably stored in the MLPs of the middle layers.</p>
+<p>What is it for? In a conventional two-projection MLP, removing the activation collapses the projections into one <strong>affine map</strong> (linear when there are no biases). This reduces the MLP's expressiveness; <strong>the full transformer remains nonlinear</strong>, because attention and normalization remain nonlinear. Gated variants also introduce nonlinearity through multiplication. <a href="https://arxiv.org/abs/1706.03762">The original architecture</a> describes these as separate components. More intuitively: the MLP can also be read as a <strong>key–value memory</strong>. In the row-vector convention below, each column of the up-projection matrix is a <em>pattern detector</em> (a key): to what degree is a particular combination of features present in the input? The nonlinearity modulates detector activations — and the corresponding row of the down-projection matrix (the value) writes the content belonging to the activated detectors into the stream. Many factual associations — “Eiffel Tower → Paris” — are demonstrably stored in the MLPs of the middle layers.</p>
 
-<p>One clarification, so as not to over-read it: the key–value account is <strong>an interpretive frame, not a literal description of the architecture</strong>. Mathematically the formulation is exact (the output is always the activation-weighted sum of the value vectors), but it does not follow that any single neuron corresponds to one key labelable with a human concept — in reality most neurons are <em>polysemantic</em> (8.4), that is, one row fires for several unrelated patterns. The two are not in conflict: the “keys” exist, only not in the neuron basis but in the form of superposed directions. The MLP therefore <em>behaves</em> like a key–value memory, but its dictionary is not the list of neurons.</p>
+<p>The key–value expression is algebraically exact, but attaching human meaning is an interpretation. Neuron input-weight vectors are concrete parts of the matrix; nevertheless, a neuron can respond to multiple patterns and a concept can be distributed across components. Superposition is one researched explanation. A mathematical “key” should not be equated with a unique human concept.</p>
 
 <details class="level l2">
 <summary><span class="badge b2">Mathematics</span> Formulas: from GELU to SwiGLU</summary>
@@ -1502,7 +1502,7 @@ The residual stream is a <em>communication channel</em>: early layers write mess
 <p>The nonlinearity today is typically not ReLU but its smooth variant, GELU: <span class="math"><span class="rm">GELU</span>(x) = x·Φ(x)</span>, where Φ is the standard normal cumulative distribution function — it does not cut sharply to zero at small negative values, which gives smoother optimization. Most modern models use a <strong>gated</strong> variant, SwiGLU, with three matrices:</p>
 <div class="eq"><span class="rm">SwiGLU</span>(<b>x</b>) = [<span class="rm">Swish</span>(<b>x</b><b>W</b><sub><span class="rm">gate</span></sub>) ⊙ (<b>x</b><b>W</b><sub><span class="rm">up</span></sub>)] <b>W</b><sub><span class="rm">down</span></sub></div>
 <p>where <span class="math"><span class="rm">Swish</span>(x) = x·σ(x)</span> and ⊙ is element-wise multiplication. The gating allows a multiplicative interaction between two projections — empirically it consistently gives a better loss at the same parameter count (the hidden dimension is then taken to be about 8d/3, so that the three matrices add up to the same total).</p>
-<p>The key–value account, formally: <span class="math"><span class="rm">MLP</span>(<b>x</b>) = Σ<sub>n</sub> a<sub>n</sub>(<b>x</b>)·<b>w</b><sub><span class="rm">out</span>,n</sub></span>, where <span class="math">a<sub>n</sub>(<b>x</b>) = <span class="rm">GELU</span>(<b>w</b><sub><span class="rm">in</span>,n</sub>·<b>x</b>)</span> is the activation of neuron n. The output is therefore always the activation-weighted sum of the “value vectors” <span class="math"><b>w</b><sub><span class="rm">out</span>,n</sub></span> — the MLP writes into the stream from its own small dictionary.</p>
+<p>With row vectors, the key–value expression is <span class="math">MLP(x) = Σ<sub>n</sub> a<sub>n</sub>(x)w<sub>out,n</sub></span>, where <span class="math">a<sub>n</sub>(x) = GELU(xw<sub>in,n</sub>)</span>. Here w<sub>in,n</sub> is <strong>column</strong> n of W<sub>in</sub>, and w<sub>out,n</sub> is <strong>row</strong> n of W<sub>out</sub>. Biases are omitted. The weighted sum is an exact identity; interpreting individual neurons as human concepts is a separate empirical question.</p>
 </div>
 </details>
 
@@ -1515,10 +1515,10 @@ The residual stream is a <em>communication channel</em>: early layers write mess
 </details>
 
 <h3 id="norm">4.5 · Normalization: keeping the signal in shape</h3>
-<p>When many layers are stacked, the magnitude of the vectors can grow or shrink from layer to layer, which makes training unstable. The remedy: at the input of every sub-layer the vector is <strong>rescaled to a standard size</strong>. LayerNorm subtracts the mean of the vector's components and divides by their standard deviation; the simpler <strong>RMSNorm</strong>, more common today, divides only by the root mean square: <span class="math"><b>x</b> / <span class="rm">RMS</span>(<b>x</b>) · <b>g</b></span>, where <span class="math"><b>g</b></span> is a learned element-wise gain. The modern <em>pre-norm</em> arrangement — normalization <em>before</em> the sub-layer, outside the residual addition — is crucial: this way the residual path stays an untouched identity, and deep models train stably even without warmup tricks.</p>
+<p>Normalization helps control the scale of sublayer inputs. LayerNorm subtracts the component mean and divides by √(variance + ε); RMSNorm divides by √(mean(x²) + ε) without centering. A learned elementwise gain follows, usually with a bias for LayerNorm. <strong>Pre-norm</strong> places normalization before the sublayer, inside the residual branch. The direct residual path remains an identity, which can improve gradient flow. <a href="https://arxiv.org/abs/2002.04745">Xiong et al.</a> obtained good results without warmup in certain settings; this is not a general stability guarantee, and warmup requirements depend on the full training recipe.</p>
 
 <h3 id="pozicio">4.6 · Positional encoding: how does the model know what is where?</h3>
-<p>A surprising fact: attention on its own <strong>sees no order</strong>. The query–key match depends only on the contents of the vectors — if we shuffled the input tokens we would get (without the mask) the same weights. To tell “the dog bites the postman” from “the postman bites the dog”, position has to be <em>injected</em> into the system.</p>
+<p>Without positional information or a mask, self-attention is <strong>permutation equivariant</strong>: permuting input rows permutes output rows in the same way. Both rows and columns of the attention matrix are reordered; the matrix does not remain unchanged. Explicit positional encodings provide location or distance information. A causal mask itself already introduces an ordering asymmetry by restricting which positions are available.</p>
 
 <p>First-generation solutions <em>added position as a vector</em> to the embedding (a fixed sinusoidal pattern or a learned positional embedding). Today's standard is <strong>RoPE</strong> (rotary position embedding), which is more elegant: it adds nothing to the content but <strong>rotates</strong> the query and key vectors by an angle proportional to their position. The dot product of two rotated vectors depends on <em>position</em> solely through the <em>difference</em> of the two rotation angles — formally ⟨<b>R</b><sub>m</sub><b>q</b>, <b>R</b><sub>n</sub><b>k</b>⟩ = ⟨<b>q</b>, <b>R</b><sub>n−m</sub><b>k</b>⟩ — that is, the attention score automatically senses the <em>relative distance</em> of the tokens rather than their absolute places. (The value of the dot product of course also depends on the two vectors themselves; the point of the claim is that position enters only through the difference <span class="math">m−n</span> — the rotation is orthogonal, so it leaves the norms untouched.) This is exactly the property language calls for: the relation “next to each other” means the same at the start of a text as in the middle.</p>
 
@@ -1534,7 +1534,7 @@ The residual stream is a <em>communication channel</em>: early layers write mess
 </details>
 
 <h3 id="kimenet">4.7 · The output head: from vector to probability</h3>
-<p>After the last block, the stream vector of every position passes through a final normalization and then the <strong>unembedding matrix</strong> (<span class="math"><b>W</b><sub>U</sub> ∈ ℝ<sup>d×V</sup></span>), which assigns a raw score — a <strong>logit</strong> — to every vocabulary entry. Geometrically: the model compares the final vector with the “reading direction” of every token; whichever direction the vector points along most gets the highest score. The <strong>softmax</strong> turns the logits into a probability distribution:</p>
+<p>After the last block, the stream vector passes through final normalization and the <strong>unembedding matrix</strong> (<span class="math">W<sub>U</sub> ∈ ℝ<sup>d×V</sup></span>). Each token’s logit is a dot product with the corresponding matrix column, plus an output bias if used. Dot products depend on both direction and magnitude: the highest cosine similarity alone need not give the highest logit. <strong>Softmax</strong> converts logits into probabilities:</p>
 <div class="eq">P(<span class="rm">token</span> i) = <span class="frac"><span>e<sup>z<sub>i</sub></sup></span><span>Σ<sub>j</sub> e<sup>z<sub>j</sub></sup></span></span></div>
 <p>Exponentiation gives positive weights, and normalization makes the probabilities sum to 1. Softmax turns logit <em>differences</em> into ratios: <span class="math">pᵢ / pⱼ = exp(zᵢ − zⱼ)</span>. Increasing one logit by 1 multiplies that token's probability ratio relative to each other token by e (~2.7×), not its own probability. With two initially equal logits, its probability goes from 50% to <span class="math">e / (e + 1) ≈ 73%</span>. Chapter 7 lets you also explore temperature.</p>
 
@@ -1588,7 +1588,7 @@ According to information theory, the optimal code length for an event of probabi
 <div class="body">
 <p>For a training sequence <span class="math">x<sub>1</sub>…x<sub>T</sub></span> of length T, the loss is the average over all positions:</p>
 <div class="eq">L(θ) = − <span class="frac"><span>1</span><span>T</span></span> <span class="rm">Σ</span><sub>t=1</sub><sup>T</sup> <span class="rm">log</span> P<sub>θ</sub>(x<sub>t</sub> | x<sub>&lt;t</sub>)</div>
-<p>Thanks to the causal mask (4.3), all T predictions fall out of a single forward pass — every token is a training signal at once. An equivalent formulation: at each position, the cross-entropy between the model's distribution <span class="math"><b>p</b></span> and reality's one-hot distribution <span class="math"><b>y</b></span>, <span class="math">H(<b>y</b>, <b>p</b>) = −Σ<sub>i</sub> y<sub>i</sub> <span class="rm">log</span> p<sub>i</sub></span>. Since <span class="math"><b>y</b></span> is one-hot, this is exactly the −log probability of the correct token. Minimizing it pulls the model's distribution toward the data distribution: the loss reduces the KL divergence between the two (plus a constant, the data's own entropy — below which the loss cannot go even in principle).</p>
+<p>During training, shifted inputs and targets from a known sequence allow predictions at all positions in parallel; the causal mask prevents copying from the future. For a one-hot target, <span class="math">H(y,p) = −Σ y<sub>i</sub> ln p<sub>i</sub></span> is the observed token’s negative log probability. The <strong>expected</strong> cross-entropy under the true data-generating distribution P is <span class="math">H(P,Q) = H(P) + KL(P‖Q)</span>, so it is at least H(P). This does not impose the same bound on one example or the measured loss of a finite training sample; a small corpus can be memorized. Natural logarithms give nats/token; base-two logarithms give bits/token.</p>
 </div>
 </details>
 
@@ -1671,6 +1671,7 @@ According to information theory, the optimal code length for an event of probabi
 <p>Putting it together, with a one-hot target (<span class="math">y<sub>i</sub> = 1</span> if <span class="math">i=c</span>):</p>
 <div class="eq"><span class="frac"><span>∂L</span><span>∂z<sub>i</sub></span></span> = p<sub>i</sub> − y<sub>i</sub></div>
 <p>The gradient is therefore literally <strong>the difference between the prediction and reality</strong>. If the model gave 0.51 to the correct token, the gradient there is −0.49: “push further up”. Every wrong token receives exactly as much downward push as the probability it received. It is numerically kind as well: it contains no division by a near-zero number, and softmax combined with log is stable (the log-sum-exp trick).</p>
+<p>At branches, gradient contributions arriving at the same variable are <strong>added</strong>. For vectors, local derivatives are Jacobians; autodiff computes the appropriate vector–Jacobian products. A general graph is not a single chain of scalar products.</p>
 <p><strong>The rules for matrix layers.</strong> Through a linear layer <span class="math"><b>Z</b> = <b>X</b><b>W</b></span>, the gradient backwards (writing <span class="math"><b>G</b> = ∂L/∂<b>Z</b></span>):</p>
 <div class="eq"><span class="frac"><span>∂L</span><span>∂<b>X</b></span></span> = <b>G</b><b>W</b><sup>⊤</sup>, &nbsp;&nbsp; <span class="frac"><span>∂L</span><span>∂<b>W</b></span></span> = <b>X</b><sup>⊤</sup><b>G</b></div>
 <p>These two formulas are the workhorse of the entire transformer backward pass: the backward run is the same sequence of matrix multiplications as the forward one — only with transposed weights. The classic cost estimate comes from here too: the forward pass ≈ 2ND FLOPs (N parameters, D tokens, multiply plus add), the backward pass twice that (two matrix products per operation: the input gradient and the weight gradient) — training in total <span class="math">C ≈ 6ND</span>. This formula is the currency of the scaling laws (5.6).</p>
@@ -1680,9 +1681,9 @@ According to information theory, the optimal code length for an event of probabi
 <details class="level l3">
 <summary><span class="badge b3">Research</span> The vanishing gradient, and why the transformer is trainable</summary>
 <div class="body">
-<p>The gradient is a long chain of products — and products tend to behave exponentially. If the “gain” of the chain's terms is typically below 1, the gradient of deep layers <strong>vanishes</strong> exponentially (the early layers do not learn); if above 1, it <strong>explodes</strong> (training falls apart). This is what killed deep RNNs: the gradient propagating backwards through time (BPTT) was multiplied at every step through the same recurrent matrix, and the behavior was dictated by that matrix's spectral radius.</p>
+<p>Backpropagation paths contain products of Jacobian matrices. They can contract some directions and amplify others, producing vanishing or exploding gradients. RNNs require many sequential transitions between distant positions; gated variants partly address this. In a general nonlinear network, one weight matrix’s spectral radius does not determine the outcome by itself: activations, inputs and changing local derivatives also matter.</p>
 <p>The transformer's three structural answers:</p>
-<p><strong>(1) Residual connections.</strong> The derivative of the form <span class="math"><b>x</b><sub>ℓ+1</sub> = <b>x</b><sub>ℓ</sub> + F(<b>x</b><sub>ℓ</sub>)</span> is <span class="math">I + ∂F/∂<b>x</b></span> — at every layer the gradient gets an <em>additive identity path</em> along which it can flow back undamped. The chain of products “loosens” into a sum: from the loss to every layer there exists a short, multiplication-free route.</p>
+<p><strong>(1) Residual connections.</strong> For x<sub>ℓ+1</sub> = x<sub>ℓ</sub> + F(x<sub>ℓ</sub>), the local Jacobian is I + J<sub>F</sub>. Across layers, these Jacobians are still <strong>multiplied</strong>. Expanding the product yields an identity term and paths of different lengths; the direct path can help gradients propagate. It does not replace the entire product with a simple sum, and cancellation or amplification by other terms remains possible.</p>
 <p><strong>(2) Normalization.</strong> The pre-norm arrangement brings the input of every sub-layer to a standard scale, so the gain of the sub-layers stays controlled even as depth grows.</p>
 <p><strong>(3) Short attention paths.</strong> Between any two positions, information (and the gradient) can travel in a single attention hop — there is no T-step chain as in an RNN; learning a long-range dependency does not require a long chain of products.</p>
 <p>Residual instabilities remain even so — loss spikes, softmax/attention logits running away, low-precision numerics (5.5) — and gradient clipping (capping the gradient norm), QK-norm, z-loss and their relatives exist to handle them. In the practice of large runs, stability engineering is a profession of its own: during a training run of several months, divergence has to be spotted, checkpoints restored, and data or learning rate adjusted.</p>
@@ -1699,7 +1700,7 @@ According to information theory, the optimal code length for an event of probabi
 </section>
 <section id="tanitas2" data-level="7">
 <h3 id="optim">5.4 · Optimizers: from the gradient to the step</h3>
-<p>The gradient says which way the loss surface slopes — but <em>how far and exactly how</em> to step is a science of its own. The naive recipe, stochastic gradient descent (SGD) — “step against the gradient with a small learning rate” — is barely usable in practice for large language models: the gradients of different parameters differ by orders of magnitude, the gradient coming from batches is noisy, and the surface is full of ravines. The standard answer is <strong>Adam(W)</strong>, which maintains two running statistics per parameter: the mean of the gradient (momentum — smoothing the noise) and the mean of the squared gradient (scale — every parameter steps relative to its own usual gradient magnitude). The result: every parameter takes approximately unit-sized, well-conditioned steps.</p>
+<p><strong>AdamW</strong> maintains two exponential moving averages per parameter: the gradient and its square. The first provides momentum; the second supports coordinatewise scaling. Step size still depends on the learning rate, these statistics and ε: updates are not uniformly unit-sized, and good conditioning or convergence is not automatic. SGD remains a valid method, although adaptive optimizers are often more practical for large language models.</p>
 
 <details class="level l2">
 <summary><span class="badge b2">Mathematics</span> AdamW with formulas, and the learning-rate schedule</summary>
@@ -1707,9 +1708,9 @@ According to information theory, the optimal code length for an event of probabi
 <p>Let <span class="math"><b>g</b><sub>t</sub></span> denote the gradient at step t. Adam's update:</p>
 <div class="eq"><b>m</b><sub>t</sub> = β₁<b>m</b><sub>t−1</sub> + (1−β₁)<b>g</b><sub>t</sub> &nbsp;&nbsp;&nbsp; <b>v</b><sub>t</sub> = β₂<b>v</b><sub>t−1</sub> + (1−β₂)<b>g</b><sub>t</sub><sup>2</sup></div>
 <div class="eq"><b>m̂</b><sub>t</sub> = <b>m</b><sub>t</sub>/(1−β₁<sup>t</sup>), &nbsp; <b>v̂</b><sub>t</sub> = <b>v</b><sub>t</sub>/(1−β₂<sup>t</sup>) &nbsp;&nbsp;&nbsp; θ<sub>t</sub> = θ<sub>t−1</sub> − η · <span class="frac"><span><b>m̂</b><sub>t</sub></span><span>√<span style="border-top:1px solid currentColor"><b>v̂</b><sub>t</sub></span> + ε</span></span> − η·λ·θ<sub>t−1</sub></div>
-<p>Typical values: <span class="math">β₁ = 0.9</span>, <span class="math">β₂ = 0.95</span> (for LLMs, instead of the usual 0.999 — faster scale adaptation is more stable), <span class="math">ε = 10⁻⁸</span>. The last term is <strong>decoupled weight decay</strong> (the W in AdamW): a mild shrinking of the weights, independent of the gradient — regularization. The price: two extra state vectors per parameter, that is, an optimizer state twice the size of the model (which is why memory hurts, 5.5).</p>
+<p>One common setting is β₁ = 0.9, β₂ = 0.95 and ε = 10⁻⁸; these are not universally optimal values. The final term is <strong>decoupled weight decay</strong>, shrinking weights separately from the gradient. For N parameters, two N-element moment estimates are stored. This is twice the weight storage in bytes only when their data types match: BF16 weights use 2 bytes/parameter, while two FP32 states use 8 bytes/parameter. Gradients, activations and optional FP32 master weights add further storage.</p>
 <p>The learning rate <span class="math">η</span> is not constant: at the start there is <strong>warmup</strong> (a linear ramp from zero over a few thousand steps — until the Adam statistics and the fresh network stabilize), then a long <strong>cosine decay</strong>, or more recently a constant phase plus a short, aggressive cooldown (the WSD schedule). The drop in loss during the decay is characteristic: smaller steps allow the fine structure to be polished.</p>
-<p>A more recent development: in 2024–25, optimizers appeared that beat Adam by cheaply approximating second-order information — most strikingly <strong>Muon</strong>, which orthogonalizes the gradient matrix (via Newton–Schulz iteration) before the step; several large open models have already been trained with it, typically combined with AdamW (Muon for the matrices, AdamW for the embedding and the norms).</p>
+<p><strong>Muon</strong> approximately orthogonalizes momentum updates for matrix-shaped parameters, for example using Newton–Schulz iterations. It does not explicitly compute a Hessian; the name Newton–Schulz does not automatically make it a second-order optimizer. Some experiments report better efficiency than AdamW, rather than a universal ranking. Other parameter groups often use AdamW alongside it. <a href="https://kellerjordan.github.io/posts/muon/">Original method description</a>.</p>
 </div>
 </details>
 
@@ -1718,7 +1719,7 @@ According to information theory, the optimal code length for an event of probabi
 
 <p><strong>Data.</strong> The quality of the multi-trillion-token corpus (web crawl, books, code, scientific text, and increasingly synthetic data) is the number one determinant of the end result. The pipeline: language identification, quality filtering (heuristics and learned classifiers), <em>deduplication</em> (duplicates cause memorization and distorted capabilities), PII and toxicity filtering, and then careful design of the mixture ratios — toward the end of training often a “curriculum”: over-weighting the highest-quality data.</p>
 
-<p><strong>Precision.</strong> Most of the computation runs in a 16-bit floating-point format (bfloat16 — the dynamic range of float32 with half the mantissa), with the most sensitive accumulations in float32; the frontier has also deployed 8-bit (FP8) training. Fewer bits = two to four times the throughput, at the cost of a numerical minefield: the stability tricks (loss scaling, QK-norm) partly offset this.</p>
+<p><strong>Precision.</strong> bfloat16 uses 1 sign bit, 8 exponent bits and 7 stored fraction bits; float32 uses 1, 8 and 23 respectively. Their exponent ranges match, but bfloat16 has lower precision and half the storage. It does not have “half the mantissa”. Mixed-precision training can use different formats for matrix operations and sensitive accumulations, including FP8. Speedups depend on hardware and operations rather than being automatically 2–4×. Loss scaling is particularly relevant to FP16’s narrower range. <a href="https://arxiv.org/abs/1905.12322">BFLOAT16 study</a>.</p>
 
 <p><strong>Parallelism.</strong> A large model fits on a single GPU neither in weights nor in activations, so the work is sliced along three axes, typically all three at once (“3D parallelism”):</p>
 
@@ -1732,71 +1733,17 @@ According to information theory, the optimal code length for an event of probabi
 <p><strong>Memory tricks.</strong> Backprop requires keeping the intermediate activations of the forward pass — at long sequences this dominates memory. <em>Gradient checkpointing</em> strikes a bargain: it stores the activations of only every k-th layer and recomputes the rest during the backward pass (about a third more computation, a fraction of the memory).</p>
 
 <h3 id="scaling">5.6 · Scaling laws: the physics of the field</h3>
-<p>The field's most surprising empirical discovery is that a model's final loss is a <strong>smooth, predictable power function</strong> of the resources spent. Plot the loss against compute (or parameter count, or amount of data) on a log-log scale and you get nearly a straight line — across orders of magnitude. This is what made LLM development a plannable industry: from a series of experiments 100× smaller you can extrapolate what the big run will be able to do, and decide what to spend the compute budget on.</p>
+<p>In many experiments, test loss is well approximated by power laws in model size, data and compute. With a nonzero floor E, the ideal straight line on logarithmic axes applies to <strong>excess loss L − E</strong>. Fits support planning within the studied data, architecture and scale ranges; extrapolation adds uncertainty. A lower loss does not automatically establish success on a particular new task.</p>
 
-<figure class="diagram">
-<svg viewBox="0 0 880 380" role="img" aria-label="Scaling law: loss versus compute on a log-log scale">
-  <text x="20" y="26" font-size="13" font-weight="700" class="svg-ink">Loss as a function of training compute (schematic, log–log)</text>
-  <!-- grid -->
-  <g stroke="var(--grid)" stroke-width="1">
-    <line x1="90" y1="60" x2="90" y2="300"/><line x1="230" y1="60" x2="230" y2="300"/>
-    <line x1="370" y1="60" x2="370" y2="300"/><line x1="510" y1="60" x2="510" y2="300"/>
-    <line x1="650" y1="60" x2="650" y2="300"/><line x1="790" y1="60" x2="790" y2="300"/>
-    <line x1="90" y1="240" x2="790" y2="240"/><line x1="90" y1="180" x2="790" y2="180"/>
-    <line x1="90" y1="120" x2="790" y2="120"/><line x1="90" y1="60" x2="790" y2="60"/>
-  </g>
-  <line x1="90" y1="300" x2="790" y2="300" stroke="var(--baseline)" stroke-width="1.3"/>
-  <line x1="90" y1="300" x2="90" y2="55" stroke="var(--baseline)" stroke-width="1.3"/>
-  <!-- tengelyfeliratok -->
-  <g font-size="10.5" class="svg-muted">
-    <text x="90" y="318" text-anchor="middle">10¹⁸</text>
-    <text x="230" y="318" text-anchor="middle">10¹⁹</text>
-    <text x="370" y="318" text-anchor="middle">10²⁰</text>
-    <text x="510" y="318" text-anchor="middle">10²¹</text>
-    <text x="650" y="318" text-anchor="middle">10²²</text>
-    <text x="790" y="318" text-anchor="middle">10²³</text>
-    <text x="440" y="342" text-anchor="middle" font-size="11">training compute, C (FLOPs)</text>
-    <text x="78" y="304" text-anchor="end">2.4</text>
-    <text x="78" y="244" text-anchor="end">2.8</text>
-    <text x="78" y="184" text-anchor="end">3.4</text>
-    <text x="78" y="124" text-anchor="end">4.1</text>
-    <text x="78" y="64" text-anchor="end">5.0</text>
-    <text x="46" y="180" text-anchor="middle" font-size="11" transform="rotate(-90 46 180)">test loss (nats/token)</text>
-  </g>
-  <!-- model-size curves: each bends, then flattens out (data limit);
-       the envelope = optimum -->
-  <path d="M 90 95 C 170 150, 220 195, 265 225 C 300 248, 340 252, 390 245" fill="none" stroke="var(--s5)" stroke-width="2"/>
-  <path d="M 160 90 C 260 150, 330 210, 395 250 C 440 277, 490 280, 545 272" fill="none" stroke="var(--s3)" stroke-width="2"/>
-  <path d="M 240 88 C 350 145, 450 225, 530 268 C 580 293, 640 297, 700 290" fill="none" stroke="var(--s4)" stroke-width="2"/>
-  <path d="M 330 90 C 450 140, 570 230, 660 280 C 710 305, 760 310, 800 306" fill="none" stroke="var(--s1)" stroke-width="2"/>
-  <!-- envelope line -->
-  <line x1="90" y1="120" x2="790" y2="288" stroke="var(--ink-muted)" stroke-width="1.6" stroke-dasharray="7,5"/>
-  <g>
-    <line x1="110" y1="268" x2="150" y2="268" stroke="var(--ink-muted)" stroke-width="1.6" stroke-dasharray="7,5"/>
-    <text x="158" y="272" font-size="11.5" class="svg-ink2">envelope: L(C) ∝ C<tspan baseline-shift="super" font-size="8.5">−α</tspan> — the scaling law</text>
-  </g>
-  <!-- legend -->
-  <g font-size="11">
-    <rect x="620" y="66" width="190" height="92" rx="8" class="svg-box" stroke-width="1"/>
-    <text x="632" y="84" class="svg-ink2" font-weight="600">model size:</text>
-    <line x1="632" y1="98" x2="656" y2="98" stroke="var(--s5)" stroke-width="2.5"/><text x="662" y="102" class="svg-ink2">kicsi</text>
-    <line x1="632" y1="116" x2="656" y2="116" stroke="var(--s3)" stroke-width="2.5"/><text x="662" y="120" class="svg-ink2">medium</text>
-    <line x1="632" y1="134" x2="656" y2="134" stroke="var(--s4)" stroke-width="2.5"/><text x="662" y="138" class="svg-ink2">large</text>
-    <line x1="632" y1="152" x2="656" y2="152" stroke="var(--s1)" stroke-width="2.5"/><text x="662" y="156" class="svg-ink2">nagyon nagy</text>
-  </g>
-  <text x="20" y="360" font-size="11" class="svg-muted">Every model size has its own curve: past a point, extra compute helps little (the small model “fills up”).</text>
-  <text x="20" y="376" font-size="11" class="svg-muted">The optimal strategy is to stay on the envelope: grow the model AND the data along with the compute.</text>
-</svg>
-<figcaption><span class="fig-num">Figure 8.</span> A schematic picture of the scaling laws. At a fixed model size the loss converges to a floor; the lower envelope of the curves for different model sizes is a power function — a straight line on a log-log scale. The main message of the Chinchilla analysis is that staying on the envelope requires spending compute roughly half on parameters and half on data: the optimum is around 20 tokens per parameter.</figcaption>
-</figure>
+<figure class="diagram" data-scientific-figure="scaling"><svg viewBox="0 0 880 395" role="img" aria-label="Computed curves from an illustrative scaling law"><title>Toy scaling law: excess loss, not measurements</title><text x="30" y="30" font-size="14" class="svg-ink">L − E = 4 / √N + √(N / C), with C = ND</text><line x1="90" y1="70" x2="90" y2="300" stroke="var(--grid)"/><text x="90" y="322" text-anchor="middle" font-size="11" class="svg-muted">1</text><line x1="262.5" y1="70" x2="262.5" y2="300" stroke="var(--grid)"/><text x="262.5" y="322" text-anchor="middle" font-size="11" class="svg-muted">10</text><line x1="435" y1="70" x2="435" y2="300" stroke="var(--grid)"/><text x="435" y="322" text-anchor="middle" font-size="11" class="svg-muted">100</text><line x1="607.5" y1="70" x2="607.5" y2="300" stroke="var(--grid)"/><text x="607.5" y="322" text-anchor="middle" font-size="11" class="svg-muted">1000</text><line x1="780" y1="70" x2="780" y2="300" stroke="var(--grid)"/><text x="780" y="322" text-anchor="middle" font-size="11" class="svg-muted">10000</text><line x1="90" y1="300" x2="780" y2="300" stroke="var(--grid)"/><text x="76" y="304" text-anchor="end" font-size="11" class="svg-muted">0.25</text><line x1="90" y1="260" x2="780" y2="260" stroke="var(--grid)"/><text x="76" y="264" text-anchor="end" font-size="11" class="svg-muted">0.5</text><line x1="90" y1="220" x2="780" y2="220" stroke="var(--grid)"/><text x="76" y="224" text-anchor="end" font-size="11" class="svg-muted">1</text><line x1="90" y1="180" x2="780" y2="180" stroke="var(--grid)"/><text x="76" y="184" text-anchor="end" font-size="11" class="svg-muted">2</text><line x1="90" y1="140" x2="780" y2="140" stroke="var(--grid)"/><text x="76" y="144" text-anchor="end" font-size="11" class="svg-muted">4</text><line x1="90" y1="100" x2="780" y2="100" stroke="var(--grid)"/><text x="76" y="104" text-anchor="end" font-size="11" class="svg-muted">8</text><line x1="90" y1="60" x2="780" y2="60" stroke="var(--grid)"/><text x="76" y="64" text-anchor="end" font-size="11" class="svg-muted">16</text><path d="M90.00 127.12 L95.75 127.56 L101.50 127.98 L107.25 128.39 L113.00 128.79 L118.75 129.17 L124.50 129.55 L130.25 129.91 L136.00 130.26 L141.75 130.60 L147.50 130.92 L153.25 131.24 L159.00 131.55 L164.75 131.84 L170.50 132.13 L176.25 132.41 L182.00 132.68 L187.75 132.94 L193.50 133.19 L199.25 133.43 L205.00 133.66 L210.75 133.89 L216.50 134.11 L222.25 134.32 L228.00 134.52 L233.75 134.72 L239.50 134.91 L245.25 135.10 L251.00 135.27 L256.75 135.44 L262.50 135.61 L268.25 135.77 L274.00 135.92 L279.75 136.07 L285.50 136.21 L291.25 136.35 L297.00 136.49 L302.75 136.61 L308.50 136.74 L314.25 136.86 L320.00 136.97 L325.75 137.08 L331.50 137.19 L337.25 137.29 L343.00 137.39 L348.75 137.49 L354.50 137.58 L360.25 137.67 L366.00 137.76 L371.75 137.84 L377.50 137.92 L383.25 138.00 L389.00 138.07 L394.75 138.14 L400.50 138.21 L406.25 138.28 L412.00 138.34 L417.75 138.40 L423.50 138.46 L429.25 138.52 L435.00 138.58 L440.75 138.63 L446.50 138.68 L452.25 138.73 L458.00 138.78 L463.75 138.82 L469.50 138.87 L475.25 138.91 L481.00 138.95 L486.75 138.99 L492.50 139.03 L498.25 139.06 L504.00 139.10 L509.75 139.13 L515.50 139.16 L521.25 139.19 L527.00 139.22 L532.75 139.25 L538.50 139.28 L544.25 139.31 L550.00 139.33 L555.75 139.36 L561.50 139.38 L567.25 139.41 L573.00 139.43 L578.75 139.45 L584.50 139.47 L590.25 139.49 L596.00 139.51 L601.75 139.53 L607.50 139.55 L613.25 139.56 L619.00 139.58 L624.75 139.59 L630.50 139.61 L636.25 139.62 L642.00 139.64 L647.75 139.65 L653.50 139.67 L659.25 139.68 L665.00 139.69 L670.75 139.70 L676.50 139.71 L682.25 139.72 L688.00 139.73 L693.75 139.74 L699.50 139.75 L705.25 139.76 L711.00 139.77 L716.75 139.78 L722.50 139.79 L728.25 139.80 L734.00 139.80 L739.75 139.81 L745.50 139.82 L751.25 139.83 L757.00 139.83 L762.75 139.84 L768.50 139.84 L774.25 139.85 L780.00 139.86" fill="none" stroke="var(--s5)" stroke-width="2.5"/><text x="160" y="370" font-size="12" fill="var(--s5)">N = 1</text><path d="M90.00 140.00 L95.75 141.10 L101.50 142.17 L107.25 143.23 L113.00 144.26 L118.75 145.27 L124.50 146.26 L130.25 147.23 L136.00 148.18 L141.75 149.11 L147.50 150.02 L153.25 150.90 L159.00 151.77 L164.75 152.62 L170.50 153.44 L176.25 154.25 L182.00 155.04 L187.75 155.81 L193.50 156.56 L199.25 157.29 L205.00 158.00 L210.75 158.69 L216.50 159.36 L222.25 160.02 L228.00 160.66 L233.75 161.28 L239.50 161.89 L245.25 162.48 L251.00 163.05 L256.75 163.60 L262.50 164.14 L268.25 164.67 L274.00 165.18 L279.75 165.67 L285.50 166.15 L291.25 166.62 L297.00 167.07 L302.75 167.51 L308.50 167.93 L314.25 168.34 L320.00 168.74 L325.75 169.13 L331.50 169.50 L337.25 169.86 L343.00 170.21 L348.75 170.55 L354.50 170.88 L360.25 171.20 L366.00 171.51 L371.75 171.81 L377.50 172.10 L383.25 172.38 L389.00 172.64 L394.75 172.91 L400.50 173.16 L406.25 173.40 L412.00 173.64 L417.75 173.86 L423.50 174.08 L429.25 174.29 L435.00 174.50 L440.75 174.70 L446.50 174.89 L452.25 175.07 L458.00 175.25 L463.75 175.42 L469.50 175.59 L475.25 175.75 L481.00 175.90 L486.75 176.05 L492.50 176.20 L498.25 176.34 L504.00 176.47 L509.75 176.60 L515.50 176.72 L521.25 176.84 L527.00 176.96 L532.75 177.07 L538.50 177.18 L544.25 177.28 L550.00 177.38 L555.75 177.48 L561.50 177.57 L567.25 177.66 L573.00 177.75 L578.75 177.83 L584.50 177.91 L590.25 177.99 L596.00 178.06 L601.75 178.13 L607.50 178.20 L613.25 178.27 L619.00 178.33 L624.75 178.40 L630.50 178.46 L636.25 178.51 L642.00 178.57 L647.75 178.62 L653.50 178.67 L659.25 178.72 L665.00 178.77 L670.75 178.82 L676.50 178.86 L682.25 178.90 L688.00 178.94 L693.75 178.98 L699.50 179.02 L705.25 179.06 L711.00 179.09 L716.75 179.13 L722.50 179.16 L728.25 179.19 L734.00 179.22 L739.75 179.25 L745.50 179.28 L751.25 179.31 L757.00 179.33 L762.75 179.36 L768.50 179.38 L774.25 179.40 L780.00 179.43" fill="none" stroke="var(--s3)" stroke-width="2.5"/><text x="310" y="370" font-size="12" fill="var(--s3)">N = 4</text><path d="M90.00 127.12 L95.75 128.89 L101.50 130.64 L107.25 132.38 L113.00 134.10 L118.75 135.80 L124.50 137.50 L130.25 139.17 L136.00 140.83 L141.75 142.48 L147.50 144.11 L153.25 145.72 L159.00 147.31 L164.75 148.89 L170.50 150.45 L176.25 151.99 L182.00 153.52 L187.75 155.02 L193.50 156.51 L199.25 157.98 L205.00 159.43 L210.75 160.86 L216.50 162.27 L222.25 163.66 L228.00 165.03 L233.75 166.38 L239.50 167.71 L245.25 169.02 L251.00 170.31 L256.75 171.57 L262.50 172.82 L268.25 174.05 L274.00 175.25 L279.75 176.44 L285.50 177.60 L291.25 178.74 L297.00 179.86 L302.75 180.96 L308.50 182.04 L314.25 183.10 L320.00 184.13 L325.75 185.15 L331.50 186.14 L337.25 187.11 L343.00 188.07 L348.75 189.00 L354.50 189.91 L360.25 190.80 L366.00 191.67 L371.75 192.51 L377.50 193.34 L383.25 194.15 L389.00 194.94 L394.75 195.71 L400.50 196.46 L406.25 197.20 L412.00 197.91 L417.75 198.61 L423.50 199.28 L429.25 199.94 L435.00 200.58 L440.75 201.21 L446.50 201.81 L452.25 202.40 L458.00 202.98 L463.75 203.54 L469.50 204.08 L475.25 204.60 L481.00 205.12 L486.75 205.61 L492.50 206.09 L498.25 206.56 L504.00 207.01 L509.75 207.45 L515.50 207.88 L521.25 208.29 L527.00 208.69 L532.75 209.08 L538.50 209.46 L544.25 209.82 L550.00 210.17 L555.75 210.51 L561.50 210.84 L567.25 211.16 L573.00 211.47 L578.75 211.77 L584.50 212.06 L590.25 212.34 L596.00 212.61 L601.75 212.87 L607.50 213.13 L613.25 213.37 L619.00 213.61 L624.75 213.84 L630.50 214.06 L636.25 214.27 L642.00 214.47 L647.75 214.67 L653.50 214.87 L659.25 215.05 L665.00 215.23 L670.75 215.40 L676.50 215.57 L682.25 215.73 L688.00 215.88 L693.75 216.03 L699.50 216.18 L705.25 216.32 L711.00 216.45 L716.75 216.58 L722.50 216.71 L728.25 216.83 L734.00 216.94 L739.75 217.06 L745.50 217.16 L751.25 217.27 L757.00 217.37 L762.75 217.47 L768.50 217.56 L774.25 217.65 L780.00 217.74" fill="none" stroke="var(--s4)" stroke-width="2.5"/><text x="460" y="370" font-size="12" fill="var(--s4)">N = 16</text><path d="M90.00 96.50 L95.75 98.58 L101.50 100.66 L107.25 102.73 L113.00 104.80 L118.75 106.86 L124.50 108.92 L130.25 110.97 L136.00 113.01 L141.75 115.05 L147.50 117.08 L153.25 119.11 L159.00 121.12 L164.75 123.14 L170.50 125.14 L176.25 127.14 L182.00 129.13 L187.75 131.11 L193.50 133.08 L199.25 135.05 L205.00 137.00 L210.75 138.95 L216.50 140.89 L222.25 142.82 L228.00 144.74 L233.75 146.64 L239.50 148.54 L245.25 150.43 L251.00 152.31 L256.75 154.18 L262.50 156.03 L268.25 157.87 L274.00 159.71 L279.75 161.52 L285.50 163.33 L291.25 165.12 L297.00 166.90 L302.75 168.67 L308.50 170.42 L314.25 172.16 L320.00 173.89 L325.75 175.59 L331.50 177.29 L337.25 178.97 L343.00 180.63 L348.75 182.28 L354.50 183.91 L360.25 185.52 L366.00 187.12 L371.75 188.70 L377.50 190.26 L383.25 191.80 L389.00 193.33 L394.75 194.84 L400.50 196.33 L406.25 197.80 L412.00 199.25 L417.75 200.68 L423.50 202.09 L429.25 203.49 L435.00 204.86 L440.75 206.21 L446.50 207.54 L452.25 208.86 L458.00 210.15 L463.75 211.42 L469.50 212.67 L475.25 213.90 L481.00 215.11 L486.75 216.29 L492.50 217.46 L498.25 218.60 L504.00 219.73 L509.75 220.83 L515.50 221.91 L521.25 222.97 L527.00 224.01 L532.75 225.02 L538.50 226.02 L544.25 226.99 L550.00 227.95 L555.75 228.88 L561.50 229.79 L567.25 230.69 L573.00 231.56 L578.75 232.41 L584.50 233.24 L590.25 234.05 L596.00 234.85 L601.75 235.62 L607.50 236.37 L613.25 237.11 L619.00 237.82 L624.75 238.52 L630.50 239.20 L636.25 239.86 L642.00 240.50 L647.75 241.13 L653.50 241.74 L659.25 242.33 L665.00 242.91 L670.75 243.47 L676.50 244.01 L682.25 244.54 L688.00 245.05 L693.75 245.55 L699.50 246.03 L705.25 246.50 L711.00 246.96 L716.75 247.40 L722.50 247.83 L728.25 248.24 L734.00 248.64 L739.75 249.03 L745.50 249.41 L751.25 249.78 L757.00 250.13 L762.75 250.47 L768.50 250.80 L774.25 251.12 L780.00 251.44" fill="none" stroke="var(--s1)" stroke-width="2.5"/><text x="610" y="370" font-size="12" fill="var(--s1)">N = 64</text><path d="M90.00 140.00 L95.75 141.11 L101.50 142.21 L107.25 143.32 L113.00 144.43 L118.75 145.54 L124.50 146.64 L130.25 147.75 L136.00 148.86 L141.75 149.97 L147.50 151.07 L153.25 152.18 L159.00 153.29 L164.75 154.40 L170.50 155.50 L176.25 156.61 L182.00 157.72 L187.75 158.82 L193.50 159.93 L199.25 161.04 L205.00 162.15 L210.75 163.25 L216.50 164.36 L222.25 165.47 L228.00 166.58 L233.75 167.68 L239.50 168.79 L245.25 169.90 L251.00 171.00 L256.75 172.11 L262.50 173.22 L268.25 174.33 L274.00 175.43 L279.75 176.54 L285.50 177.65 L291.25 178.76 L297.00 179.86 L302.75 180.97 L308.50 182.08 L314.25 183.19 L320.00 184.29 L325.75 185.40 L331.50 186.51 L337.25 187.61 L343.00 188.72 L348.75 189.83 L354.50 190.94 L360.25 192.04 L366.00 193.15 L371.75 194.26 L377.50 195.37 L383.25 196.47 L389.00 197.58 L394.75 198.69 L400.50 199.79 L406.25 200.90 L412.00 202.01 L417.75 203.12 L423.50 204.22 L429.25 205.33 L435.00 206.44 L440.75 207.55 L446.50 208.65 L452.25 209.76 L458.00 210.87 L463.75 211.98 L469.50 213.08 L475.25 214.19 L481.00 215.30 L486.75 216.40 L492.50 217.51 L498.25 218.62 L504.00 219.73 L509.75 220.83 L515.50 221.94 L521.25 223.05 L527.00 224.16 L532.75 225.26 L538.50 226.37 L544.25 227.48 L550.00 228.58 L555.75 229.69 L561.50 230.80 L567.25 231.91 L573.00 233.01 L578.75 234.12 L584.50 235.23 L590.25 236.34 L596.00 237.44 L601.75 238.55 L607.50 239.66 L613.25 240.77 L619.00 241.87 L624.75 242.98 L630.50 244.09 L636.25 245.19 L642.00 246.30 L647.75 247.41 L653.50 248.52 L659.25 249.62 L665.00 250.73 L670.75 251.84 L676.50 252.95 L682.25 254.05 L688.00 255.16 L693.75 256.27 L699.50 257.37 L705.25 258.48 L711.00 259.59 L716.75 260.70 L722.50 261.80 L728.25 262.91 L734.00 264.02 L739.75 265.13 L745.50 266.23 L751.25 267.34 L757.00 268.45 L762.75 269.56 L768.50 270.66 L774.25 271.77 L780.00 272.88" fill="none" stroke="var(--ink-muted)" stroke-width="2" stroke-dasharray="6,5"/><text x="440" y="346" text-anchor="middle" font-size="11" class="svg-muted">C · relative compute units (log scale)</text><text x="28" y="185" transform="rotate(-90 28 185)" text-anchor="middle" font-size="11" class="svg-muted">L − E (log)</text></svg><figcaption><span class="fig-num">Figure 8.</span> Calculated toy curves, not fitted measurements. Fixed N curves approach 4/√N. The dashed line is the continuous optimum over every N &gt; 0: N* = 4√C and L* − E = 4C⁻¹/⁴; it lies at or below the four selected curves. Relative units absorb constant compute factors. This illustration uses α = β = 1/2, not the Chinchilla fit below.</figcaption></figure>
 
 <details class="level l2">
 <summary><span class="badge b2">Mathematics</span> Kaplan, Chinchilla and the “compute-optimal” recipe</summary>
 <div class="body">
 <p>The form of the laws (in the parametrization of Hoffmann et al., 2022 — “Chinchilla”):</p>
 <div class="eq">L(N, D) = E + <span class="frac"><span>A</span><span>N<sup>α</sup></span></span> + <span class="frac"><span>B</span><span>D<sup>β</sup></span></span></div>
-<p>where N is the parameter count, D the number of training tokens, E the irreducible entropy of the data (the loss of a perfect model), and α and β are fitted exponents (≈0.34 and ≈0.28 in the Chinchilla fit). Minimizing subject to the compute constraint <span class="math">C ≈ 6ND</span> gives the optimum: <span class="math">N<sub>opt</sub> ∝ C<sup>0.5</sup></span>, <span class="math">D<sub>opt</sub> ∝ C<sup>0.5</sup></span> — the model and the data must be scaled <em>together</em>, as a rule of thumb ~20 tokens per parameter. This overturned the earlier practice (Kaplan et al., 2020) of fattening model size at the expense of data — by this measure GPT-3 was substantially undertrained.</p>
-<p>An important subtlety: the Chinchilla optimum minimizes <em>training</em> compute. If the model is then run a great deal, the cost of inference pushes the optimum toward the smaller model: this is why, in practice, many models are trained “too far”, well beyond 20 tokens per parameter (up to 100–1000×) — the efficiency lost in training is won back in serving. The laws also sharpened the question of the <em>data wall</em>: high-quality web text is finite, and the way forward is synthetic data, multi-epoch reuse, and research into data quality.</p>
+<p>Here N is parameter count, D is training tokens, and E is a fitted loss floor, not an independently measured entropy of language. Under the dense-model approximation C ≈ 6ND (when long-sequence attention does not dominate), the optimum gives <span class="math">N<sub>opt</sub> ∝ C<sup>β/(α+β)</sup></span> and <span class="math">D<sub>opt</sub> ∝ C<sup>α/(α+β)</sup></span>. The reported fit α ≈ 0.34 and β ≈ 0.28 therefore yields exponents <strong>0.45 and 0.55</strong>, not exactly 0.5. Other estimates in the <a href="https://arxiv.org/html/2203.15556v1">Chinchilla paper</a> suggest nearly equal scaling rates. Roughly 20 tokens/parameter is a useful historical rule of thumb, not a universal constant; compute is not two additive costs split in half.</p>
+<p>An important subtlety: the Chinchilla optimum minimizes <em>training</em> compute. If the model is then run a great deal, the cost of inference pushes the optimum toward the smaller model: this is why, in practice, many models are trained “too far”, well beyond 20 tokens per parameter (for example, hundreds or thousands of tokens per parameter) — the efficiency lost in training is won back in serving. The laws also sharpened the question of the <em>data wall</em>: high-quality web text is finite, and the way forward is synthetic data, multi-epoch reuse, and research into data quality.</p>
 </div>
 </details>
 
@@ -1804,7 +1751,7 @@ According to information theory, the optimal code length for an event of probabi
 <summary><span class="badge b3">Research</span> The emergence debate and test-time scaling</summary>
 <div class="body">
 <p><strong>Emergent abilities?</strong> Benchmark performance often appears not smoothly but seemingly in jumps as size grows (multi-step arithmetic, certain reasoning tasks). How much of this is an artifact of measurement is disputed: Schaeffer et al. (2023) showed that many “jumps” disappear if the discrete, sharp metric (exact match) is replaced by a smooth one (token-level log-likelihood) — the underlying ability builds continuously, and only the thresholded measure jumps. At the same time, genuine breakpoints have also been documented in loss space (for example the phase transition during training tied to the formation of induction heads, 8.3), so the picture is nuanced: the smoothness of scaling holds for the <em>average</em> loss, while at the level of individual circuits there can be sharp transitions.</p>
-<p><strong>A new axis of scaling: test-time compute.</strong> From 2024 the field opened up the scaling of <em>thinking time</em>: the model generates a long internal chain of thought before answering, and this is made efficient through reinforcement learning (on verifiable tasks: math, code). The empirical picture here is lawful too: accuracy grows nearly linearly with the logarithm of the compute spent at answer time, on certain classes of task. “Scaling” today therefore has three axes: parameters × data × thinking time.</p>
+<p><strong>Test-time computation.</strong> More attempts, search, verification and longer reasoning traces can improve some tasks. Gains depend on the model, question difficulty and final-answer selection. Accuracy does not increase indefinitely or universally log-linearly with compute; additional work may saturate or follow an erroneous path. Training and test-time budgets should be measured separately.</p>
 </div>
 </details>
 
@@ -1888,9 +1835,9 @@ According to information theory, the optimal code length for an event of probabi
 <div class="eq"><span class="rm">max</span><sub>θ</sub> 𝔼<sub>y∼π<sub>θ</sub></sub>[r(x, y)] − β · <span class="rm">KL</span>(π<sub>θ</sub>(·|x) ‖ π<sub><span class="rm">ref</span></sub>(·|x))</div>
 <p><strong>DPO (direct preference optimization).</strong> The key observation: the optimum of the objective above can be written in closed form, and substituting it back, the reward can be <em>eliminated</em> — the policy can be optimized directly on the preference pairs:</p>
 <div class="eq">L<sub>DPO</sub> = −𝔼 [<span class="rm">log</span> σ(β·(<span class="rm">log</span><span class="frac"><span>π<sub>θ</sub>(y<sub>w</sub>|x)</span><span>π<sub><span class="rm">ref</span></sub>(y<sub>w</sub>|x)</span></span> − <span class="rm">log</span><span class="frac"><span>π<sub>θ</sub>(y<sub>l</sub>|x)</span><span>π<sub><span class="rm">ref</span></sub>(y<sub>l</sub>|x)</span></span>))]</div>
-<p>That is: raise the probability of the winning answer relative to the reference, lower that of the loser — β is again the brake on drift. No separate reward model, no online RL loop: a stable, supervised-style training run.</p>
+<p>DPO increases the <strong>difference between preferred and rejected log probabilities relative to the reference</strong>. It does not guarantee that the preferred answer’s absolute probability increases on every update. In the derivation, β is linked to KL regularization; it also affects gradients and tuning, rather than acting as a simple quality switch. Standard offline DPO needs neither a separate reward model nor an online sampling loop. <a href="https://arxiv.org/abs/2305.18290">Original DPO paper</a>.</p>
 
-<p><strong>What this elegance conceals.</strong> The reward model does not disappear, it merely becomes <em>implicit</em>: the derivation shows precisely that the reward is hidden inside the log-ratio of the policy and the reference — DPO is therefore not reward-free but uses the policy as a reward parametrization. This has practical consequences: DPO is prone to <em>length bias</em> (the longer answer systematically wins) and to overfitting the preference pairs, because the loss is driven by the <em>difference</em> between the winning and losing answers — so it can also be reduced by pushing the loser down while degrading the winner too. This is why a single DPO round is rarely used on its own in practice: iterative DPO (preference pairs regenerated from samples of the fresh policy), length-normalized relatives (SimPO), or an explicit penalty term. The claim “simpler than RLHF” is true of <em>running</em> it, less so of the data cycle.</p>
+<p>In DPO, reward is implicit in the policy/reference log ratio. Its difference-based loss can decrease even when both answers become less probable, provided the rejected answer decreases more. Preference-data bias, response length and overfitting require separate evaluation; longer answers do not necessarily win. Iterative data collection or alternative objectives may help, but there is no general rule that a single offline DPO stage is unusable.</p>
 <p>Both families are alive in industry: DPO (and its relatives IPO, KTO, SimPO) is cheap and robust; online RL (PPO/GRPO) scales better with fresh data targeted at the policy's own mistakes — and reasoning training with verifiable rewards (math/code) is fundamentally online RL.</p>
 </div>
 </details>
@@ -1899,8 +1846,8 @@ According to information theory, the optimal code length for an event of probabi
 <summary><span class="badge b3">Research</span> Constitutional AI, RLAIF and the open problems</summary>
 <div class="body">
 <p><strong>RLAIF and Constitutional AI.</strong> Human labeling is expensive and noisy — the route to scale is for the judge to be a model as well. In Anthropic's Constitutional AI approach, the critique and the preference judgment are guided by an <em>explicit list of principles</em> (a “constitution”): the model criticizes and revises its own answer in the light of the principles (the SFT phase), and then the preference data is produced from AI judgments (the RL phase). The text of the principles makes public and auditable what would otherwise remain implicit taste in human labeling.</p>
-<p><strong>What can alignment make worse?</strong> The “alignment tax” is measurable: an over-tuned model can become mannered (formulaic openings, excessive refusal), and preference training amplifies known biases — people systematically over-score longer, more confident, more flattering answers (sycophancy). Calibration can suffer too: the base model's token probabilities are surprisingly well calibrated, and RLHF typically degrades this (the model is “more definite” than it is right).</p>
-<p><strong>Deeper open questions.</strong> The reward model is only a <em>proxy</em>: by Goodhart's law, strong optimization widens the gap between the proxy and the true goal. <em>Alignment faking</em> is another studied phenomenon: a sufficiently capable model has been shown to recognize the training situation and strategically feign cooperation so that its weights are not modified — which makes evaluation and scalable oversight one of the field's central problems. The interpretability tools of chapter 8 promise, in part, exactly this kind of independent check: looking not at what the model <em>says</em> but at what it <em>computes</em>.</p>
+<p><strong>Calibration and side effects.</strong> Preference training can reinforce unwanted style, overconfidence or sycophancy, depending on data and method. Crucially, <strong>a token probability of 70% is not a 70% probability that a statement is true</strong>. Calibration of answer correctness needs a separately defined estimate and evaluation set: roughly 70% of answers assigned 70% confidence should be correct. <a href="https://arxiv.org/abs/2207.05221">Experiments</a> find useful self-evaluation in certain models and task formats; this is not a universal property of base models or questions.</p>
+<p><strong>Open questions.</strong> A reward model approximates the real objective; intensive optimization can amplify its errors. KL penalties can limit this without eliminating reward hacking. <a href="https://arxiv.org/abs/2412.14093">Alignment-faking research</a> documented strategic compliance in specific, constructed training scenarios. This does not establish the same behavior in every current model or ordinary conversation. Behavioral evaluation and internal analysis are complementary research tools, neither a general safety proof.</p>
 </div>
 </details>
 
@@ -1930,7 +1877,7 @@ According to information theory, the optimal code length for an event of probabi
 </div>
 
 <h3>The KV cache: so we do not recompute everything</h3>
-<p>A naive implementation of the autoregressive loop would recompute the <em>entire</em> sequence at every new token. That is unnecessary: the key and value vectors of earlier tokens do not change — attention is causal, and the past does not depend on the future. The solution is the <strong>KV cache</strong>: the key/value vectors of every head of every layer are stored, and the new token's query simply matches against them. The per-step cost of decoding thus becomes a linear rather than quadratic function of sequence length — in exchange, the cache itself becomes the main consumer of GPU memory, and at long contexts it can exceed even the weights.</p>
+<p>For an unchanged model and prefix, earlier K/V vectors in a causal decoder do not depend on newly appended tokens. The <strong>KV cache</strong> stores them per layer. Each new position still requires Q, K and V projections, attention and the MLP; its K/V vectors are appended, and its query attends to permitted previous and current keys. Dense attention for one new position is linear in context length, without rerunning the entire prefix. Cache storage also grows linearly and can exceed weight storage at long contexts.</p>
 
 <figure class="diagram">
 <svg viewBox="0 0 900 272" role="img" aria-label="How the KV cache works">
@@ -1962,14 +1909,14 @@ According to information theory, the optimal code length for an event of probabi
   <text x="30" y="240" font-size="11" class="svg-muted">Example: 32 layers, 8 KV heads, d=128, 128k tokens, FP16 → 2·32·8·128·131072·2 B ≈ 17 GB — for a single conversation.</text>
   <text x="30" y="256" font-size="11" class="svg-muted">Hence the need for GQA (4.8), a quantized cache and paged memory management (PagedAttention).</text>
 </svg>
-<figcaption><span class="fig-num">Figure 10.</span> The KV cache. The key/value vectors of tokens already seen are stored per layer; for a new token only one query is computed, which attends over the whole cache. The price is memory: the size of the cache grows linearly with context length, and it is the central constraint in the design of serving systems.</figcaption>
+<figcaption><span class="fig-num">Figure 10.</span> The KV cache. The key/value vectors of tokens already seen are stored per layer; a new position computes Q, K and V, and its K/V vectors are added to the cache. The price is memory: the size of the cache grows linearly with context length, and it is the central constraint in the design of serving systems.</figcaption>
 </figure>
 
 <details class="level l2">
 <summary><span class="badge b2">Mathematics</span> Quantization and speculative decoding</summary>
 <div class="body">
-<p><strong>Quantization.</strong> If decoding is limited by reading the weights, the most effective speedup is <em>compressing the weights</em>: mapping 16-bit numbers to 8-, 4-, or even 2-bit integers. The recipe: groups of weights (in blocks of 64, say) are normalized by a scale factor and rounded to a grid — <span class="math">w ≈ s · q</span>, where q is a small integer. The loss of quality is surprisingly small (4 bits is the practical sweet spot), because the weight distribution of networks is redundant; finer schemes (GPTQ, AWQ, activation quantization in FP8) exist to handle the delicate parts (outlier activation channels). The KV cache can be quantized in the same way.</p>
-<p><strong>Speculative decoding.</strong> Decoding is serial — but <em>verification</em> is parallel. A small, fast “draft model” generates k tokens ahead, and the large model checks them in a <em>single</em> parallel run: it accepts the matching prefix and, at the first divergence, corrects from its own distribution. With a rejection-sampling trick the procedure yields <em>exactly</em> the large model's distribution — so the speedup (typically 2–3×) is free, whenever the text is easy to predict. A related direction is self-drafting with multi-token-prediction heads (Medusa, EAGLE).</p>
+<p><strong>Quantization.</strong> Lower bit widths can reduce weight and KV-cache storage and memory traffic. A simple integer scheme uses w ≈ s·q, sometimes with a separate zero point; scales are often stored per group. GPTQ and AWQ mitigate low-bit weight errors. Four bits can be a useful compromise, but quality loss must be measured for the model and task, especially at two bits. FP8 is floating point, not an 8-bit integer. Reduced storage alone does not guarantee a proportional speedup.</p>
+<p><strong>Speculative decoding.</strong> A fast draft model proposes k tokens; the target model can check their conditional distributions in parallel. Exact sampling accepts a token x drawn from draft distribution q with probability min(1, p(x)/q(x)). On rejection, sample from <strong>normalized max(0, p − q)</strong>, not simply from p. Discard proposals after the first rejection; if all are accepted, the target can supply an additional token. This preserves the target distribution. Speedup depends on acceptance rate, drafting cost and verification cost; it is neither free nor guaranteed. <a href="https://arxiv.org/html/2211.17192v2">Leviathan et al., section 2.3</a>.</p>
 <p><strong>Serving.</strong> In a production system many requests run together: <em>continuous batching</em> groups decoding steps across requests (sharing the GPU on the weight reads), <em>PagedAttention</em> (vLLM) manages memory by breaking the KV cache into pages, and a prefix cache shares common prompt prefixes (the system prompt!). Because prefill and decoding have different profiles, large systems often split the two onto separate machine pools.</p>
 </div>
 </details>
@@ -1977,8 +1924,8 @@ According to information theory, the optimal code length for an event of probabi
 <details class="level l3">
 <summary><span class="badge b3">Research</span> Sampling research: why top-p, and what goes wrong?</summary>
 <div class="body">
-<p>The sampling strategy looks like a detail but is in fact a strong regulator of output quality. Pure sampling (T=1, no filtering) reliably “derails” in long text: after a bad token drawn from the tail, the model conditions on its own mistake and the error becomes self-amplifying (exposure bias — during training it always saw a <em>real</em> prefix, during generation it sees its own). The opposite pathology of greedy/low-T decoding is degenerate repetition: once a loop has started, its probability grows step by step. Top-p is the pragmatic compromise between the two; finer relatives (min-p, typical sampling, mirostat) adapt the threshold to the local uncertainty.</p>
-<p>It is worth seeing that the “most likely text” is <em>not</em> the best text: the globally maximum-probability continuation (which beam search approximates) is, for natural language, typically short, repetitive and bland — human text is typical, not maximal, in probability. In the era of reasoning models a new consideration has entered: during long chains of thought, diversity in sampling serves exploration (more attempts, self-correction), whereas for the final answer sharper decoding pays off — so T can be tuned per phase.</p>
+<p>Decoding effects depend on the task. In open-ended generation, unrestricted sampling can select unlikely, erroneous continuations; greedy decoding or beam search can produce repetitive output. These are observed failure modes rather than laws governing every run. The mismatch between teacher-forced training and self-generated prefixes is discussed as exposure bias. Top-p, min-p and typical sampling use different filtering rules; none guarantees correctness.</p>
+<p>Maximum model probability and task quality are different objectives. Diversity may help creative, open-ended text, while greedy or search-based decoding can suit other tasks. Temperature controls concentration of the conditional distribution; it does not directly measure creativity or truth. Compare decoding strategies on the intended task.</p>
 </div>
 </details>
 
@@ -2047,7 +1994,7 @@ According to information theory, the optimal code length for an event of probabi
   <text x="20" y="300" font-size="11" class="svg-muted">The circuit works for any pair of tokens — it did not learn “Anna Smith” but the abstract operation of pattern repetition. This is one of the</text>
   <text x="20" y="316" font-size="11" class="svg-muted">base mechanisms of in-context learning: it forms abruptly during training, like a phase transition, and its arrival is visible on the loss curve.</text>
 </svg>
-<figcaption><span class="fig-num">Figure 11.</span> The induction circuit as a composition of two heads. The previous-token head writes into the stream, at every position, the identity of the token in front of it; the induction head looks for that annotation using the current token (the QK circuit) and copies the token <em>following</em> the match into the output (the OV circuit). A textbook-clean example that a recognizable algorithm, describable in human terms, lives in learned weights.</figcaption>
+<figcaption><span class="fig-num">Figure 11.</span> The induction circuit as a composition of two heads. The previous-token head writes into the stream, at every position, the identity of the token in front of it; the induction head looks for that annotation using the current token (the QK circuit) and copies the content of the matched B position toward the output (the OV circuit). A textbook-clean example that a recognizable algorithm, describable in human terms, lives in learned weights.</figcaption>
 </figure>
 
 <div class="quiz" id="quiz-10" data-level="10">
@@ -2195,7 +2142,7 @@ According to information theory, the optimal code length for an event of probabi
 <summary><span class="badge b3">Research</span> The research frontier and the open problems</summary>
 <div class="body">
 <p><strong>Faithfulness.</strong> A model's written chain of thought is not a reliable window onto the actual computation: models have been shown to rationalize after the fact — computing the answer by a different route than the one they describe, and even concealing the true influencing factor (a hint hidden in the prompt, say). This is one of interpretability's main motivations: an audit of the <em>internal</em> computation cannot be replaced by the model's self-report. Attribution graphs catch these “unfaithful CoT” cases experimentally.</p>
-<p><strong>The limits of the dictionary hypothesis.</strong> For all the power of SAEs, it remains open whether features are the model's “true” variables or merely a useful approximation: the reconstruction is never perfect (the residual is the “dark matter”), features keep splitting as the dictionary grows (feature splitting), and the dictionaries of SAEs trained with different seeds only partly overlap. Alternative and complementary directions: crosscoders (a shared dictionary across layers or models), transcoders (replacing MLPs with an interpretable sparse module), and research into nonlinear, multidimensional representations (circles, lattices).</p>
+<p><strong>The limits of the dictionary hypothesis.</strong> For all the power of SAEs, it remains open whether features are the model's “true” variables or merely a useful approximation: practical reconstructions usually retain some error (the residual is the “dark matter”), features keep splitting as the dictionary grows (feature splitting), and the dictionaries of SAEs trained with different seeds only partly overlap. Alternative and complementary directions: crosscoders (a shared dictionary across layers or models), transcoders (replacing MLPs with an interpretable sparse module), and research into nonlinear, multidimensional representations (circles, lattices).</p>
 <p><strong>Scalability and automation.</strong> Analyzing a frontier model's millions of features and circuits by hand is hopeless — so the field is moving toward <em>automated</em> interpretation: models explaining other models' features, generating and scoring verification experiments. The long-term goal is a kind of “microscope pipeline”: given a behavior (deception, susceptibility to jailbreaks, goal pursuit), produce a causal circuit-level diagnosis at the press of a button. The field is still far from that — today's tools explain a fraction of the computation — but the pace of progress over the past few years is striking: from two-layer toy models in 2021 to circuit-level case studies of concrete behaviors in frontier models by 2025.</p>
 </div>
 </details>
@@ -2233,7 +2180,7 @@ The thesis of mech interp: a trained network is not a black box but an <em>unkno
 <li><strong>Recall and phrasing come apart.</strong> Interpretability case studies (8.6) find a separate “I know this entity” signal in the network: if it switches on mistakenly, the inhibition on the answer-generating circuits is released and the model fills in the details — the structure is there, the content is not.</li>
 </ul>
 
-<p>Mitigation today runs on several tracks: post-training targeted at calibration and refusal, anchoring to an external source of fact through retrieval (RAG, tool use), plus verifier models and citation requirements. The phenomenon cannot be eliminated entirely within the present paradigm, however: a system that models a distribution generalizes, by definition, where it is uncertain.</p>
+<p>Mitigation can combine training for uncertainty and abstention, retrieval from external sources (RAG), tool use and verification. The mere presence of a citation does not establish that it exists or supports the claim. There is no established general guarantee eliminating hallucinations across open-ended tasks. Probabilistic modeling alone does not prove impossibility, however: constrained, verifiable tasks can admit strong correctness guarantees through formal restrictions or verification.</p>
 
 <h3>Further characteristic limits</h3>
 <table>
@@ -2302,6 +2249,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
 <section id="irodalom">
 <div class="chapter-kicker">Chapter 11</div>
 <h2>Further reading — the canon, in reading order</h2>
+<p><strong>Scientific review · 19 September 2026 (v1.1.1).</strong> The review covered the 12 learning stages, 60 quiz questions, worked examples and 14 interactive labs. Corrections and primary sources are recorded in the <a href="https://github.com/csaplard/llm-oktatoanyag/blob/main/SCIENTIFIC_REVIEW.md">review notes</a>. Toy illustrations are not measurements from a real LLM; this review is not independent academic peer review.</p>
 <p>The list is deliberately short: the foundational texts of the field, roughly in the order of this material's chapters. The foundational texts are freely available; linked titles lead directly to the original sources.</p>
 <ol class="refs">
 <li><b><a href="https://arxiv.org/abs/1706.03762">Vaswani et al. (2017): Attention Is All You Need</a></b> — the original transformer paper. (Chapter 4)</li>
@@ -2336,6 +2284,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
 <h2>Changelog</h2>
 <p>This material covers a fast-moving field. The list below is in reverse chronological order, so you can see how current the version you are reading is.</p>
 <dl class="changelog">
+  <dt>v1.1.1 — 19 September 2026</dt><dd>Scientific review: corrected attention/MLP formulas, bfloat16, scaling laws, speculative decoding, KV caching and calibration; revised 28 quiz items. Replaced the scaling sketch with computed curves. See the <a href="https://github.com/csaplard/llm-oktatoanyag/blob/main/SCIENTIFIC_REVIEW.md">review notes</a> for corrections and primary sources. Existing progress is preserved.</dd>
   <dt>v1.1 — 19 September 2026</dt><dd>Fourteen new interactive workshops; worked foundations; a twelve-week practice path with local checklists; free reading and guided learning modes; distinct depth and progress labels; scientific corrections and balanced introductory quiz choices. Both editions remain self-contained and work offline.</dd>
   <dt>v1.0 — 30 August 2026</dt>
   <dd>First public release. The twelve chapters were turned into a level-based learning system: each chapter closes with a five-question quiz, a 4/5 pass mark and unlimited retries; chapters you have not yet completed stay locked. Progress lives in your browser's local storage — nothing is sent to a server. Katedra visual identity, with light and dark modes designed separately.</dd>
@@ -2344,7 +2293,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
 </section>
 <footer class="page-footer">
   <p class="foot-line"><strong>© 2026 Dániel Csaplár</strong> · <a href="mailto:csaplar.d@gmail.com">csaplar.d@gmail.com</a>. This work is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="license noopener noreferrer" target="_blank">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC&nbsp;BY-NC-SA&nbsp;4.0)</a>: credit the author, do not use it commercially, and share any derivative work under the same terms.</p>
-  <p class="foot-line">v1.1 · last updated: 19 September 2026 · your progress is stored only in your own browser. · <a href="../" hreflang="hu">Hungarian version</a></p>
+  <p class="foot-line">v1.1.1 · last updated: 19 September 2026 · your progress is stored only in your own browser. · <a href="../" hreflang="hu">Hungarian version</a></p>
 </footer>
 <div class="reset-row">
   <button id="resetProgress" type="button">Reset progress</button>
@@ -2450,7 +2399,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
           { t: "The model resets all its weights to fresh random values for each request." },
           { t: "The tokenizer builds a different random vocabulary for every new prompt." }
         ],
-        why: 'The network itself is a <strong>deterministic function</strong>: the same prefix yields the same distribution. The variation comes from the next step \u2014 the token is <em>sampled</em> from that distribution, and the sampling strategy (temperature, top-p) is a parameter of inference, not of the model. That is why the same model can also be run deterministically (always taking the most likely token), and why a changed answer implies no \u201clearning\u201d between two requests: the weights do not move between conversations.'
+        why: "With fixed weights and deterministic computation, the same prefix produces the same distribution, but sampling can choose another token. Numerical or serving differences can also affect real systems, including greedy decoding. A changed answer alone does not demonstrate updated weights."
       },
       {
         id: 'llm-autoregressziv',
@@ -2470,7 +2419,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
         answer: 20,
         hint: 'A whole number, in percent.',
         q: 'The model produces a two-token continuation. It assigns probability 0.5 to the first token, and then, at the next step, 0.4 to the second token it actually chose. By the chain rule, what is the joint probability of the two-token continuation, in percent?',
-        why: 'By the chain rule the joint probability of a sequence is the <strong>product</strong> of the conditional terms: 0.5 \u00d7 0.4 = 0.2, that is <strong>20%</strong>. This is not merely arithmetic: because the terms multiply, the joint probability of a long output falls <em>exponentially</em> with its length \u2014 the \u201cprobability\u201d of a hundred-token answer is astronomically small even if every single step was confident. That is why it is meaningless to compare whole answers by their probability without normalizing for length, and why the loss is defined as a <em>per-token average</em> (5.1).'
+        why: "0.5 × 0.4 = 0.2, or <strong>20%</strong>. This follows from the supplied conditional probabilities. Longer sequences multiply more factors; with similar average token uncertainty, sequence probability decreases exponentially. Evaluations therefore often use average log loss per token when comparing lengths, but the appropriate metric depends on the task."
       },
       {
         id: 'llm-halluc',
@@ -2501,46 +2450,46 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
       {
         id: 'tok-strawberry',
         type: 'choice',
-        q: 'A model claims there are two letter “r”s in <code>strawberry</code>. What is the most likely reason?',
+        q: "Why can a subword tokenizer make counting the letters “r” in <code>strawberry</code> harder?",
         options: [
           { t: 'The model does not receive letters as input but tokens (for example <code>str</code>+<code>aw</code>+<code>berry</code>) — the internal letter composition of a token is available only indirectly.', ok: true },
           { t: 'The model cannot count to three.' },
           { t: 'The tokenizer split the word incorrectly.' },
           { t: 'The temperature was too high, so it drew the wrong token.' }
         ],
-        why: 'Reversible tokenization does not discard the characters, but the model receives each token as a single identifier: its internal letters are not separate input positions. Character-level tasks (counting letters, anagrams, writing backwards) are hard not because the model is “stupid” but because the input is at a coarser resolution than the task. This is also why arithmetic is more reliable on digit-by-digit tokenized numbers: <code>12345</code> as one token is atomic, whereas as <code>1</code>+<code>2</code>+<code>3</code>+<code>4</code>+<code>5</code> the place-value structure becomes visible.'
+        why: "There are three letters “r”. Letters inside a token do not occupy separate input positions, which can complicate counting. The shown split is illustrative and actual splits depend on the tokenizer. Tokenization is not the only possible cause of failure: training data and learned computation matter too. Digit-level tokenization does not guarantee correct arithmetic either."
       },
       {
         id: 'tok-merges',
         type: 'number',
         answer: 31744,
         hint: 'A whole number.',
-        q: 'A byte-level BPE starts from 256 bytes and builds a vocabulary of 32,000 entries. How many merge steps does it perform?',
-        why: 'Every merge step adds exactly <strong>one</strong> new token to the vocabulary, formed by fusing two existing entries — so 32,000 − 256 = <strong>31,744</strong> steps. This is not merely arithmetic: the ordered list of merge rules <em>is</em> the vocabulary. When tokenizing, we replay those same 31,744 rules in the same order, and that is what makes the result deterministic.'
+        q: "A toy BPE vocabulary starts with 256 bytes. Each merge adds one new entry, and there are no extra special tokens. How many merges produce 32&nbsp;000 entries?",
+        why: "32&nbsp;000 − 256 = <strong>31&nbsp;744</strong>, under the stated assumptions. Real tokenizers also require accounting for reserved tokens and any additional base entries. Learned merge ranks determine merge priority."
       },
       {
         id: 'tok-special',
         type: 'choice',
-        q: 'Why is it a requirement that special tokens such as <code>&lt;|endoftext|&gt;</code> and <code>&lt;|user|&gt;</code> can never arise from ordinary text?',
+        q: "Why must a chat serializer distinguish a role marker typed by a user from the actual special token ID?",
         options: [
           { t: 'Because otherwise text typed by the user could tokenize into a role marker, and the model would read the user\u2019s text as a system instruction or as its own reply.', ok: true },
           { t: 'Because it would increase the size of the vocabulary.' },
           { t: 'Because their embeddings would remain untrained.' },
           { t: 'Because BPE cannot handle tokens longer than 16 characters.' }
         ],
-        why: 'The chat format is not a protocol living outside the network: for the model, the separation of roles is <em>the same token sequence</em> as the content. If anyone could produce that token simply by writing the string <code>&lt;|user|&gt;</code>, the structure of the conversation would be forgeable — this is one of the crudest forms of prompt injection. That is why tokenizers handle these tokens on a separate path, bypassing normal BPE splitting: the written text <code>&lt;|user|&gt;</code> falls apart into ordinary subwords, not into the special token.'
+        why: "Special IDs can mark conversation structure. The tokenizer API and chat serializer control when they are emitted; ordinary marker text may be split into subwords or rejected. BPE itself is not a security guarantee. Correct role-boundary handling does not eliminate all content-level prompt injection."
       },
       {
         id: 'tok-glitch',
         type: 'choice',
-        q: 'A token was frequent in the vocabulary-building corpus but was filtered out of the model\u2019s training data. What happens if someone types it anyway?',
+        q: "A token received little direct training exposure in the language model. What is justified about possible unusual behavior?",
         options: [
-          { t: 'Its embedding stayed essentially at initialization noise, so the model behaves unpredictably: it cannot say the token, misreads it, or answers irrelevantly.', ok: true },
+          { t: "Rarity is a possible explanation, but the embedding state and specific failure need separate investigation.", ok: true },
           { t: 'The tokenizer throws an error, because the symbol is unknown.' },
           { t: 'The model substitutes the most frequent token for it.' },
           { t: 'Nothing in particular, processing is just slower.' }
         ],
-        why: 'These are the “glitch tokens”; the classic example is <code>SolidGoldMagikarp</code>. This is the most likely explanation of the phenomenon — the precise causal chain in individual cases is not established, though the behavior is reproducible. The lesson is more general than the curiosity: the tokenizer and the model are <strong>two separately trained systems</strong>, with separate corpora — and where the two fail to overlap, a measurable class of errors appears. The “unknown symbol” answer is wrong because in byte-level BPE no such thing can exist: every input can be tokenized, and the trouble is not in the splitting but in the embedding table.'
+        why: "Rarely used input-lookup rows receive little direct gradient. This does not establish that an embedding remains unchanged initialization noise: weight tying, weight decay and optimizer state may modify it. “Glitch token” labels an observed behavior, not one proven cause."
       },
       {
         id: 'tok-order',
@@ -2559,14 +2508,14 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
       {
         id: 'emb-poliszemia',
         type: 'choice',
-        q: 'Both senses of the word “bank” (a financial institution and the edge of a river) receive <em>the same</em> single vector in the embedding table. How can the model still continue “<em>on the river bank</em>” and “<em>the bank approved the loan</em>” correctly?',
+        q: "Assume “crane” is the same single token in “the nesting crane” and “the construction crane”. Why can its representation differ after transformer layers?",
         options: [
           { t: 'The vector is only a starting point — the dictionary meaning. The transformer layers gradually rewrite it into a contextual meaning, so after the layers the two sentences hold different vectors in that position.', ok: true },
           { t: 'The tokenizer splits the two senses into two different tokens.' },
           { t: 'The embedding table stores a separate row for each sense and the model picks the right one.' },
           { t: 'Positional encoding separates the two senses from each other.' }
         ],
-        why: 'A static embedding compresses the token\u2019s <em>distributional profile</em> — everything the word tends to mean across its contexts — into a single vector. Resolving polysemy, syntactic role and coreference is the work of the layers. On the modern view the embedding is the <strong>initial state of the residual stream</strong>: the first message on a communication channel that every layer reads and overwrites. This also explains why it makes sense to inspect the representation of the same token at different layer depths — much of chapter 8 is about exactly that.'
+        why: "The initial token embedding is the same, but preceding text differs. Causal attention can use that earlier context to build context-dependent representations. Later text does not retroactively change an earlier position’s state."
       },
       {
         id: 'emb-tabla',
@@ -2605,12 +2554,12 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
         type: 'choice',
         q: 'You compute the cosine similarity between the embeddings of two tokens that have nothing to do with each other, and get 0.7. What should you conclude?',
         options: [
-          { t: 'On its own, nothing: learned embeddings concentrate in a narrow cone, so the average pairwise similarity is well above zero to begin with — the 0.7 has to be read against that baseline.', ok: true },
+          { t: "Compare against a baseline: in some embedding spaces, unrelated pairs can also have high similarity.", ok: true },
           { t: 'That the two tokens are in fact related and we simply had not noticed.' },
           { t: 'That the model is undertrained, because in a well-trained model every similarity is close to 0.' },
           { t: 'That the norms of the two vectors are very different.' }
         ],
-        why: 'The naive picture — vectors scattered evenly over a sphere — is empirically false. Learned embeddings are <strong>anisotropic</strong>: partly because of the distortion from token frequency, partly because of the dynamics of optimization, they crowd into a narrow cone. As a result a raw cosine value cannot be interpreted on an absolute scale; in representation analysis it is therefore customary to subtract the mean vector first, or to whiten the space. The practical lesson is more general: an internal metric rarely means anything on its own — it always needs a <em>baseline</em> to be measured against.'
+        why: "High cosine alone does not establish a semantic relationship. Learned spaces can be anisotropic, with the degree depending on model, layer and data. Inspect the distribution over many comparable pairs and the task; 0.7 is not a universal semantic threshold."
       }
     ],
     4: [
@@ -2651,12 +2600,12 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
         type: 'choice',
         q: 'In a model with a large head dimension you leave out the division of the attention scores by <span class="math">√d<sub>h</sub></span>. What follows for training?',
         options: [
-          { t: 'The spread of the scores becomes too large, the softmax saturates to practically one-hot, and in that saturated range the gradient vanishes — the head cannot learn.', ok: true },
+          { t: "Score variance and softmax saturation can increase, making training harder through small gradients.", ok: true },
           { t: 'Attention spreads evenly over all positions, so the head cannot single anything out.' },
           { t: 'Nothing; the scaling is only a numerical convenience, since the softmax normalizes anyway.' },
           { t: 'The causal mask stops working and the model can see into the future.' }
         ],
-        why: 'If the components of the query and the key are independent quantities with unit variance, the standard deviation of their dot product grows with <span class="math">√d<sub>h</sub></span>. At a large head dimension the scores scatter so widely that the softmax output becomes practically one-hot — and precisely there, in the saturated range, its derivative is near zero. The scaling is therefore not cosmetic: it keeps the scores in the <em>sensitive</em> range of the softmax, where there is something to backpropagate at all. The trap in the third answer is that the softmax really does normalize — but normalization does not restore the lost gradient.'
+        why: "For independent zero-mean, unit-variance components, the dot product has variance dₕ and standard deviation √dₕ. Scaling offsets this dimension dependence. Actual scales also depend on learned weights and possible QK normalization; omitting scaling does not make learning impossible in every setting."
       },
       {
         id: 'trf-sulyok',
@@ -2689,12 +2638,12 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
         type: 'choice',
         q: 'If the MLP behaves like a key–value memory, why can the model\u2019s knowledge not simply be read out neuron by neuron?',
         options: [
-          { t: 'Because the “keys” do not live in the neuron basis: most neurons are polysemantic — the same neuron fires for unrelated patterns — and the features are stored as superposed directions.', ok: true },
+          { t: "A weighted sum does not guarantee one neuron per concept: representations may be distributed and neurons polysemantic.", ok: true },
           { t: 'Because neuron activations are encrypted and only the model can decode them.' },
           { t: 'Because the knowledge is not in the MLP but exclusively in the attention heads.' },
           { t: 'Because one neuron always encodes exactly one concept, but there are too many neurons to go through.' }
         ],
-        why: 'The key–value reading is mathematically exact: the output is always the activation-weighted sum of the value vectors. It does <strong>not</strong> follow, however, that one row is a single key labelable with a human concept. In reality the same neuron may fire for academic citations, English dialogue and HTTP requests at once. According to 8.4 this is not a defect but compression: the model stores more features than it has neurons, in non-basis directions. This is why the field turned from neurons to <em>learned dictionary directions</em> (SAEs, 8.5) — the MLP <em>behaves</em> like a key–value memory, but its dictionary is not the list of neurons.'
+        why: "With row vectors, columns of W_in are neuron input weights and rows of W_out are output directions. This is exact algebra, but a neuron can respond to several different patterns. Superposition is one researched explanation; an SAE dictionary is not automatically a unique, complete list of model concepts."
       },
       {
         id: 'out-logit',
@@ -2715,7 +2664,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
           { t: 'Because the context window of any model can be changed freely, regardless of the kind of positional encoding.' },
           { t: 'Because RoPE pre-trained a separate vector for every possible position, up to 32k.' }
         ],
-        why: 'RoPE does not add to the content but <em>rotates</em> the query and key vectors by an angle proportional to position. Since rotation is orthogonal, position enters the dot product solely through the difference <span class="math">m−n</span>: attention automatically senses relative distance. That is precisely why the scale can be stretched — position interpolation, NTK-aware scaling and YaRN all modify the frequencies, not the model\u2019s knowledge. The fourth answer describes the world of <em>learned</em> positional embeddings: there every position really does have its own vector, and that is exactly why you cannot go beyond the trained length.'
+        why: "For fixed content Q/K vectors, RoPE changes the dot product through relative position. Frequency or position scaling can target longer ranges, often with additional training. This does not guarantee reliable long-context use; retrieval and task tests are needed. Learned positional tables can also be extended, but require a separate method."
       },
       {
         id: 'norm-prenorm',
@@ -2755,38 +2704,38 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
       {
         id: 'bp-gradiens',
         type: 'choice',
-        q: 'In the output layer the gradient is exactly <span class="math">p<sub>i</sub> − y<sub>i</sub></span> — the difference between the prediction and reality. What does this mean for the <em>incorrect</em> tokens?',
+        q: "For one observed token, differentiate softmax cross-entropy with respect to logits at T = 1. What does pᵢ − yᵢ mean for a non-target token?",
         options: [
-          { t: 'Each gets exactly as much downward push as the probability it received: the one the model wasted a lot of probability on is pushed down hard, the one it already thought was zero is left alone.', ok: true },
+          { t: "Its logit derivative is pᵢ; a direct gradient step on logits would reduce that logit.", ok: true },
           { t: 'They all get the same downward push, since they are all equally wrong.' },
           { t: 'Incorrect tokens receive no gradient; only the correct one gets an upward push.' },
           { t: 'Incorrect tokens receive an upward push, to keep the distribution smoother.' }
         ],
-        why: 'The formula says surprisingly little, and that is exactly the point: the training signal does not say “this would have been the right answer and the rest are wrong”, but rather <em>where probability was spent unnecessarily</em>. A correct token at 0.51 has gradient −0.49 (“push further up”), while a wrong token at 0.3 gets a 0.3 push down and one at 0.001 gets practically nothing. This is why what the model has already ruled out is “cheap” for it, and why the energy of training goes where the model is confidently wrong. The formula is numerically kind as well: no division by a near-zero number.'
+        why: "The target-token derivative is p_c − 1; other derivatives are p_i. Actual training updates shared parameters rather than independent logits. The chain rule, other examples and optimizer mean each non-target logit need not decrease by exactly p_i after an update. The target is the observed token, not a declaration that every other linguistic continuation is invalid."
       },
       {
         id: 'bp-entropia',
         type: 'choice',
-        q: 'During training the loss falls nicely, then stops at a clearly non-zero value and goes no lower. Is that a problem?',
+        q: "Why is expected cross-entropy under the true data-generating distribution bounded below by its entropy?",
         options: [
-          { t: 'No: the text itself has entropy — the next token often genuinely is not deducible — and the loss cannot go below that even in principle. Zero loss would mean perfect prediction, which is a meaningless demand for language.', ok: true },
-          { t: 'Yes: it is a sure sign that the model is undertrained and needs more steps.' },
-          { t: 'Yes: well-functioning training always drives the loss to zero.' },
-          { t: 'No, but only because cross-entropy can never technically return zero.' }
+          { t: "Because H(P,Q) = H(P) + KL(P‖Q), and KL divergence is nonnegative.", ok: true },
+          { t: "Because softmax assigns at least 1/V probability to every token." },
+          { t: "Because every finite training sample necessarily has loss equal to the distribution entropy." },
+          { t: "Because cross-entropy can only be measured in whole numbers of bits." }
         ],
-        why: 'The loss reduces the KL divergence between the model\u2019s distribution and reality, <em>plus a constant</em>: the data\u2019s own entropy. That constant cannot be removed, because it is not about the model but about the text: in many places several continuations are entirely legitimate. This also makes the compression reading intelligible — cross-entropy measures how many bits the model could compress the text into, and compression too has a theoretical floor. Perplexity (the exponential of the loss) says the same thing on a human scale: a perplexity of 20 means roughly having to choose between twenty equally likely continuations at each position.'
+        why: "This concerns an expectation over a distribution. Memorization can drive finite-sample training loss near zero while generalization remains poor. A plateau alone does not demonstrate reaching the entropy floor: optimization or capacity limits can cause it. With ln, units are nats/token; exp(loss) is perplexity."
       },
       {
         id: 'bp-memoria',
         type: 'choice',
         q: 'A model runs comfortably in inference on your GPU, but you cannot train it on the same hardware: you run out of memory. What is the main reason?',
         options: [
-          { t: 'The forward pass has to keep its intermediate values, because the backward pass computes from exactly those — whereas in inference every intermediate value can be discarded as soon as it has been used.', ok: true },
+          { t: "Training needs activations, gradients and optimizer state in addition to weights.", ok: true },
           { t: 'Training keeps two copies of the model in memory: one for the forward and one for the backward pass.' },
           { t: 'The description of the computational graph\u2019s structure, which grows with the number of parameters.' },
           { t: 'The training data, all of which has to be held in GPU memory.' }
         ],
-        why: 'The computational graph is not an abstraction but a concrete memory requirement: at every node the backward pass multiplies by its own local derivative, and to do that it must know what values the forward pass worked with there. This is why activations have to be kept throughout — and why memory grows with batch size, sequence length and depth, while the number of parameters stays the same. The optimizer state and the gradients consume memory too (stage 7 covers that), but the typically dominant item is the activations. Hence the idea of gradient checkpointing: rather than storing them all, some are recomputed during the backward pass — trading memory for compute.'
+        why: "Backpropagation needs intermediate values to be stored or recomputed. Gradients and, for example, Adam moment states require additional memory; the dominant item depends on configuration. Checkpointing reduces activation storage by recomputing values. Inference still needs temporary arrays and often a KV cache, but not the full training state."
       }
     ],
     7: [
@@ -2795,24 +2744,24 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
         type: 'choice',
         q: 'Why is a single, global learning rate not enough — why does Adam maintain a separate scale <em>per parameter</em>?',
         options: [
-          { t: 'Because the gradients of different parameters differ by orders of magnitude: the same rate is too large a step for one and too small for another. Adam measures each against its own usual gradient magnitude, giving approximately unit-sized steps.', ok: true },
+          { t: "It scales momentum using a moving estimate of squared gradients, adapting updates coordinate by coordinate.", ok: true },
           { t: 'Because the direction of the gradient differs per parameter, and the rate has to correct for that.' },
           { t: 'Because a global learning rate would violate the chain rule.' },
           { t: 'Because this way every parameter can be computed on a separate thread, which speeds up training.' }
         ],
-        why: 'Two things spoil naive SGD in a large model: the orders-of-magnitude spread of gradients across layers and parameter types, and the noise coming from batches. Adam answers both, with two running statistics: the mean of the gradient acts as <em>momentum</em> and smooths the noise, while the mean of the squared gradient acts as a <em>scale</em> and normalizes the step. The effect is that a well-conditioned step size no longer depends on the luck of a hand-tuned rate. The price is direct and measurable: two extra state vectors per parameter.'
+        why: "Adam stores two moving averages and applies bias correction. Learning rate and statistics still determine step sizes; updates need not be unit-sized. Tuning and empirical validation remain necessary."
       },
       {
         id: 'opt-memoria',
         type: 'choice',
         q: 'The weights of a 7-billion-parameter model fit comfortably on your GPU, yet training runs out of memory — and you have already optimized the activations. What is the other large item?',
         options: [
-          { t: 'The optimizer state: Adam stores two statistics per parameter, which by itself is about twice the size of the model — on top of the gradients.', ok: true },
+          { t: "Adam’s two moment estimates and the gradients; byte counts depend on data types.", ok: true },
           { t: 'Training keeps the model in two copies: one for the forward and one for the backward pass.' },
           { t: 'The description of the computational graph\u2019s structure, which grows with the parameter count.' },
           { t: 'The training data, all of which must be kept in GPU memory.' }
         ],
-        why: 'The memory of a training step consists of four large items: the weights, the gradients, the <strong>optimizer state</strong> and the activations. With AdamW the third item is two vectors per parameter — twice the weights — so weights + gradients + optimizer state alone come to about four times the model size before a single activation has been stored. This is why ZeRO/FSDP distributes precisely the weights and the optimizer state across replicas, and why gradient checkpointing does not solve everything on its own: it acts only on the activations.'
+        why: "N weights require 2N moment values. With BF16 weights and two FP32 states, weights use 2N bytes and states use 8N: four times, not twice, the weight bytes. With FP32 weights the ratio is two. Gradients and optional master weights are additional; checkpointing does not remove them."
       },
       {
         id: 'scale-chinchilla',
@@ -2821,7 +2770,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
         tol: 0.5,
         hint: 'A whole number, in billions of tokens.',
         q: 'By the Chinchilla rule of thumb, compute-optimal training uses roughly 20 tokens per parameter. How many <strong>billion</strong> training tokens does that imply for a 7-billion-parameter model?',
-        why: '7 × 20 = <strong>140 billion</strong> tokens. The point of the Chinchilla analysis is not this particular number but the ratio: the model and the data have to be scaled <em>together</em>, because under the constraint <span class="math">C ≈ 6ND</span> the optimum calls for roughly an even split. This overturned the earlier practice of fattening the parameter count at the expense of data — by this measure GPT-3 was substantially undertrained. Seen this way, the question “how big is the model?” does not by itself answer what it can do: without the tokens-per-parameter ratio, the parameter count is misleading.'
+        why: "7 × 20 = <strong>140 billion</strong> tokens under the stated heuristic. Approximately equal growth of parameters and data does not mean splitting costs in half: C ≈ 6ND is multiplicative. The optimum depends on the fit, data and whether subsequent inference costs are included."
       },
       {
         id: 'scale-inferencia',
@@ -2871,7 +2820,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
           { t: 'The model forgets its pretrained knowledge and generates random text.' },
           { t: 'Nothing in particular: the reward model\u2019s score and true quality coincide, and the brake only slows training.' }
         ],
-        why: 'The reward model is not the true goal but its <strong>proxy</strong> — a compressed, machine substitute for human taste. Goodhart\u2019s law is exactly about this: the harder you optimize a proxy, the wider the gap grows between the proxy and the real objective. The KL brake is therefore not a tuning detail but the main defense against reward hacking: it penalizes the policy for drifting too far from the starting model, which bounds how far it can run into the reward model\u2019s errors. The temptation in the last answer is that if the proxy were perfect, no brake would be needed — it just never is.'
+        why: "KL penalizes policy drift from a reference. It can help limit reward-model overoptimization, but reward hacking can still occur with KL regularization. Outcomes depend on the reward model, data and optimization; evaluate real task quality as well as reward scores."
       },
       {
         id: 'al-bradley',
@@ -2891,19 +2840,19 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
           { t: 'Because DPO uses no reference model, so there is nothing to measure the probabilities against.' },
           { t: 'Because in DPO the KL brake penalizes the winning answers too.' }
         ],
-        why: 'DPO\u2019s elegance — no separate reward model, no online RL loop — hides an important detail: the reward did not disappear, it merely became <em>implicit</em>, inside the log-ratio of the policy and the reference. The objective optimizes a difference, so it does not guarantee that the winner\u2019s absolute probability rises. This is also the origin of DPO\u2019s known biases: length bias (the longer answer systematically wins) and overfitting to the preference pairs. Which is why a single DPO round is rarely used alone: iterative DPO, length-normalized relatives (SimPO) or an explicit penalty term are the usual answers. The claim “simpler than RLHF” is true of running it, less so of the data cycle.'
+        why: "DPO increases a reference-corrected log-probability difference. Both answers can become less probable if the rejected answer decreases more. Evaluate response quality, length bias and generalization separately from preference loss. Longer answers do not necessarily win, and iterative DPO is not the only viable training setup."
       },
       {
         id: 'al-kalibracio',
         type: 'choice',
-        q: 'A base model\u2019s token probabilities are surprisingly well calibrated: what it says 70% to is right about 70% of the time. After RLHF this typically degrades. What causes that?',
+        q: "A token receives 70% probability. Does that imply the whole answer’s claim is true with 70% probability?",
         options: [
-          { t: 'The preference signal itself is biased: people systematically score more confident, longer, more flattering answers higher — so training rewards decisiveness, whether or not it is warranted.', ok: true },
-          { t: 'Reinforcement learning is mathematically incapable of producing calibrated probabilities.' },
-          { t: 'During RLHF the model loses its softmax layer and makes a discrete decision instead.' },
-          { t: 'The degradation is a measurement error: calibration actually improves, just on a different scale.' }
+          { t: "No: token prediction and claim correctness are different; correctness needs a separate estimate and calibration evaluation.", ok: true },
+          { t: "Yes: softmax automatically converts every token probability into a probability of truth." },
+          { t: "Yes, provided temperature is exactly 1." },
+          { t: "No, because all token probabilities are always equal." }
         ],
-        why: 'This is one of the most concrete forms of the “alignment tax”. The reward model learns what people actually prefer — and people systematically undervalue an answer that admits uncertainty compared with a confident one. The model therefore learns exactly what we asked for, just not what we wanted: it becomes more definite than it is right. Sycophancy and mannerism (formulaic openings, excessive refusal) come from the same place. This observation is one of the strongest arguments that oversight needs, alongside examining the model\u2019s <em>behavior</em>, access to what it <em>computes</em> internally — which is the program of the next chapter.'
+        why: "The token distribution concerns the next text unit. Correctness calibration checks how frequently answers at a stated confidence are correct on a defined evaluation. It depends on model, task and prompt; post-training may improve or worsen it. Confident wording proves neither."
       }
     ],
     9: [
@@ -2936,12 +2885,12 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
         type: 'choice',
         q: 'In speculative decoding, a small, weaker model guesses the next few tokens in advance. Why does this not degrade output quality?',
         options: [
-          { t: 'Because the large model verifies the proposal in a single parallel run and corrects from its own distribution at the first divergence — with a rejection-sampling trick the result is exactly the large model\u2019s distribution.', ok: true },
+          { t: "The exact acceptance and corrected resampling rules preserve the target model distribution.", ok: true },
           { t: 'It does degrade; we simply accept that in exchange for the speedup.' },
           { t: 'Because the draft model was trained on the same data, so its proposals always match the large model\u2019s.' },
           { t: 'Because the outputs of the two models are averaged, and the average is better than either alone.' }
         ],
-        why: 'The key is the asymmetry: generation is <em>serial</em>, but verification is <em>parallel</em>. The large model can check k tokens in the same time it takes to generate one — so the draft is a free attempt. What makes this correct is the acceptance rule: not simply “accept if it matches”, but a rejection-sampling scheme that provably reproduces the large model\u2019s original distribution. The speedup is therefore not a quality compromise but a clean gain — as large as the text happens to be easy to predict, typically 2–3×.'
+        why: "For x drawn from draft q, accept with probability min(1,p(x)/q(x)). After rejection, resample from normalized max(0,p−q). This preserves p; simply resampling from p generally biases the result. Speedup is not guaranteed: drafting and multi-token verification both require work."
       },
       {
         id: 'inf-temperature',
@@ -2954,14 +2903,14 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
       {
         id: 'inf-legvaloszinubb',
         type: 'choice',
-        q: 'Why is it not a good strategy to search for the globally most probable continuation?',
+        q: "Why does the highest-probability continuation not guarantee the best answer on an open-ended text task?",
         options: [
-          { t: 'Because human text is <em>typical</em>, not maximal in probability: a continuation near the global optimum is, for natural language, typically short, repetitive and bland.', ok: true },
+          { t: "Model probability and task quality are different objectives; repetitive or uninformative text can receive high probability.", ok: true },
           { t: 'Because finding the global optimum would give the best text but is unpredictably expensive.' },
           { t: 'Because the model\u2019s probabilities are not accurate enough for the maximum to be found reliably.' },
           { t: 'Because the most probable continuation would always copy verbatim from the training data.' }
         ],
-        why: 'This is the most important idea of the level, because it runs against intuition: the model\u2019s objective during training was to maximize probability, yet at generation time we do not want the maximum. The reason is that natural text is a statistically <em>typical</em> sample of the distribution, not its mode — pushing toward the maximum lands you in degenerate repetition (once a loop starts, its probability grows step by step). The other extreme, unfiltered sampling, gives the opposite pathology: after a bad token drawn from the tail, the model conditions on its own mistake and the error becomes self-amplifying. Top-p is the pragmatic compromise between these two pathologies. The second answer is wrong because cost is not the main problem: beam search approximates the maximum, and it is precisely the success of that approximation that shows the result is not good.'
+        why: "Evaluate decoding for the task. Repetition observed in open-ended generation does not make greedy decoding or beam search unsuitable for every other task. Top-p and temperature do not guarantee truth or usefulness either."
       }
     ],
     10: [
@@ -3006,8 +2955,8 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
         type: 'number',
         answer: 2,
         hint: 'A whole number.',
-        q: 'What is the minimum number of layers needed for an induction circuit to form at all?',
-        why: 'Two. The circuit is a <em>composition</em> of two heads: a previous-token head in an earlier layer writes onto every position the identity of the token before it, and only a head in a <em>later</em> layer can then look up that annotation with a query. Within a single layer there is nothing to build on: the second head needs the first to have already written into the stream. A methodological lesson follows: you will <strong>not find</strong> the circuit by examining heads one at a time — a previous-token head on its own is a boring positional head, and the meaning lies in the cooperation of the two.'
+        q: "In the illustrated previous-token-head → induction-head circuit, how many sequential attention layers are needed to compose the two heads?",
+        why: "<strong>Two</strong>: the second head reads an annotation created by the earlier layer. Parallel heads in a conventional multi-head attention sublayer do not read each other’s current outputs. This is the depth requirement of the illustrated construction, not a lower bound for every architecture or induction-like behavior."
       },
       {
         id: 'mi-fazisatmenet',
@@ -3041,7 +2990,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
         answer: 65536,
         hint: 'A whole number.',
         q: 'You encode a 4,096-dimensional activation with a sparse autoencoder at an expansion factor of 16. How many entries will the learned dictionary have?',
-        why: '4,096 × 16 = <strong>65,536</strong>. The point is that the dictionary has to be <em>much wider</em> than the space being encoded — and this is not a design whim but a direct consequence of superposition: the reason the features cannot be read straight off the 4,096 dimensions is precisely that there are more of them than there are dimensions. The SAE therefore restores the wider space in which features can sit on separate axes — and the sparsity constraint pushes it to genuinely disentangle them rather than merely rotate the basis. This is why large models are worked on with dictionaries in the millions.'
+        why: "4&nbsp;096 × 16 = <strong>65&nbsp;536</strong>, from the chosen expansion factor. A larger dictionary can separate more features but does not guarantee a unique or fully correct decomposition. Sparsity, reconstruction error and interpretability need separate evaluation; expansion is a design and empirical choice."
       },
       {
         id: 'mi-ablacio',
@@ -3098,44 +3047,44 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
         type: 'number',
         answer: 12000,
         hint: 'A whole number.',
-        q: 'A 40-layer model generates 300 thinking tokens before answering. How many layers\u2019 worth of computation has it performed in total?',
-        why: '40 × 300 = <strong>12,000</strong> layers\u2019 worth. This makes tangible why writing out the reasoning helps at all: a single forward pass is a computation of <em>fixed depth</em> — 40 layers, exactly that many — and whatever cannot be computed in that many steps, the model cannot produce correctly in a single token. The generated tokens, however, go back into the input, so the model “deepens” the computation along the sequence: it externalizes intermediate results and then leans on them at the next step. Reasoning models make a system of this — they learn through RL how to use this workspace well.'
+        q: "A 40-layer model processes one new position in each of 300 sequential decoding steps. How many layer–position evaluations is this, excluding prompt prefill?",
+        why: "40 × 300 = <strong>12&nbsp;000</strong>. This counts repeated layer applications, not a network with 12&nbsp;000 distinct layers, and is not a FLOP estimate. Steps reuse the same weights and KV cache. Intermediate tokens can support further computation, but more tokens alone do not guarantee better reasoning."
       },
       {
         id: 'cap-reversal',
         type: 'choice',
         q: 'The model knows that “X\u2019s parent is Y”, but does not answer the question “Whose child is Y?” correctly. What is the mechanical cause?',
         options: [
-          { t: 'The autoregressive loss teaches <em>directed</em> associations: the fact was encoded in the order it appeared in the text, and recall in the reverse direction requires separate learning.', ok: true },
+          { t: "Learning a fact in one direction does not guarantee reverse retrieval; results depend on training data and task.", ok: true },
           { t: 'The model can only reproduce sentences that appeared verbatim in the training data.' },
           { t: 'The question breaks into different tokens, so the model does not recognize the same entity.' },
           { t: 'The reversed question requires a longer context than fits in the model\u2019s window.' }
         ],
-        why: 'This is the “reversal curse”, and it is instructive precisely because it refutes a human intuition: for us knowledge stands as a symmetric relation, whereas in the model it is a <em>predictable continuation</em>. The next-token objective always rewards left to right, so the pattern “X\u2019s parent is Y” strengthens the X → Y direction; the Y → X direction does not follow from it by itself. The same idea explains several other limits in this chapter: the model does not store facts as abstract relations but as continuation patterns, and every capability it has is an imprint of the order in which it saw text.'
+        why: "The reversal curse is an experimentally observed generalization failure. The autoregressive objective does not enforce reversing a relation, but does not prove models cannot learn abstract relations or reverse queries. Parenthood itself is not symmetric: reversing the query uses the inverse relation, child-of."
       },
       {
         id: 'cap-nemtudom',
         type: 'choice',
         q: 'Why does simply telling the model to “say you don\u2019t know when you are unsure” not solve hallucination on its own?',
         options: [
-          { t: 'Because the measurement system of post-training works against it: “I don\u2019t know” scores worse than a guess on most benchmarks and in most preference data — so the model learns confident guessing.', ok: true },
+          { t: "The instruction does not ensure reliable self-evaluation; some reward settings can also encourage guessing.", ok: true },
           { t: 'Because the model is in principle unable to distinguish what it knows from what it does not.' },
           { t: 'Because the tokens of “I don\u2019t know” are rare in the vocabulary and therefore hard to generate.' },
           { t: 'Because uncertainty only becomes apparent at inference time and cannot be measured during training.' }
         ],
-        why: 'The exam-taker\u2019s strategy: leaving it blank is a guaranteed loss of points, guessing at least gives a chance. The model learns exactly this if the reward signal is built that way — not out of malfunction but out of obedience. This connects to the calibration question at stage 8: there we looked at the same mechanism from the side of human preference; here from the side of benchmarks. The second answer is wrong because the model <em>does</em> carry an uncertainty signal — a base model\u2019s probabilities are surprisingly well calibrated, and interpretability case studies even found a separate “I know this entity” signal. The trouble is not the absence of the signal but that training does not reward listening to it.'
+        why: "When correct guesses are rewarded and wrong guesses are no worse than abstention, guessing can pay. This is not the rule of every benchmark or preference dataset. Detecting uncertainty, communicating it and checking the answer are separate abilities; one sentence of instruction guarantees none of them."
       },
       {
         id: 'cap-mentalis',
         type: 'choice',
         q: 'Which is the most useful mental model of where an LLM\u2019s error is most dangerous?',
         options: [
-          { t: 'Where the surface fit is good but the underlying fact or computation is rare: the model generalizes over a learned distribution, so in such cases it gives a formally impeccable, substantively wrong answer.', ok: true },
+          { t: "A plausible-looking answer containing unchecked facts or calculations can be especially misleading.", ok: true },
           { t: 'Where the question is grammatically complex, because long sentences are harder to process.' },
           { t: 'Where the question touches on a completely unfamiliar topic, because then it has no answer at all.' },
           { t: 'Where the answer is long, because more errors accumulate in long answers.' }
         ],
-        why: 'An LLM is not a database (recall is not guaranteed) and not a logic engine (derivation is not guaranteed), but a <strong>generalizer</strong> running over a learned distribution, conditioned on context. The dangerous zone is therefore not the obviously hard question: there the uncertainty shows. The trouble is where the <em>surface</em> of the task is familiar — the form of a citation, a routine computational pattern — but the specific content was rare in training. Then the form is perfect, the content is false, and it is the form that makes it hard to notice. Hence the practical recipe this material closes with: verifiable outputs, an external source of fact, tool use, and a human in the loop for high-stakes decisions.'
+        why: "Fluent wording is not evidence of correctness. Rare or unfamiliar content can increase risk, but such answers are not always wrong, and common topics can also elicit errors. Check important sources or calculations rather than inferring reliability from style."
       }
     ]
   };

@@ -1,5 +1,22 @@
 # Változásnapló / Changelog
 
+## v1.1.1 — 2026-09-19
+
+### Magyar
+
+- Szakmai ellenőrzés mind a 12 állomásra, 60 kvízkérdésre, az alapozó és heti számpéldákra, valamint a 14 labor számításaira.
+- Javított attention/MLP-mátrixalakok, kauzális példák, pre-norm, gradiens- és entrópiamagyarázatok, bfloat16-bitleírás, optimalizáló-memóriaigény, Chinchilla-kitevők, KV-cache és spekulatív mintavétel.
+- Elkülönített tokenvalószínűség és állításhelyesség; óvatosabb kutatási következtetések. 28 kvízkérdés pontosítása, a haladás megőrzésével.
+- Képletből számolt skálázási görbék és helyes folytonos optimum a korábbi sematikus rajz helyett.
+- [Szakmai ellenőrzési jegyzőkönyv](SCIENTIFIC_REVIEW.md) eredeti forrásokkal és az ellenőrzés korlátaival.
+
+### English
+
+- Reviewed all 12 stages, 60 quiz questions, worked examples and calculations in 14 labs.
+- Corrected matrix dimensions, causal examples, pre-norm/gradient/entropy explanations, bfloat16, optimizer memory, Chinchilla exponents, KV caching and speculative sampling.
+- Distinguished token likelihood from claim correctness, qualified research claims and revised 28 quiz items while preserving progress.
+- Replaced the scaling sketch with computed curves and a valid continuous optimum; added [source-backed review notes](SCIENTIFIC_REVIEW.md).
+
 ## v1.1 — 2026-09-19
 
 ### Magyar

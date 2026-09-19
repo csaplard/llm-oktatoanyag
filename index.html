@@ -4,7 +4,7 @@
   © 2026 Csaplár Dániel · csaplar.d@gmail.com
   Licenc: CC BY-NC-SA 4.0 (Nevezd meg! · Ne add el! · Így add tovább!)
   https://creativecommons.org/licenses/by-nc-sa/4.0/deed.hu
-  v1.1 · utolsó frissítés: 2026. szeptember 19.
+  v1.1.1 · utolsó frissítés: 2026. szeptember 19.
 -->
 <html lang="hu">
 <head>
@@ -1086,7 +1086,7 @@ Miért számolja el sok modell az „r” betűket a <code>strawberry</code>-ben
 </div>
 
 <h3>A szótár és a speciális tokenek</h3>
-<p>A kész szótár nagy része tanult rész-szó, de van néhány kézzel definiált <strong>speciális token</strong> is: a szöveg végét jelző <code>&lt;|endoftext|&gt;</code>, a párbeszéd szerepeit elválasztó jelölők (pl. <code>&lt;|user|&gt;</code>, <code>&lt;|assistant|&gt;</code>), eszközhívás-határolók. Ezek soha nem állhatnak elő normál szövegből — a chat-formátum integritása múlik ezen. A szótárméret kompromisszum: a nagyobb szótár rövidebb sorozatokat ad (kevesebb számítás soronként), de nagyobb embedding-mátrixot és ritkábban látott, ezért gyengébben tanult tokeneket.</p>
+<p>A kész szótár tanult részszavakat és fenntartott <strong>speciális tokenazonosítókat</strong> is tartalmazhat: szövegvég, szerephatárok, eszközhívás-jelölők. A felhasználó által beírt jelölőszöveg és a valódi vezérlőtoken nem ugyanaz. A tokenizer API-ja és a chat-formátum feldolgozója szabályozza, mikor engedélyezett speciális token előállítása; ez nem a BPE önmagában garantált tulajdonsága. A nem megbízható bemenetet tartalomként kell kódolni, nem szerephatárként. Ez önmagában nem szünteti meg a prompt injectiont. <a href="https://github.com/openai/tiktoken/blob/main/tiktoken/core.py">Példa: tiktoken allowed_special / disallowed_special</a>. A nagyobb szótár rövidebb sorozatokat adhat, de növeli az embedding-tábla méretét.</p>
 
 <details class="level l2">
 <summary><span class="badge b2">Matematika</span> A BPE-algoritmus pontosan, és a fő alternatíva</summary>
@@ -1102,14 +1102,14 @@ while |szótár| &lt; V:
     merge_szabályok.append((x, y) → új_token)
     korpusz = minden (x, y) előfordulás cseréje új_token-re</code></pre>
 <p><strong>Tokenizálás (használati idő):</strong> a bemenetet bájtokra bontjuk, majd a merge-szabályokat <em>a tanult sorrendben</em> alkalmazzuk, amíg lehet. A sorrend determinisztikussá teszi az eredményt. A gyakorlatban a bontást egy reguláris kifejezéses előszegmentálás előzi meg (szavak, számok, írásjelek szétválasztása), hogy a merge-ek ne lépjenek át szóhatárokat.</p>
-<p>A <strong>bájt-szintű</strong> indulás (GPT-2 óta standard) garantálja, hogy <em>bármilyen</em> bemenet — emoji, kínai írásjegy, bináris szemét — tokenizálható, ismeretlen szimbólum nem létezhet. A fő alternatíva a <strong>unigram nyelvmodell</strong> alapú tokenizáció: nagy jelölt-szótárból indul, és iteratívan dobja ki azokat az elemeket, amelyek elhagyása a legkevésbé rontja a korpusz valószínűségét — valószínűségi modellként több szegmentálást is tud pontozni. A <a href="https://github.com/google/sentencepiece">SentencePiece</a> egy tokenizáló könyvtár: a BPE-t és az unigram módszert is támogatja, nem az unigram másik neve. A módszer és a tanítóadat együtt határozza meg a kapott szegmentálást.</p>
+<p>A 256 bájtból induló BPE a kódolt szöveg minden bájtját reprezentálhatja, ezért a szótár szintjén nincs szükség ismeretlen-tokenre. Az API ettől még érvényes Unicode-szöveget várhat, és végezhet előfeldolgozást: a „bármilyen bináris adat gond nélkül beadható” állítás túl erős. Nem minden tokenizer bájtalapú BPE; a SentencePiece például BPE- és unigram-modelleket is támogat.</p>
 </div>
 </details>
 
 <details class="level l3">
 <summary><span class="badge b3">Kutatói mélység</span> Kutatói szempontok: glitch tokenek, nyelvi egyenlőtlenség, tokenmentes modellek</summary>
 <div class="body">
-<p><strong>Glitch tokenek.</strong> A legvalószínűbb magyarázat szerint, ha egy token a szótárépítő korpuszban gyakori volt, de a modell tanítóadatából (más szűrés miatt) kimaradt, az embeddingje lényegében tanulatlan marad — közel az inicializálási zajhoz. Az ilyen „glitch tokenek” (híres példa a GPT-2/3 szótárából a <code>SolidGoldMagikarp</code>, egy Reddit-felhasználónév) bizarr viselkedést váltanak ki: a modell nem tudja kimondani, félreérti, vagy irreleváns választ ad rájuk. Az egyes esetek pontos ok-lánca nem bizonyított — a jelenség viszont reprodukálható. Tanulság: a tokenizáló és a modell <em>két külön tanított rendszer</em>, és az illesztetlenségük mérhető hibaforrás.</p>
+<p><strong>Ritka és szokatlan tokenek.</strong> Egy kevés közvetlen tanítási példát kapó token hibás vagy szokatlan választ válthat ki. A tokenizer és a nyelvi modell külön tanítási folyamata közti eltérés lehetséges ok, de nem minden eset bizonyított magyarázata. Az embeddingről pusztán a ritkaság alapján nem mondhatjuk, hogy változatlan inicializálási zaj: a kimenettel megosztott súlyok, a weight decay és az optimalizálóállapot is módosíthatja. A jelenséghez a konkrét modellt és tokent kell mérni.</p>
 <p><strong>Fertilitás és nyelvi méltányosság.</strong> Egy főleg angol korpuszon épített szótár az angolt tömören, más nyelveket pazarlóan tokenizál — ugyanaz a tartalom magyarul lényegesen több tokent adhat (magasabb „fertilitás”), agglutináló morfológiánk ráadásul gyakran nem morfémahatárokon törik. Ez nem csak költségkérdés: a hosszabb tokensorozat kevesebb effektív kontextust és a per-token tanulási jel felhígulását jelenti. Az újabb, többnyelvű korpuszon épített, nagyobb szótárak (100k–260k) ezt jelentősen enyhítik.</p>
 <p><strong>Kell-e egyáltalán tokenizáló?</strong> Aktív kutatási irány a tokenizáció kiváltása: bájt-szintű modellek (ByT5), illetve dinamikus, tanult szegmentálás, ahol a modell maga dönti el, hol húz határt (pl. a Byte Latent Transformer az előrejelezhetőség — entrópia — alapján képez változó méretű „patcheket”). A motiváció: a BPE-tokenizáló szótára és összevonási szabályai <strong>külön, adatokból tanultak</strong>, de a diszkrét tokenizálást a nyelvi modell szokásos gradiensalapú tanítása már nem módosítja. A rögzített felbontás több fenti nehézséghez is hozzájárul; nem minden ilyen hiba vezethető vissza kizárólag rá. Az ár a hosszabb sorozatok miatti számításigény — a kérdés az, hogy a hierarchikus architektúrák ezt mikor hozzák be.</p>
 </div>
@@ -1287,7 +1287,7 @@ A residual stream <em>kommunikációs csatorna</em>: a korai rétegek üzeneteke
 </div>
 
 <h3 id="attention">4.3 · Attention: melyik token honnan olvasson?</h3>
-<p>A mondat megértéséhez a tokeneknek egymásról kell tudniuk. Az „A daru fészkén ült” mondatban a „daru” jelentését — madár vagy emelőgép? — a „fészkén” dönti el; az „ő” névmásnak meg kell találnia, kire utal. Az attention ezt a problémát elegánsan, <em>tanult kereséssel</em> oldja meg. Minden pozíció három szerepben lép fel:</p>
+<p>Az attention információt mozgat a tokenek között, de a <strong>kauzális irány számít</strong>. Az „A daru fészkén ült” mondatban a „daru” pozíciója még nem láthatja a későbbi „fészkén” szót. A „fészkén” és az utána következő pozíciók viszont már összekapcsolhatják a korábbi „daru” tokent a madárra utaló környezettel. Az attention ezt tanult kereséssel segítheti. Minden pozíció három szerepben lép fel:</p>
 
 <ul>
 <li><strong>Query (lekérdezés)</strong> — „mit keresek?”: a token megfogalmazza, milyen információra van szüksége.</li>
@@ -1448,7 +1448,7 @@ A residual stream <em>kommunikációs csatorna</em>: a korai rétegek üzeneteke
     <rect x="0" y="46" width="18" height="14" fill="var(--s1)"/><text x="24" y="57" font-size="10.5" class="svg-ink2">nagy</text>
   </g>
 </svg>
-<figcaption><span class="fig-num">6. ábra.</span> Egy attention-fej súlymátrixa: minden sor egy query-pozíció softmax utáni súlyeloszlása a key-pozíciók felett (a sorok összege 1). A felső háromszög — a jövő — maszkolva van. Az első token csak önmagára figyelhet. Jól látszik, hogy a „fészkén” query erősen olvassa a „daru” tokent: ez a fej épp a jelentés-egyértelműsítésben segít.</figcaption>
+<figcaption><span class="fig-num">6. ábra.</span> Kézzel választott, sematikus attention-súlyok, nem egy valódi modell mérése. A jövő maszkolt; az első token csak önmagára figyelhet. A „fészkén” pozíció olvashatja a korábbi „daru” tokent. A sötétebb cella nagyobb súlyt jelöl, de önmagában nem bizonyít jelentés-egyértelműsítést vagy oksági fontosságot.</figcaption>
 </figure>
 
 <details class="level l2">
@@ -1459,19 +1459,19 @@ A residual stream <em>kommunikációs csatorna</em>: a korai rétegek üzeneteke
 <p>A fej kimenete a híres képlet:</p>
 <div class="eq"><span class="rm">Attn</span>(<b>Q</b>, <b>K</b>, <b>V</b>) = <span class="rm">softmax</span><span class="rm">(</span><span class="frac"><span><b>Q</b><b>K</b><sup>⊤</sup> + <b>M</b></span><span>√<span style="border-top:1px solid currentColor">d<sub>h</sub></span></span></span><span class="rm">)</span> <b>V</b></div>
 <p>ahol <span class="math"><b>M</b></span> a kauzális maszk: <span class="math">M<sub>ij</sub> = 0</span>, ha <span class="math">j ≤ i</span>, egyébként <span class="math">−∞</span>. A softmax soronként fut, így az <span class="math">i</span>-edik sor egy valószínűség-eloszlás az <span class="math">1…i</span> pozíciók felett.</p>
-<p><strong>Miért az osztás √d<sub>h</sub>-val?</strong> Ha q és k komponensei független, egységszórású változók, a skalárszorzatuk szórása √d<sub>h</sub>-val nő. Nagy d<sub>h</sub> mellett a pontszámok szóródása akkora lenne, hogy a softmax gyakorlatilag one-hottá telítődik — ott pedig a gradiens eltűnik. A skálázás a pontszámokat a softmax „érzékeny” tartományában tartja.</p>
+<p><strong>Miért az osztás √d<sub>h</sub>-val?</strong> Ha q és k komponensei független, nulla várható értékű, egységszórású változók, a skalárszorzatuk szórása √d<sub>h</sub>-val nő. Nagy d<sub>h</sub> mellett a pontszámok szóródása akkora lenne, hogy a softmax gyakorlatilag one-hottá telítődik — ott pedig a gradiens eltűnik. A skálázás a pontszámokat a softmax „érzékeny” tartományában tartja.</p>
 <p><strong>Multi-head összefűzés.</strong> A H fej kimenetét egymás mellé fűzzük és egy tanult <span class="math"><b>W</b><sub>O</sub> ∈ ℝ<sup>d×d</sup></span> mátrixszal vetítjük vissza:</p>
 <div class="eq"><span class="rm">MHA</span>(<b>X</b>) = <span class="rm">Concat</span>(<span class="rm">fej</span><sub>1</sub>, …, <span class="rm">fej</span><sub>H</sub>) <b>W</b><sub>O</sub></div>
-<p><strong>Költség.</strong> A <span class="math"><b>Q</b><b>K</b><sup>⊤</sup></span> szorzat T×T mátrixot ad: az attention ideje és memóriája a szekvenciahosszban <em>négyzetes</em> — O(T²·d). Ez a transzformer skálázásának központi szűk keresztmetszete; a 7. fejezet (KV-cache, FlashAttention) és a 4.8 (ritka/lineáris variánsok) részben erre válasz.</p>
+<p><strong>Költség.</strong> Teljes attentionnél a QK és AV szorzások műveletigénye összesen O(T²d). A naivan eltárolt attention-mátrixok H fejre O(HT²) elemet igényelnek, a Q/K/V tömbök O(Td)-t. A vetítéseknek külön O(Td²) költsége van. A <a href="https://arxiv.org/abs/2205.14135">FlashAttention</a> elkerüli a teljes T × T mátrix tárolását, miközben a sűrű attention négyzetes számítási igénye megmarad. A KV-cache a tokenenkénti dekódolás korábbi K/V számításait használja újra.</p>
 </div>
 </details>
 
 <details class="level l3">
-<summary><span class="badge b3">Kutatói mélység</span> A QK- és OV-kör: az attention mint két független áramkör</summary>
+<summary><span class="badge b3">Kutatói mélység</span> A QK- és OV-kör: az attention két vizsgálható része</summary>
 <div class="body">
-<p>A mechanistic interpretability (Elhage et al., 2021, „A Mathematical Framework for Transformer Circuits”) egyik legtermékenyebb észrevétele, hogy egy attention-fej valójában <strong>két, egymástól független lineáris kört</strong> valósít meg, és ezek külön elemezhetők:</p>
-<p><strong>QK-kör:</strong> a <span class="math"><b>W</b><sub>Q</sub><b>W</b><sub>K</sub><sup>⊤</sup> ∈ ℝ<sup>d×d</sup></span> szorzatmátrix dönti el, <em>hova</em> figyel a fej — a pontszám bilineáris forma a két pozíció streamvektorai között: <span class="math">s<sub>ij</sub> = <b>x</b><sub>i</sub><sup>⊤</sup>(<b>W</b><sub>Q</sub><b>W</b><sub>K</sub><sup>⊤</sup>)<b>x</b><sub>j</sub>/√d<sub>h</sub></span>. A Q és K külön-külön nem is jól definiált (bármely invertálható R-rel <span class="math"><b>W</b><sub>Q</sub>R, <b>W</b><sub>K</sub>R<sup>−⊤</sup></span> ugyanazt a kört adja) — csak a szorzatuk az.</p>
-<p><strong>OV-kör:</strong> a <span class="math"><b>W</b><sub>V</sub><b>W</b><sub>O</sub></span> szorzat dönti el, <em>mit</em> ír a fej a streambe, ha már valahova figyel. Ez tisztán lineáris leképezés a forrás-pozíció streamjéből a cél-pozíció streamjébe.</p>
+<p>Egy attention-fej két külön vizsgálható súlyszorzata a <strong>QK</strong> és az <strong>OV</strong>. Az alábbi egyszerűsített felírás sorvektorokat használ; az X a vetítések tényleges bemenete, pre-norm esetben már normalizálva. A képletekből most elhagyjuk a biasokat, a RoPE-t és a QK-normalizálást. A két rész együtt határozza meg a kimenetet; a teljes attention nem két független lineáris függvény.</p>
+<p><strong>QK-kör:</strong> <span class="math">s<sub>ij</sub> = x<sub>i</sub>(W<sub>Q</sub>W<sub>K</sub><sup>⊤</sup>)x<sub>j</sub><sup>⊤</sup>/√d<sub>h</sub></span>. A d × d szorzatmátrix a két sorvektor között bilineáris pontszámot ad; ebből a maszk és a softmax képez súlyokat. Ebben az egyszerűsített esetben az invertálható R-rel végzett <span class="math">W<sub>Q</sub>R, W<sub>K</sub>R<sup>−⊤</sup></span> csere megőrzi a pontszámokat. Ez a tetszőleges báziscsere RoPE vagy QK-normalizálás mellett általában már nem szimmetria.</p>
+<p><strong>OV-kör:</strong> az adott fej <span class="math">W<sub>V</sub> ∈ ℝ<sup>d×d<sub>h</sub></sup></span> mátrixát a teljes kimeneti vetítés hozzá tartozó <span class="math">W<sub>O</sub><sup>(h)</sup> ∈ ℝ<sup>d<sub>h</sub>×d</sup></span> sorblokkjával szorozzuk. Így <span class="math">W<sub>V</sub>W<sub>O</sub><sup>(h)</sup> ∈ ℝ<sup>d×d</sup></span>. Ez képezi a forráspozíció tartalmát a residual streambe írt vektorra; a különböző források hozzájárulását az attention-súlyokkal összegezzük.</p>
 <p>Következmény: az attention-fej „mozgatás” művelete a value-tartalomban lineáris; rögzített attention-súlyok mellett. A teljes, bemenettől függő művelet viszont nem lineáris: a QK-pontszám bilineáris, a softmax pedig nemlineárisan alakítja a <em>súlyozást</em>. Ezért lehet fejek kompozícióit — az egyik fej kimenete a másik query-jét/key-ét módosítja (Q-, K-, V-kompozíció) — algebrai objektumként, ún. <em>virtuális súlyokként</em> tanulmányozni. Ebből a keretből esett ki az induction head felfedezése (8.3).</p>
 <p>További kutatói megfigyelések: az <strong>attention sink</strong> jelenség (a fejek feleslegben az első tokenre „parkolják” a súlyt, mert a softmaxnak mindig összegeznie kell 1-re — újabb architektúrák ezért tanult sink-tokent vagy „off” opciót adnak); a súlyok <strong>nem magyarázatok</strong> (a nagy attention-súly nem feltétlenül jelent oksági fontosságot — az ablációs tesztek ezt sokszor cáfolják, 8.6); és a <strong>pozíciós fejek</strong> (sok fej tisztán pozicionális mintát tanul: előző token, mondatkezdet, ritmikus offszetek).</p>
 </div>
@@ -1487,11 +1487,11 @@ A residual stream <em>kommunikációs csatorna</em>: a korai rétegek üzeneteke
 </section>
 <section id="architektura2" data-level="5">
 <h3 id="mlp">4.4 · Az MLP-réteg: a feldolgozó- és tudásegység</h3>
-<p>A blokk másik fele, az MLP (multi-layer perceptron, más néven feed-forward réteg) minden pozíción <em>külön-külön, azonos súlyokkal</em> fut — a pozíciók között itt semmilyen információ nem áramlik. Szerkezete egyszerű: a streamvektort egy nagy mátrix <strong>felvetíti</strong> egy jóval bővebb térbe (tipikusan a modell-dimenzió ~4-szeresébe), ott egy elemenkénti <strong>nemlinearitás</strong> hat rá, majd egy másik mátrix <strong>visszavetíti</strong> az eredeti dimenzióba. A paraméterek többsége — durván kétharmada — ezekben a mátrixokban ül.</p>
+<p>A blokk másik fele, az MLP (multi-layer perceptron, más néven feed-forward réteg) minden pozíción <em>külön-külön, azonos súlyokkal</em> fut — a pozíciók között itt közvetlenül nem áramlik új információ. Szerkezete egyszerű: a streamvektort egy nagy mátrix <strong>felvetíti</strong> egy jóval bővebb térbe (tipikusan a modell-dimenzió ~4-szeresébe), ott egy elemenkénti <strong>nemlinearitás</strong> hat rá, majd egy másik mátrix <strong>visszavetíti</strong> az eredeti dimenzióba. A paraméterek többsége — durván kétharmada — ezekben a mátrixokban ül.</p>
 
-<p>Mire jó ez? A hagyományos, két vetítésből álló MLP-ben az aktiváció elhagyásával a két vetítés egyetlen <strong>affin leképezéssé</strong> vonható össze (bias nélkül lineárissá). Ez az MLP saját kifejezőerejét csökkenti; <strong>az egész transzformer továbbra is nemlineáris</strong>, mert az attention és a normalizálás is az marad. A kapuzott változatokban a szorzás is nemlinearitást ad. <a href="https://arxiv.org/abs/1706.03762">Az eredeti architektúra</a> ezeket külön részegységekként írja le. Intuitívabban: az MLP <strong>kulcs–érték memóriaként</strong> is olvasható. A felvetítő mátrix minden sora egy <em>mintázatdetektor</em> (kulcs): mennyire van jelen a bemenetben egy adott jellemzőkombináció? A nemlinearitás küszöböl — a gyengén illeszkedő detektorok elhallgatnak —, a visszavetítő mátrix megfelelő sora (érték) pedig a bekapcsolt detektorokhoz tartozó tartalmat írja a streambe. Sok tényszerű asszociáció — „Eiffel-torony → Párizs” — kimutathatóan a középső rétegek MLP-iben tárolódik.</p>
+<p>Mire jó ez? A hagyományos, két vetítésből álló MLP-ben az aktiváció elhagyásával a két vetítés egyetlen <strong>affin leképezéssé</strong> vonható össze (bias nélkül lineárissá). Ez az MLP saját kifejezőerejét csökkenti; <strong>az egész transzformer továbbra is nemlineáris</strong>, mert az attention és a normalizálás is az marad. A kapuzott változatokban a szorzás is nemlinearitást ad. <a href="https://arxiv.org/abs/1706.03762">Az eredeti architektúra</a> ezeket külön részegységekként írja le. Intuitívabban: az MLP <strong>kulcs–érték memóriaként</strong> is olvasható. A lent használt sorvektoros jelölésben a felvetítő mátrix minden oszlopa egy <em>mintázatdetektor</em> (kulcs): mennyire van jelen a bemenetben egy adott jellemzőkombináció? A nemlinearitás küszöböl — a gyengén illeszkedő detektorok elhallgatnak —, a visszavetítő mátrix megfelelő sora (érték) pedig a bekapcsolt detektorokhoz tartozó tartalmat írja a streambe. Sok tényszerű asszociáció — „Eiffel-torony → Párizs” — kimutathatóan a középső rétegek MLP-iben tárolódik.</p>
 
-<p>Egy pontosítás, hogy ne értsük túl: a kulcs–érték olvasat <strong>értelmezési keret, nem szó szerinti architektúraleírás</strong>. Matematikailag a felírás pontos (a kimenet mindig az értékvektorok aktiváció-súlyozott összege), de abból nem következik, hogy egy-egy neuron egyetlen, emberi fogalommal címkézhető kulcsnak felelne meg — a valóságban a neuronok többsége <em>poliszemantikus</em> (8.4), vagyis egy sor több, egymással nem rokon mintázatra is tüzel. A kettő nem mond ellent egymásnak: a „kulcsok" léteznek, csak nem a neuronbázisban, hanem szuperponált irányok formájában. Az MLP tehát kulcs–érték memóriaként <em>viselkedik</em>, de a szótára nem a neuronok listája.</p>
+<p>A kulcs–érték felírás algebrailag pontos, de az emberi jelentés hozzárendelése már értelmezés. A neuronok bemeneti súlyvektorai a mátrixban konkrétan megvannak; ettől még egy neuron több eltérő mintázatra válaszolhat, és egy fogalom több komponensben is eloszolhat. A szuperpozíció ennek egyik kutatott magyarázata. Nem szabad összekeverni a képletbeli „kulcsot” az egyedi, emberi fogalommal.</p>
 
 <details class="level l2">
 <summary><span class="badge b2">Matematika</span> Képletek: GELU-tól a SwiGLU-ig</summary>
@@ -1501,7 +1501,7 @@ A residual stream <em>kommunikációs csatorna</em>: a korai rétegek üzeneteke
 <p>A nemlinearitás ma jellemzően nem ReLU, hanem annak sima változata, a GELU: <span class="math"><span class="rm">GELU</span>(x) = x·Φ(x)</span>, ahol Φ a standard normális eloszlásfüggvény — kis negatív értékeknél nem vág nullára élesen, ami simább optimalizálást ad. A modern modellek többsége <strong>kapuzott</strong> változatot használ, a SwiGLU-t, három mátrixszal:</p>
 <div class="eq"><span class="rm">SwiGLU</span>(<b>x</b>) = [<span class="rm">Swish</span>(<b>x</b><b>W</b><sub><span class="rm">gate</span></sub>) ⊙ (<b>x</b><b>W</b><sub><span class="rm">up</span></sub>)] <b>W</b><sub><span class="rm">down</span></sub></div>
 <p>ahol <span class="math"><span class="rm">Swish</span>(x) = x·σ(x)</span> és ⊙ az elemenkénti szorzás. A kapuzás multiplikatív interakciót enged két vetítés között — empirikusan konzisztensen jobb loss-t ad azonos paraméterszámnál (a rejtett dimenziót ilyenkor ~8d/3-ra veszik, hogy a három mátrix össz-paraméterszáma kijöjjön).</p>
-<p>A kulcs–érték olvasat formálisan: <span class="math"><span class="rm">MLP</span>(<b>x</b>) = Σ<sub>n</sub> a<sub>n</sub>(<b>x</b>)·<b>w</b><sub><span class="rm">out</span>,n</sub></span>, ahol <span class="math">a<sub>n</sub>(<b>x</b>) = <span class="rm">GELU</span>(<b>w</b><sub><span class="rm">in</span>,n</sub>·<b>x</b>)</span> az n-edik neuron aktivációja. A kimenet tehát mindig a <span class="math"><b>w</b><sub><span class="rm">out</span>,n</sub></span> „értékvektorok” aktiváció-súlyozott összege — az MLP a saját kis szótárából ír a streambe.</p>
+<p>A kulcs–érték felírás sorvektorokkal: <span class="math">MLP(x) = Σ<sub>n</sub> a<sub>n</sub>(x)w<sub>out,n</sub></span>, ahol <span class="math">a<sub>n</sub>(x) = GELU(xw<sub>in,n</sub>)</span>. Itt w<sub>in,n</sub> a W<sub>in</sub> n-edik <strong>oszlopa</strong>, w<sub>out,n</sub> pedig a W<sub>out</sub> n-edik <strong>sora</strong>. A biasokat most elhagytuk. A súlyozott összeg pontos azonosság; az egyes neuronok emberi fogalmakként való értelmezése külön, empirikus kérdés.</p>
 </div>
 </details>
 
@@ -1514,10 +1514,10 @@ A residual stream <em>kommunikációs csatorna</em>: a korai rétegek üzeneteke
 </details>
 
 <h3 id="norm">4.5 · Normalizálás: a jel karbantartása</h3>
-<p>Sok réteg egymásra halmozásakor a vektorok nagysága rétegről rétegre nőhet vagy zsugorodhat, ami a tanítást instabillá teszi. A megoldás: minden alegység bemeneténél a vektort <strong>átskálázzuk egy standard méretre</strong>. A LayerNorm kivonja a vektor komponenseinek átlagát és eloszt a szórásukkal; a ma elterjedtebb, egyszerűbb <strong>RMSNorm</strong> csak a négyzetes középértékkel oszt: <span class="math"><b>x</b> / <span class="rm">RMS</span>(<b>x</b>) · <b>g</b></span>, ahol <span class="math"><b>g</b></span> tanult, elemenkénti erősítés. A modern <em>pre-norm</em> elrendezés — normalizálás az alegység <em>előtt</em>, a residual összeadáson kívül — kulcsfontosságú: így a residual út érintetlen identitás marad, és a mély modellek tanítása stabil warmup-trükkök nélkül is.</p>
+<p>A normalizálás segít szabályozni az alegységek bemeneti skáláját. A LayerNorm kivonja a komponensek átlagát, majd √(variancia + ε)-nal oszt; az RMSNorm központosítás nélkül √(átlag(x²) + ε)-nal oszt. Tanult elemenkénti skála, LayerNormnál rendszerint bias is követi. A <strong>pre-norm</strong> az alegység elé, a residual mellékágba helyezi ezt a műveletet. Így a közvetlen residual út identitás marad, ami kedvezhet a gradiensáramlásnak. <a href="https://arxiv.org/abs/2002.04745">Xiong és mtsai.</a> bizonyos beállításoknál warmup nélkül is jó eredményt kaptak; ez nem általános stabilitási garancia, a warmup szükségessége a teljes tanítási recepttől függ.</p>
 
 <h3 id="pozicio">4.6 · Pozíciókódolás: honnan tudja a modell, mi hol van?</h3>
-<p>Meglepő tény: az attention önmagában <strong>nem lát sorrendet</strong>. A query–key illeszkedés csak a vektorok tartalmától függ — ha a bemenet tokenjeit összekevernénk, (maszk nélkül) ugyanazokat a súlyokat kapnánk. A „kutya harapja a postást” és a „postás harapja a kutyát” megkülönböztetéséhez a pozíciót <em>be kell juttatni</em> a rendszerbe.</p>
+<p>Pozíciójel és maszk nélkül a self-attention <strong>permutáció-ekvivariáns</strong>: a bemeneti sorokat felcserélve a kimeneti sorok is ugyanúgy cserélődnek. A súlymátrix sorai és oszlopai együtt rendeződnek át, tehát nem marad ugyanaz a mátrix. Ezért explicit pozíciókódolással adjuk meg a helyet vagy távolságot. A kauzális maszk már önmagában is sorrendi aszimmetriát vezet be: meghatározza, mely pozíciók elérhetők.</p>
 
 <p>Az első generációs megoldások a pozíciót <em>vektorként adták hozzá</em> az embeddinghez (rögzített szinuszos minta vagy tanult pozíció-embedding). A mai standard a <strong>RoPE</strong> (rotary position embedding), amely elegánsabb: nem a tartalomhoz ad hozzá semmit, hanem a query- és key-vektorokat <strong>elforgatja</strong> a pozíciójukkal arányos szöggel. Két elforgatott vektor skalárszorzata a <em>pozíciótól</em> kizárólag a két elforgatási szög <em>különbségén</em> keresztül függ — formálisan ⟨<b>R</b><sub>m</sub><b>q</b>, <b>R</b><sub>n</sub><b>k</b>⟩ = ⟨<b>q</b>, <b>R</b><sub>n−m</sub><b>k</b>⟩ —, vagyis az attention-pontszám automatikusan a tokenek <em>relatív távolságát</em> érzékeli, nem az abszolút helyüket. (A skalárszorzat értéke természetesen magától a két vektortól is függ; az állítás lényege az, hogy a pozíció csakis az <span class="math">m−n</span> különbségen át szól bele — az elforgatás ortogonális, tehát a normákat érintetlenül hagyja.) Ez pontosan az a tulajdonság, amit a nyelv kíván: az „egymás melletti” reláció ugyanazt jelenti a szöveg elején és a közepén.</p>
 
@@ -1533,7 +1533,7 @@ A residual stream <em>kommunikációs csatorna</em>: a korai rétegek üzeneteke
 </details>
 
 <h3 id="kimenet">4.7 · A kimeneti fej: vektorból valószínűség</h3>
-<p>Az utolsó blokk után minden pozíció streamvektora egy végső normalizáláson, majd az <strong>unembedding-mátrixon</strong> (<span class="math"><b>W</b><sub>U</sub> ∈ ℝ<sup>d×V</sup></span>) megy át, amely minden szótárelemhez egy nyers pontszámot — <strong>logitot</strong> — rendel. Geometriailag: a modell a végső vektort összeveti minden token „olvasó-irányával”; amelyik irányba a vektor leginkább mutat, az a token kapja a legnagyobb pontszámot. A logitokból a <strong>softmax</strong> csinál valószínűség-eloszlást:</p>
+<p>Az utolsó blokk után a streamvektor végső normalizáláson, majd az <strong>unembedding-mátrixon</strong> (<span class="math">W<sub>U</sub> ∈ ℝ<sup>d×V</sup></span>) megy át. Minden szótárelem logitja a normalizált vektor és a megfelelő mátrixoszlop skalárszorzata (ha van kimeneti bias, azt is hozzáadjuk). A skalárszorzat az iránytól és a hossztól is függ: a legnagyobb koszinuszhasonlóság önmagában nem garantálja a legnagyobb logitot. A <strong>softmax</strong> alakítja a logitokat valószínűségekké:</p>
 <div class="eq">P(<span class="rm">token</span> i) = <span class="frac"><span>e<sup>z<sub>i</sub></sup></span><span>Σ<sub>j</sub> e<sup>z<sub>j</sub></sup></span></span></div>
 <p>Az exponenciális pozitív súlyokat ad, a normalizálás pedig biztosítja, hogy a valószínűségek összege 1 legyen. A softmax a logit-<em>különbségeket</em> alakítja arányokká: <span class="math">pᵢ / pⱼ = exp(zᵢ − zⱼ)</span>. Ha egyetlen logitot 1-gyel növelünk, a token más tokenekhez viszonyított valószínűségaránya e-szeresére (~2,7×) nő — a saját valószínűsége nem. Két egyforma logitnál például 50%-ról <span class="math">e / (e + 1) ≈ 73%</span>-ra változik. A 7. fejezetben a temperature hatását is kipróbálhatod.</p>
 
@@ -1587,7 +1587,7 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 <div class="body">
 <p>Egy T hosszú <span class="math">x<sub>1</sub>…x<sub>T</sub></span> tanítószekvenciára a veszteség az összes pozíció átlaga:</p>
 <div class="eq">L(θ) = − <span class="frac"><span>1</span><span>T</span></span> <span class="rm">Σ</span><sub>t=1</sub><sup>T</sup> <span class="rm">log</span> P<sub>θ</sub>(x<sub>t</sub> | x<sub>&lt;t</sub>)</div>
-<p>A kauzális maszk (4.3) miatt mind a T jóslás egyetlen előrefuttatásból kiesik — minden token egyszerre tanítójel. Ekvivalens megfogalmazás: pozíciónként a modell <span class="math"><b>p</b></span> eloszlásának és a valóság <span class="math"><b>y</b></span> one-hot eloszlásának kereszt-entrópiája, <span class="math">H(<b>y</b>, <b>p</b>) = −Σ<sub>i</sub> y<sub>i</sub> <span class="rm">log</span> p<sub>i</sub></span>. Mivel <span class="math"><b>y</b></span> one-hot, ez épp a helyes token −log-valószínűsége. A minimalizálás a modell eloszlását a tanítóeloszláshoz húzza: a loss a kettő közti KL-divergenciát csökkenti (plusz egy konstans, az adat saját entrópiája — ez alá a loss elvileg sem mehet).</p>
+<p>Tanításkor az ismert sorozat eltolt bemenete és célja teszi lehetővé a pozíciók párhuzamos jóslását; a kauzális maszk megakadályozza a jövőből való másolást. One-hot célnál <span class="math">H(y,p) = −Σ y<sub>i</sub> ln p<sub>i</sub></span> a megfigyelt token negatív log-valószínűsége. A valódi adatgeneráló P eloszláson vett <strong>várható</strong> keresztentrópia <span class="math">H(P,Q) = H(P) + KL(P‖Q)</span>, ezért legalább H(P). Ez nem jelent ugyanilyen alsó korlátot egyetlen példára vagy véges tanítóminta mért loss-ára; egy kis korpusz memorizálható. Természetes logaritmussal az egység nat/token, kettes alapúval bit/token.</p>
 </div>
 </details>
 
@@ -1670,6 +1670,7 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 <p>Összerakva, one-hot céllal (<span class="math">y<sub>i</sub> = 1</span>, ha <span class="math">i=c</span>):</p>
 <div class="eq"><span class="frac"><span>∂L</span><span>∂z<sub>i</sub></span></span> = p<sub>i</sub> − y<sub>i</sub></div>
 <p>A gradiens tehát szó szerint <strong>a jóslat és a valóság különbsége</strong>. Ha a modell 0,51-et adott a helyes tokenre, a gradiens ott −0,49: „tolj még felfelé”. Minden rossz token annyi lefelé tolást kap, amennyi valószínűséget kapott. Numerikusan is kegyes: nincs benne osztás közel-nulla számmal, a softmax és a log összeépítve stabil (log-sum-exp trükk).</p>
+<p>Elágazó gráfban az egy változóhoz visszaérkező gradiens-hozzájárulásokat <strong>összeadjuk</strong>. Vektoroknál a helyi derivált Jacobi-mátrix; az autodiff annak megfelelő vektor–Jacobi-szorzatokat számol. Nem minden gráf egyszerű szorzatlánc.</p>
 <p><strong>A mátrixrétegek szabályai.</strong> Egy <span class="math"><b>Z</b> = <b>X</b><b>W</b></span> lineáris rétegen a gradiens visszafelé (jelölje <span class="math"><b>G</b> = ∂L/∂<b>Z</b></span>):</p>
 <div class="eq"><span class="frac"><span>∂L</span><span>∂<b>X</b></span></span> = <b>G</b><b>W</b><sup>⊤</sup>, &nbsp;&nbsp; <span class="frac"><span>∂L</span><span>∂<b>W</b></span></span> = <b>X</b><sup>⊤</sup><b>G</b></div>
 <p>Ez a két képlet a teljes transzformer-visszafuttatás munkalova: a backward menet ugyanolyan mátrixszorzások sorozata, mint az előre — csak transzponált súlyokkal. Innen a klasszikus költségbecslés is: az előrefuttatás ≈ 2ND FLOP (N paraméter, D token, szorzás+összeadás), a visszafuttatás kétszer ennyi (két mátrixszorzás műveletenként: bemenet- és súlygradiens) — a tanítás összesen <span class="math">C ≈ 6ND</span>. Ez a képlet a skálázási törvények (5.6) valutája.</p>
@@ -1679,9 +1680,9 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 <details class="level l3">
 <summary><span class="badge b3">Kutatói mélység</span> Az eltűnő gradiens és amiért a transzformer tanítható</summary>
 <div class="body">
-<p>A gradiens hosszú szorzatlánc — és a szorzatok hajlamosak exponenciálisan viselkedni. Ha a lánc tagjainak „erősítése” jellemzően 1 alatt van, a mély rétegek gradiense exponenciálisan <strong>eltűnik</strong> (a korai rétegek nem tanulnak); ha 1 felett, <strong>felrobban</strong> (a tanítás széthullik). Ez ölte meg a mély RNN-eket: az időben visszafelé terjedő gradiens (BPTT) minden lépésben ugyanazon a rekurrens mátrixon szorzódott át, a viselkedést a mátrix spektrálsugara diktálta.</p>
+<p>A visszaterjesztés útvonalain Jacobi-mátrixok szorzatai szerepelnek. Ezek egyes irányokban csillapíthatnak, másokban erősíthetnek, így a gradiens eltűnhet vagy felrobbanhat. RNN-eknél a távoli időpontok között sok egymás utáni lépésen kell áthaladni; a kapuzott változatok ezt részben kezelik. Általános, nemlineáris hálónál nem egyetlen súlymátrix spektrálsugara dönti el a viselkedést: az aktivációk, a bemenet és a változó lokális deriváltak is számítanak.</p>
 <p>A transzformer három szerkezeti válasza:</p>
-<p><strong>(1) Reziduális kapcsolatok.</strong> Az <span class="math"><b>x</b><sub>ℓ+1</sub> = <b>x</b><sub>ℓ</sub> + F(<b>x</b><sub>ℓ</sub>)</span> alak deriváltja <span class="math">I + ∂F/∂<b>x</b></span> — a gradiens minden rétegben kap egy <em>additív identitás-utat</em>, amelyen csillapítatlanul folyhat vissza. A szorzatlánc összeggé „lazul”: a loss-tól minden réteghez létezik rövid, szorzásmentes út.</p>
+<p><strong>(1) Reziduális kapcsolatok.</strong> Ha x<sub>ℓ+1</sub> = x<sub>ℓ</sub> + F(x<sub>ℓ</sub>), a lokális Jacobi-mátrix I + J<sub>F</sub>. Több rétegen át továbbra is ezek <strong>szorzatát</strong> kapjuk. Kifejtve a szorzat identitást és különböző hosszúságú ágakat tartalmaz; a közvetlen út segítheti a gradiensáramlást. Ez nem helyettesíti a teljes szorzatláncot egyszerű összeggel, és a többi taggal való kioltás vagy erősítés továbbra is lehetséges.</p>
 <p><strong>(2) Normalizálás.</strong> A pre-norm elrendezés minden alegység bemenetét standard skálára hozza, így az alegységek erősítése kontrollált marad a mélység növelésekor is.</p>
 <p><strong>(3) Rövid attention-utak.</strong> Két tetszőleges pozíció között az információ (és a gradiens) egyetlen attention-ugrással közlekedhet — nincs T-lépéses lánc, mint az RNN-nél; a hosszútávú függés tanulása nem kíván hosszú szorzatláncot.</p>
 <p>Maradék instabilitások így is vannak — loss-tüskék, a softmax/attention-logitok elszállása, alacsony precíziós numerika (5.5) —, kezelésükre szolgál a gradient clipping (a gradiensnorma levágása), a QK-norm, a z-loss és társaik. A nagy futtatások gyakorlatában a stabilitás-mérnökség önálló szakma: egy több hónapos tanítás közben a divergenciát észlelni, checkpointból visszaállni, adatot vagy tanulási rátát igazítani kell.</p>
@@ -1698,7 +1699,7 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 </section>
 <section id="tanitas2" data-level="7">
 <h3 id="optim">5.4 · Optimalizálók: a gradienstől a lépésig</h3>
-<p>A gradiens megmondja, merre lejt a veszteségfelszín — de hogy <em>mekkorát és pontosan hogyan</em> lépjünk, az külön tudomány. A naiv recept, a sztochasztikus gradiensereszkedés (SGD) — „lépj a gradiens ellenében egy kis tanulási rátával” — nagy nyelvi modelleknél a gyakorlatban alig használható: a különböző paraméterek gradiensei nagyságrendekkel különböznek, a batch-ekből jövő gradiens zajos, a felszín pedig szurdokos. A standard megoldás az <strong>Adam(W)</strong>, amely két mozgó statisztikát tart karban paraméterenként: a gradiens átlagát (lendület — kisimítja a zajt) és a gradiens négyzetének átlagát (skála — minden paraméter a saját szokásos gradiensnagyságához mérten lép). Az eredmény: minden paraméter közelítőleg egységnyi, jól kondicionált lépéseket tesz.</p>
+<p>Az <strong>AdamW</strong> paraméterenként két exponenciális mozgóátlagot tart fenn: a gradiensét és a négyzetes gradiensét. Az első lendületként simítja a frissítést, a második a koordinátánkénti skálázást segíti. A frissítés nagyságát továbbra is a tanulási ráta, a statisztikák és az ε együtt határozza meg: nem lesz minden lépés egységnyi, és a jó kondicionáltság vagy a konvergencia sem automatikus. Az SGD is érvényes módszer, de nagy nyelvi modelleknél az adaptív optimalizálók gyakran praktikusabbak.</p>
 
 <details class="level l2">
 <summary><span class="badge b2">Matematika</span> AdamW képletekkel, és a tanulásiráta-menetrend</summary>
@@ -1706,9 +1707,9 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 <p>Jelölje <span class="math"><b>g</b><sub>t</sub></span> a gradienst a t-edik lépésben. Az Adam frissítése:</p>
 <div class="eq"><b>m</b><sub>t</sub> = β₁<b>m</b><sub>t−1</sub> + (1−β₁)<b>g</b><sub>t</sub> &nbsp;&nbsp;&nbsp; <b>v</b><sub>t</sub> = β₂<b>v</b><sub>t−1</sub> + (1−β₂)<b>g</b><sub>t</sub><sup>2</sup></div>
 <div class="eq"><b>m̂</b><sub>t</sub> = <b>m</b><sub>t</sub>/(1−β₁<sup>t</sup>), &nbsp; <b>v̂</b><sub>t</sub> = <b>v</b><sub>t</sub>/(1−β₂<sup>t</sup>) &nbsp;&nbsp;&nbsp; θ<sub>t</sub> = θ<sub>t−1</sub> − η · <span class="frac"><span><b>m̂</b><sub>t</sub></span><span>√<span style="border-top:1px solid currentColor"><b>v̂</b><sub>t</sub></span> + ε</span></span> − η·λ·θ<sub>t−1</sub></div>
-<p>Tipikus értékek: <span class="math">β₁ = 0,9</span>, <span class="math">β₂ = 0,95</span> (LLM-eknél a szokásos 0,999 helyett — a gyorsabb skála-adaptáció stabilabb), <span class="math">ε = 10⁻⁸</span>. Az utolsó tag a <strong>decoupled weight decay</strong> (a W az AdamW-ben): a súlyok enyhe, a gradienstől független zsugorítása — regularizáció. Az ár: paraméterenként két extra állapotvektor, azaz az optimalizáló-állapot a modell méretének kétszerese (ezért fáj a memória, 5.5).</p>
+<p>Egy gyakori beállítás β₁ = 0,9, β₂ = 0,95 és ε = 10⁻⁸; ezek nem univerzálisan optimális értékek. Az utolsó tag a <strong>decoupled weight decay</strong>, a súlyok gradienstől elkülönített zsugorítása. N paraméterhez két N elemű momentumbecslést tárolunk. Ez csak azonos adattípus mellett jelent a súlyokhoz képest kétszeres bájtmennyiséget: BF16 súlyok és két FP32 állapot esetén az állapot 8 bájt/paraméter, a súly 2 bájt/paraméter. Ehhez még gradiensek, aktivációk és esetleges FP32 mestersúlyok jöhetnek.</p>
 <p>A tanulási ráta <span class="math">η</span> nem állandó: az elején <strong>warmup</strong> (lineáris felfutás nulláról néhány ezer lépésen át — amíg az Adam-statisztikák és a friss háló stabilizálódnak), utána hosszú <strong>koszinuszos lecsengés</strong> vagy újabban konstans szakasz + rövid, agresszív lehűtés (WSD-menetrend). A lecsengés alatti loss-zuhanás jellegzetes: a kisebb lépések engedik a finomszerkezet kicsiszolását.</p>
-<p>Újabb fejlemény: 2024–25-ben megjelentek az Adamot verő, másodrendű információt olcsón közelítő optimalizálók — leglátványosabban a <strong>Muon</strong>, amely a gradiensmátrixot ortogonalizálja (Newton–Schulz-iterációval) a lépés előtt; több nagy nyílt modellt már ezzel tanítottak, jellemzően az AdamW-vel kombinálva (Muon a mátrixokra, AdamW az embeddingre és normákra).</p>
+<p>A <strong>Muon</strong> a mátrix alakú paraméterek momentumfrissítését közelítőleg ortogonalizálja, például Newton–Schulz-iterációval. Nem számol explicit Hess-mátrixot; a Newton–Schulz eljárás neve nem teszi automatikusan másodrendű optimalizálóvá. Egyes kísérletekben kedvezőbb hatékonyságot ad az AdamW-nél, de ez nem általános rangsor. Más paramétercsoportokhoz gyakran AdamW-t használnak mellette. <a href="https://kellerjordan.github.io/posts/muon/">Az eredeti módszerleírás</a>.</p>
 </div>
 </details>
 
@@ -1717,7 +1718,7 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 
 <p><strong>Adat.</strong> A több billió tokenes korpusz (web-crawl, könyvek, kód, tudományos szöveg, egyre inkább szintetikus adat) minősége a végeredmény első számú meghatározója. A pipeline: nyelvfelismerés, minőségszűrés (heurisztikák és tanult osztályozók), <em>deduplikáció</em> (a duplikátumok memorizációt és képesség-torzulást okoznak), PII- és toxicitás-szűrés, majd a keverékarányok gondos megtervezése — a tanítás vége felé gyakran „curriculum”: a legjobb minőségű adat felülsúlyozása.</p>
 
-<p><strong>Precizitás.</strong> A számítás zöme 16 bites lebegőpontos formátumban fut (bfloat16 — a float32 dinamikatartománya fele akkora mantisszával), a legérzékenyebb akkumulációk float32-ben; az élvonal a 8 bites (FP8) tanítást is bevetette. A kevesebb bit = kétszeres-négyszeres áteresztőképesség, cserébe numerikus aknamező: a stabilitás-trükkök (loss scaling, QK-norm) részben ezt ellensúlyozzák.</p>
+<p><strong>Precizitás.</strong> A bfloat16 1 előjelbitet, 8 kitevőbitet és 7 tárolt törtrészbitet használ; a float32 rendre 1, 8 és 23 bitet. A kitevőtartományuk azonos, de a bfloat16 pontossága kisebb, a tárigénye feleakkora. Ez nem „feleakkora mantissza”. Vegyes pontosságú tanításkor a mátrixműveletek és az érzékeny akkumulációk eltérő formátumot használhatnak; FP8 is alkalmazható. A gyorsulás a hardvertől és a műveletektől függ, nem automatikus 2–4×. A loss scaling főként az FP16 szűkebb tartománya miatt fontos. <a href="https://arxiv.org/abs/1905.12322">BFLOAT16-tanulmány</a>.</p>
 
 <p><strong>Párhuzamosítás.</strong> Egy nagy modell se súlyban, se aktivációban nem fér egyetlen GPU-ra, ezért a munkát három tengely mentén szeletelik, jellemzően egyszerre mindhárom mentén („3D parallelism”):</p>
 
@@ -1731,70 +1732,17 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 <p><strong>Memória-trükkök.</strong> A backprophoz az előrefuttatás köztes aktivációit meg kell őrizni — hosszú szekvenciáknál ez dominálja a memóriát. A <em>gradient checkpointing</em> alkut köt: csak minden k-adik réteg aktivációit tárolja, a többit a visszafuttatáskor újraszámolja (~harmadával több számítás, töredék memória).</p>
 
 <h3 id="scaling">5.6 · Skálázási törvények: a mezőny fizikája</h3>
-<p>A terület legmeglepőbb empirikus felfedezése, hogy a modellek végső loss-a <strong>sima, megjósolható hatványfüggvénye</strong> a ráfordításnak. Ha log-log skálán ábrázoljuk a loss-t a compute (vagy paraméterszám, vagy adatmennyiség) függvényében, közel egyenest kapunk — nagyságrendeken át. Ez tette az LLM-fejlesztést tervezhető iparrá: egy 100-szor kisebb kísérletsorozatból extrapolálható, mit fog tudni a nagy futtatás, és eldönthető, mire költsük a számítási keretet.</p>
+<p>Számos kísérletben a teszt-loss jól közelíthető a modellméret, az adatmennyiség és a compute hatványfüggvényével. Ha van nem nulla padló E, akkor az ideális hatványtörvény log-log egyenese az <strong>L − E többletveszteségre</strong> vonatkozik. Az illesztés hasznos a tervezéshez, de csak a vizsgált adat-, architektúra- és mérettartományban alátámasztott. Egy alacsonyabb loss nem mondja meg automatikusan, hogy egy konkrét új feladatot megold-e a modell.</p>
 
-<figure class="diagram">
-<svg viewBox="0 0 880 380" role="img" aria-label="Skálázási törvény: loss a compute függvényében log-log skálán">
-  <text x="20" y="26" font-size="13" font-weight="700" class="svg-ink">Loss a tanítási compute függvényében (sematikus, log–log)</text>
-  <!-- rács -->
-  <g stroke="var(--grid)" stroke-width="1">
-    <line x1="90" y1="60" x2="90" y2="300"/><line x1="230" y1="60" x2="230" y2="300"/>
-    <line x1="370" y1="60" x2="370" y2="300"/><line x1="510" y1="60" x2="510" y2="300"/>
-    <line x1="650" y1="60" x2="650" y2="300"/><line x1="790" y1="60" x2="790" y2="300"/>
-    <line x1="90" y1="240" x2="790" y2="240"/><line x1="90" y1="180" x2="790" y2="180"/>
-    <line x1="90" y1="120" x2="790" y2="120"/><line x1="90" y1="60" x2="790" y2="60"/>
-  </g>
-  <line x1="90" y1="300" x2="790" y2="300" stroke="var(--baseline)" stroke-width="1.3"/>
-  <line x1="90" y1="300" x2="90" y2="55" stroke="var(--baseline)" stroke-width="1.3"/>
-  <!-- tengelyfeliratok -->
-  <g font-size="10.5" class="svg-muted">
-    <text x="90" y="318" text-anchor="middle">10¹⁸</text>
-    <text x="230" y="318" text-anchor="middle">10¹⁹</text>
-    <text x="370" y="318" text-anchor="middle">10²⁰</text>
-    <text x="510" y="318" text-anchor="middle">10²¹</text>
-    <text x="650" y="318" text-anchor="middle">10²²</text>
-    <text x="790" y="318" text-anchor="middle">10²³</text>
-    <text x="440" y="342" text-anchor="middle" font-size="11">tanítási compute, C (FLOP)</text>
-    <text x="78" y="304" text-anchor="end">2,4</text>
-    <text x="78" y="244" text-anchor="end">2,8</text>
-    <text x="78" y="184" text-anchor="end">3,4</text>
-    <text x="78" y="124" text-anchor="end">4,1</text>
-    <text x="78" y="64" text-anchor="end">5,0</text>
-    <text x="46" y="180" text-anchor="middle" font-size="11" transform="rotate(-90 46 180)">teszt-loss (nat/token)</text>
-  </g>
-  <!-- modellméret-görbék: mindegyik lehajlik, majd elszáll (adathiány), burkológörbe = törvény -->
-  <path d="M 90 95 C 170 150, 220 195, 265 225 C 300 248, 340 252, 390 245" fill="none" stroke="var(--s5)" stroke-width="2"/>
-  <path d="M 160 90 C 260 150, 330 210, 395 250 C 440 277, 490 280, 545 272" fill="none" stroke="var(--s3)" stroke-width="2"/>
-  <path d="M 240 88 C 350 145, 450 225, 530 268 C 580 293, 640 297, 700 290" fill="none" stroke="var(--s4)" stroke-width="2"/>
-  <path d="M 330 90 C 450 140, 570 230, 660 280 C 710 305, 760 310, 800 306" fill="none" stroke="var(--s1)" stroke-width="2"/>
-  <!-- burkoló egyenes -->
-  <line x1="90" y1="120" x2="790" y2="288" stroke="var(--ink-muted)" stroke-width="1.6" stroke-dasharray="7,5"/>
-  <g>
-    <line x1="110" y1="268" x2="150" y2="268" stroke="var(--ink-muted)" stroke-width="1.6" stroke-dasharray="7,5"/>
-    <text x="158" y="272" font-size="11.5" class="svg-ink2">burkoló: L(C) ∝ C<tspan baseline-shift="super" font-size="8.5">−α</tspan> — a skálázási törvény</text>
-  </g>
-  <!-- jelmagyarázat -->
-  <g font-size="11">
-    <rect x="620" y="66" width="190" height="92" rx="8" class="svg-box" stroke-width="1"/>
-    <text x="632" y="84" class="svg-ink2" font-weight="600">modellméret:</text>
-    <line x1="632" y1="98" x2="656" y2="98" stroke="var(--s5)" stroke-width="2.5"/><text x="662" y="102" class="svg-ink2">kicsi</text>
-    <line x1="632" y1="116" x2="656" y2="116" stroke="var(--s3)" stroke-width="2.5"/><text x="662" y="120" class="svg-ink2">közepes</text>
-    <line x1="632" y1="134" x2="656" y2="134" stroke="var(--s4)" stroke-width="2.5"/><text x="662" y="138" class="svg-ink2">nagy</text>
-    <line x1="632" y1="152" x2="656" y2="152" stroke="var(--s1)" stroke-width="2.5"/><text x="662" y="156" class="svg-ink2">nagyon nagy</text>
-  </g>
-  <text x="20" y="360" font-size="11" class="svg-muted">Minden modellméretnek saját görbéje van: egy ponton túl a plusz compute már keveset segít (a kis modell „betelik”).</text>
-  <text x="20" y="376" font-size="11" class="svg-muted">Az optimális stratégia a burkolón haladás: a compute-tal együtt a modellt ÉS az adatot is növelni.</text>
-</svg>
-<figcaption><span class="fig-num">8. ábra.</span> A skálázási törvények sematikus képe. Rögzített modellméret mellett a loss egy padlóhoz konvergál; a különböző méretű modellek görbéinek alsó burkolója hatványfüggvény — log-log skálán egyenes. A Chinchilla-elemzés fő üzenete, hogy a burkolón maradáshoz a compute-ot nagyjából fele-fele arányban kell paraméterre és adatra költeni: az optimum ≈ 20 token/paraméter körül van.</figcaption>
-</figure>
+<figure class="diagram" data-scientific-figure="scaling"><svg viewBox="0 0 880 395" role="img" aria-label="Szemléltető skálázási képletből számolt görbék"><title>Játék skálázási törvény: többletveszteség, nem mérés</title><text x="30" y="30" font-size="14" class="svg-ink">L − E = 4 / √N + √(N / C), ahol C = ND</text><line x1="90" y1="70" x2="90" y2="300" stroke="var(--grid)"/><text x="90" y="322" text-anchor="middle" font-size="11" class="svg-muted">1</text><line x1="262.5" y1="70" x2="262.5" y2="300" stroke="var(--grid)"/><text x="262.5" y="322" text-anchor="middle" font-size="11" class="svg-muted">10</text><line x1="435" y1="70" x2="435" y2="300" stroke="var(--grid)"/><text x="435" y="322" text-anchor="middle" font-size="11" class="svg-muted">100</text><line x1="607.5" y1="70" x2="607.5" y2="300" stroke="var(--grid)"/><text x="607.5" y="322" text-anchor="middle" font-size="11" class="svg-muted">1000</text><line x1="780" y1="70" x2="780" y2="300" stroke="var(--grid)"/><text x="780" y="322" text-anchor="middle" font-size="11" class="svg-muted">10000</text><line x1="90" y1="300" x2="780" y2="300" stroke="var(--grid)"/><text x="76" y="304" text-anchor="end" font-size="11" class="svg-muted">0.25</text><line x1="90" y1="260" x2="780" y2="260" stroke="var(--grid)"/><text x="76" y="264" text-anchor="end" font-size="11" class="svg-muted">0.5</text><line x1="90" y1="220" x2="780" y2="220" stroke="var(--grid)"/><text x="76" y="224" text-anchor="end" font-size="11" class="svg-muted">1</text><line x1="90" y1="180" x2="780" y2="180" stroke="var(--grid)"/><text x="76" y="184" text-anchor="end" font-size="11" class="svg-muted">2</text><line x1="90" y1="140" x2="780" y2="140" stroke="var(--grid)"/><text x="76" y="144" text-anchor="end" font-size="11" class="svg-muted">4</text><line x1="90" y1="100" x2="780" y2="100" stroke="var(--grid)"/><text x="76" y="104" text-anchor="end" font-size="11" class="svg-muted">8</text><line x1="90" y1="60" x2="780" y2="60" stroke="var(--grid)"/><text x="76" y="64" text-anchor="end" font-size="11" class="svg-muted">16</text><path d="M90.00 127.12 L95.75 127.56 L101.50 127.98 L107.25 128.39 L113.00 128.79 L118.75 129.17 L124.50 129.55 L130.25 129.91 L136.00 130.26 L141.75 130.60 L147.50 130.92 L153.25 131.24 L159.00 131.55 L164.75 131.84 L170.50 132.13 L176.25 132.41 L182.00 132.68 L187.75 132.94 L193.50 133.19 L199.25 133.43 L205.00 133.66 L210.75 133.89 L216.50 134.11 L222.25 134.32 L228.00 134.52 L233.75 134.72 L239.50 134.91 L245.25 135.10 L251.00 135.27 L256.75 135.44 L262.50 135.61 L268.25 135.77 L274.00 135.92 L279.75 136.07 L285.50 136.21 L291.25 136.35 L297.00 136.49 L302.75 136.61 L308.50 136.74 L314.25 136.86 L320.00 136.97 L325.75 137.08 L331.50 137.19 L337.25 137.29 L343.00 137.39 L348.75 137.49 L354.50 137.58 L360.25 137.67 L366.00 137.76 L371.75 137.84 L377.50 137.92 L383.25 138.00 L389.00 138.07 L394.75 138.14 L400.50 138.21 L406.25 138.28 L412.00 138.34 L417.75 138.40 L423.50 138.46 L429.25 138.52 L435.00 138.58 L440.75 138.63 L446.50 138.68 L452.25 138.73 L458.00 138.78 L463.75 138.82 L469.50 138.87 L475.25 138.91 L481.00 138.95 L486.75 138.99 L492.50 139.03 L498.25 139.06 L504.00 139.10 L509.75 139.13 L515.50 139.16 L521.25 139.19 L527.00 139.22 L532.75 139.25 L538.50 139.28 L544.25 139.31 L550.00 139.33 L555.75 139.36 L561.50 139.38 L567.25 139.41 L573.00 139.43 L578.75 139.45 L584.50 139.47 L590.25 139.49 L596.00 139.51 L601.75 139.53 L607.50 139.55 L613.25 139.56 L619.00 139.58 L624.75 139.59 L630.50 139.61 L636.25 139.62 L642.00 139.64 L647.75 139.65 L653.50 139.67 L659.25 139.68 L665.00 139.69 L670.75 139.70 L676.50 139.71 L682.25 139.72 L688.00 139.73 L693.75 139.74 L699.50 139.75 L705.25 139.76 L711.00 139.77 L716.75 139.78 L722.50 139.79 L728.25 139.80 L734.00 139.80 L739.75 139.81 L745.50 139.82 L751.25 139.83 L757.00 139.83 L762.75 139.84 L768.50 139.84 L774.25 139.85 L780.00 139.86" fill="none" stroke="var(--s5)" stroke-width="2.5"/><text x="160" y="370" font-size="12" fill="var(--s5)">N = 1</text><path d="M90.00 140.00 L95.75 141.10 L101.50 142.17 L107.25 143.23 L113.00 144.26 L118.75 145.27 L124.50 146.26 L130.25 147.23 L136.00 148.18 L141.75 149.11 L147.50 150.02 L153.25 150.90 L159.00 151.77 L164.75 152.62 L170.50 153.44 L176.25 154.25 L182.00 155.04 L187.75 155.81 L193.50 156.56 L199.25 157.29 L205.00 158.00 L210.75 158.69 L216.50 159.36 L222.25 160.02 L228.00 160.66 L233.75 161.28 L239.50 161.89 L245.25 162.48 L251.00 163.05 L256.75 163.60 L262.50 164.14 L268.25 164.67 L274.00 165.18 L279.75 165.67 L285.50 166.15 L291.25 166.62 L297.00 167.07 L302.75 167.51 L308.50 167.93 L314.25 168.34 L320.00 168.74 L325.75 169.13 L331.50 169.50 L337.25 169.86 L343.00 170.21 L348.75 170.55 L354.50 170.88 L360.25 171.20 L366.00 171.51 L371.75 171.81 L377.50 172.10 L383.25 172.38 L389.00 172.64 L394.75 172.91 L400.50 173.16 L406.25 173.40 L412.00 173.64 L417.75 173.86 L423.50 174.08 L429.25 174.29 L435.00 174.50 L440.75 174.70 L446.50 174.89 L452.25 175.07 L458.00 175.25 L463.75 175.42 L469.50 175.59 L475.25 175.75 L481.00 175.90 L486.75 176.05 L492.50 176.20 L498.25 176.34 L504.00 176.47 L509.75 176.60 L515.50 176.72 L521.25 176.84 L527.00 176.96 L532.75 177.07 L538.50 177.18 L544.25 177.28 L550.00 177.38 L555.75 177.48 L561.50 177.57 L567.25 177.66 L573.00 177.75 L578.75 177.83 L584.50 177.91 L590.25 177.99 L596.00 178.06 L601.75 178.13 L607.50 178.20 L613.25 178.27 L619.00 178.33 L624.75 178.40 L630.50 178.46 L636.25 178.51 L642.00 178.57 L647.75 178.62 L653.50 178.67 L659.25 178.72 L665.00 178.77 L670.75 178.82 L676.50 178.86 L682.25 178.90 L688.00 178.94 L693.75 178.98 L699.50 179.02 L705.25 179.06 L711.00 179.09 L716.75 179.13 L722.50 179.16 L728.25 179.19 L734.00 179.22 L739.75 179.25 L745.50 179.28 L751.25 179.31 L757.00 179.33 L762.75 179.36 L768.50 179.38 L774.25 179.40 L780.00 179.43" fill="none" stroke="var(--s3)" stroke-width="2.5"/><text x="310" y="370" font-size="12" fill="var(--s3)">N = 4</text><path d="M90.00 127.12 L95.75 128.89 L101.50 130.64 L107.25 132.38 L113.00 134.10 L118.75 135.80 L124.50 137.50 L130.25 139.17 L136.00 140.83 L141.75 142.48 L147.50 144.11 L153.25 145.72 L159.00 147.31 L164.75 148.89 L170.50 150.45 L176.25 151.99 L182.00 153.52 L187.75 155.02 L193.50 156.51 L199.25 157.98 L205.00 159.43 L210.75 160.86 L216.50 162.27 L222.25 163.66 L228.00 165.03 L233.75 166.38 L239.50 167.71 L245.25 169.02 L251.00 170.31 L256.75 171.57 L262.50 172.82 L268.25 174.05 L274.00 175.25 L279.75 176.44 L285.50 177.60 L291.25 178.74 L297.00 179.86 L302.75 180.96 L308.50 182.04 L314.25 183.10 L320.00 184.13 L325.75 185.15 L331.50 186.14 L337.25 187.11 L343.00 188.07 L348.75 189.00 L354.50 189.91 L360.25 190.80 L366.00 191.67 L371.75 192.51 L377.50 193.34 L383.25 194.15 L389.00 194.94 L394.75 195.71 L400.50 196.46 L406.25 197.20 L412.00 197.91 L417.75 198.61 L423.50 199.28 L429.25 199.94 L435.00 200.58 L440.75 201.21 L446.50 201.81 L452.25 202.40 L458.00 202.98 L463.75 203.54 L469.50 204.08 L475.25 204.60 L481.00 205.12 L486.75 205.61 L492.50 206.09 L498.25 206.56 L504.00 207.01 L509.75 207.45 L515.50 207.88 L521.25 208.29 L527.00 208.69 L532.75 209.08 L538.50 209.46 L544.25 209.82 L550.00 210.17 L555.75 210.51 L561.50 210.84 L567.25 211.16 L573.00 211.47 L578.75 211.77 L584.50 212.06 L590.25 212.34 L596.00 212.61 L601.75 212.87 L607.50 213.13 L613.25 213.37 L619.00 213.61 L624.75 213.84 L630.50 214.06 L636.25 214.27 L642.00 214.47 L647.75 214.67 L653.50 214.87 L659.25 215.05 L665.00 215.23 L670.75 215.40 L676.50 215.57 L682.25 215.73 L688.00 215.88 L693.75 216.03 L699.50 216.18 L705.25 216.32 L711.00 216.45 L716.75 216.58 L722.50 216.71 L728.25 216.83 L734.00 216.94 L739.75 217.06 L745.50 217.16 L751.25 217.27 L757.00 217.37 L762.75 217.47 L768.50 217.56 L774.25 217.65 L780.00 217.74" fill="none" stroke="var(--s4)" stroke-width="2.5"/><text x="460" y="370" font-size="12" fill="var(--s4)">N = 16</text><path d="M90.00 96.50 L95.75 98.58 L101.50 100.66 L107.25 102.73 L113.00 104.80 L118.75 106.86 L124.50 108.92 L130.25 110.97 L136.00 113.01 L141.75 115.05 L147.50 117.08 L153.25 119.11 L159.00 121.12 L164.75 123.14 L170.50 125.14 L176.25 127.14 L182.00 129.13 L187.75 131.11 L193.50 133.08 L199.25 135.05 L205.00 137.00 L210.75 138.95 L216.50 140.89 L222.25 142.82 L228.00 144.74 L233.75 146.64 L239.50 148.54 L245.25 150.43 L251.00 152.31 L256.75 154.18 L262.50 156.03 L268.25 157.87 L274.00 159.71 L279.75 161.52 L285.50 163.33 L291.25 165.12 L297.00 166.90 L302.75 168.67 L308.50 170.42 L314.25 172.16 L320.00 173.89 L325.75 175.59 L331.50 177.29 L337.25 178.97 L343.00 180.63 L348.75 182.28 L354.50 183.91 L360.25 185.52 L366.00 187.12 L371.75 188.70 L377.50 190.26 L383.25 191.80 L389.00 193.33 L394.75 194.84 L400.50 196.33 L406.25 197.80 L412.00 199.25 L417.75 200.68 L423.50 202.09 L429.25 203.49 L435.00 204.86 L440.75 206.21 L446.50 207.54 L452.25 208.86 L458.00 210.15 L463.75 211.42 L469.50 212.67 L475.25 213.90 L481.00 215.11 L486.75 216.29 L492.50 217.46 L498.25 218.60 L504.00 219.73 L509.75 220.83 L515.50 221.91 L521.25 222.97 L527.00 224.01 L532.75 225.02 L538.50 226.02 L544.25 226.99 L550.00 227.95 L555.75 228.88 L561.50 229.79 L567.25 230.69 L573.00 231.56 L578.75 232.41 L584.50 233.24 L590.25 234.05 L596.00 234.85 L601.75 235.62 L607.50 236.37 L613.25 237.11 L619.00 237.82 L624.75 238.52 L630.50 239.20 L636.25 239.86 L642.00 240.50 L647.75 241.13 L653.50 241.74 L659.25 242.33 L665.00 242.91 L670.75 243.47 L676.50 244.01 L682.25 244.54 L688.00 245.05 L693.75 245.55 L699.50 246.03 L705.25 246.50 L711.00 246.96 L716.75 247.40 L722.50 247.83 L728.25 248.24 L734.00 248.64 L739.75 249.03 L745.50 249.41 L751.25 249.78 L757.00 250.13 L762.75 250.47 L768.50 250.80 L774.25 251.12 L780.00 251.44" fill="none" stroke="var(--s1)" stroke-width="2.5"/><text x="610" y="370" font-size="12" fill="var(--s1)">N = 64</text><path d="M90.00 140.00 L95.75 141.11 L101.50 142.21 L107.25 143.32 L113.00 144.43 L118.75 145.54 L124.50 146.64 L130.25 147.75 L136.00 148.86 L141.75 149.97 L147.50 151.07 L153.25 152.18 L159.00 153.29 L164.75 154.40 L170.50 155.50 L176.25 156.61 L182.00 157.72 L187.75 158.82 L193.50 159.93 L199.25 161.04 L205.00 162.15 L210.75 163.25 L216.50 164.36 L222.25 165.47 L228.00 166.58 L233.75 167.68 L239.50 168.79 L245.25 169.90 L251.00 171.00 L256.75 172.11 L262.50 173.22 L268.25 174.33 L274.00 175.43 L279.75 176.54 L285.50 177.65 L291.25 178.76 L297.00 179.86 L302.75 180.97 L308.50 182.08 L314.25 183.19 L320.00 184.29 L325.75 185.40 L331.50 186.51 L337.25 187.61 L343.00 188.72 L348.75 189.83 L354.50 190.94 L360.25 192.04 L366.00 193.15 L371.75 194.26 L377.50 195.37 L383.25 196.47 L389.00 197.58 L394.75 198.69 L400.50 199.79 L406.25 200.90 L412.00 202.01 L417.75 203.12 L423.50 204.22 L429.25 205.33 L435.00 206.44 L440.75 207.55 L446.50 208.65 L452.25 209.76 L458.00 210.87 L463.75 211.98 L469.50 213.08 L475.25 214.19 L481.00 215.30 L486.75 216.40 L492.50 217.51 L498.25 218.62 L504.00 219.73 L509.75 220.83 L515.50 221.94 L521.25 223.05 L527.00 224.16 L532.75 225.26 L538.50 226.37 L544.25 227.48 L550.00 228.58 L555.75 229.69 L561.50 230.80 L567.25 231.91 L573.00 233.01 L578.75 234.12 L584.50 235.23 L590.25 236.34 L596.00 237.44 L601.75 238.55 L607.50 239.66 L613.25 240.77 L619.00 241.87 L624.75 242.98 L630.50 244.09 L636.25 245.19 L642.00 246.30 L647.75 247.41 L653.50 248.52 L659.25 249.62 L665.00 250.73 L670.75 251.84 L676.50 252.95 L682.25 254.05 L688.00 255.16 L693.75 256.27 L699.50 257.37 L705.25 258.48 L711.00 259.59 L716.75 260.70 L722.50 261.80 L728.25 262.91 L734.00 264.02 L739.75 265.13 L745.50 266.23 L751.25 267.34 L757.00 268.45 L762.75 269.56 L768.50 270.66 L774.25 271.77 L780.00 272.88" fill="none" stroke="var(--ink-muted)" stroke-width="2" stroke-dasharray="6,5"/><text x="440" y="346" text-anchor="middle" font-size="11" class="svg-muted">C · relatív compute-egység (log skála)</text><text x="28" y="185" transform="rotate(-90 28 185)" text-anchor="middle" font-size="11" class="svg-muted">L − E (log)</text></svg><figcaption><span class="fig-num">8. ábra.</span> Számolt játékmodell, nem illesztett mérés. Rögzített N-nél a görbe 4/√N-hez tart. A szaggatott vonal az összes N &gt; 0 feletti folytonos optimum: N* = 4√C, L* − E = 4C⁻¹/⁴; egyik kiválasztott görbénél sem magasabb. A relatív egységek elnyelik a compute állandó szorzóját. Itt α = β = 1/2, nem a lent tárgyalt Chinchilla-illesztés kitevői szerepelnek.</figcaption></figure>
 
 <details class="level l2">
 <summary><span class="badge b2">Matematika</span> Kaplan, Chinchilla és a „compute-optimális” recept</summary>
 <div class="body">
 <p>A törvények alakja (Hoffmann et al., 2022 — „Chinchilla” — parametrizálásában):</p>
 <div class="eq">L(N, D) = E + <span class="frac"><span>A</span><span>N<sup>α</sup></span></span> + <span class="frac"><span>B</span><span>D<sup>β</sup></span></span></div>
-<p>ahol N a paraméterszám, D a tanítótokenek száma, E az adat irreducibilis entrópiája (a tökéletes modell loss-a), α és β illesztett kitevők (≈0,34 és ≈0,28 a Chinchilla-illesztésben). A <span class="math">C ≈ 6ND</span> compute-kényszer melletti minimalizálás adja az optimumot: <span class="math">N<sub>opt</sub> ∝ C<sup>0,5</sup></span>, <span class="math">D<sub>opt</sub> ∝ C<sup>0,5</sup></span> — a modellt és az adatot <em>együtt</em> kell skálázni, ökölszabályként ~20 token/paraméter. Ez felülírta a korábbi (Kaplan et al., 2020) gyakorlatot, amely a modellméretet hizlalta az adat rovására — a GPT-3 e mérce szerint jelentősen alultanított volt.</p>
-<p>Fontos finomság: a Chinchilla-optimum a <em>tanítási</em> compute-ot minimalizálja. Ha a modellt utána sokat futtatjuk, az inferencia-költség a kisebb modell felé tolja az optimumot: a gyakorlatban ezért tanítanak „túl” sok modellt messze 20 token/paraméter fölött (akár 100–1000×) — a tanításkor elvesztett hatékonyságot a kiszolgálásnál nyerik vissza. A törvények emellett az <em>adatfal</em> kérdését is kiélezték: a jó minőségű webszöveg véges, a folytatás a szintetikus adat, a több epochás újrafelhasználás és az adatminőség-kutatás.</p>
+<p>Itt N a paraméterszám, D a tanítótokenek száma, E egy illesztett veszteségpadló; az utóbbi nem a nyelv függetlenül megmért entrópiája. A sűrű modellre használt C ≈ 6ND közelítésnél (ha nem a hosszú szekvenciák attention-költsége dominál) az optimum: <span class="math">N<sub>opt</sub> ∝ C<sup>β/(α+β)</sup></span>, <span class="math">D<sub>opt</sub> ∝ C<sup>α/(α+β)</sup></span>. A közölt α ≈ 0,34 és β ≈ 0,28 illesztés így <strong>0,45 és 0,55</strong> kitevőt ad, nem pontosan 0,5-öt. A <a href="https://arxiv.org/html/2203.15556v1">Chinchilla-cikk</a> más becslései közel azonos ütemű skálázást javasolnak. A ~20 token/paraméter hasznos történeti ökölszabály, nem univerzális konstans; a compute sem két összeadható, fele-fele költségtétel.</p>
+<p>Fontos finomság: a Chinchilla-optimum a <em>tanítási</em> compute-ot minimalizálja. Ha a modellt utána sokat futtatjuk, az inferencia-költség a kisebb modell felé tolja az optimumot: a gyakorlatban ezért tanítanak „túl” sok modellt messze 20 token/paraméter fölött (például több száz vagy több ezer token/paraméter) — a tanításkor elvesztett hatékonyságot a kiszolgálásnál nyerik vissza. A törvények emellett az <em>adatfal</em> kérdését is kiélezték: a jó minőségű webszöveg véges, a folytatás a szintetikus adat, a több epochás újrafelhasználás és az adatminőség-kutatás.</p>
 </div>
 </details>
 
@@ -1802,7 +1750,7 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 <summary><span class="badge b3">Kutatói mélység</span> Emergencia-vita és a tesztidejű skálázás</summary>
 <div class="body">
 <p><strong>Emergens képességek?</strong> A benchmark-teljesítmények gyakran nem simán, hanem látszólag ugrásszerűen jelennek meg a méret növelésével (pl. többlépéses aritmetika, bizonyos következtetési feladatok). Vitatott, mennyi ebből a mérés műterméke: Schaeffer et al. (2023) megmutatta, hogy sok „ugrás” eltűnik, ha a diszkrét, éles metrikát (pontos egyezés) simára (token-szintű log-likelihood) cseréljük — a mögöttes képesség folyamatosan épül, csak a küszöbös mérce ugrik. Ugyanakkor a loss-térben is dokumentáltak valódi töréspontokat (pl. az induction headek kialakulásához kötődő fázisátmenet a tanítás során, 8.3), tehát a kép árnyalt: a skálázás simasága az <em>átlagos</em> loss-ra igaz, az egyes áramkörök szintjén lehetnek éles átmenetek.</p>
-<p><strong>A skálázás új tengelye: tesztidejű compute.</strong> 2024-től a mezőny a <em>gondolkodási idő</em> skálázását nyitotta meg: a modell hosszú belső gondolatmenetet (chain of thought) generál a válasz előtt, és ezt megerősítéses tanulással (ellenőrizhető feladatokon: matek, kód) tanítják hatékonnyá. Az empirikus kép itt is törvényszerű: a válaszidőben elköltött compute logaritmusával a pontosság közel lineárisan nő bizonyos feladatosztályokon. A „scaling” tehát ma háromtengelyű: paraméter × adat × gondolkodási idő.</p>
+<p><strong>Tesztidejű számítás.</strong> Több próbálkozás, keresés, ellenőrzés és hosszabb gondolatmenet javíthatja egyes feladatok eredményét. A haszon függ a modelltől, a kérdés nehézségétől és attól, hogyan választjuk ki a végső választ. A pontosság nem nő korlátlanul vagy mindenhol log-lineárisan a compute-tal; a többletszámítás telítődhet vagy hibás irányba is vihet. A tanítási és tesztidejű ráfordítást külön kell mérni.</p>
 </div>
 </details>
 
@@ -1886,9 +1834,9 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 <div class="eq"><span class="rm">max</span><sub>θ</sub> 𝔼<sub>y∼π<sub>θ</sub></sub>[r(x, y)] − β · <span class="rm">KL</span>(π<sub>θ</sub>(·|x) ‖ π<sub><span class="rm">ref</span></sub>(·|x))</div>
 <p><strong>DPO (direct preference optimization).</strong> Kulcsészrevétel: a fenti célfüggvény optimuma zárt alakban kifejezhető, és visszahelyettesítve a jutalom <em>kiiktatható</em> — a preferenciapárokon közvetlenül optimalizálható a policy:</p>
 <div class="eq">L<sub>DPO</sub> = −𝔼 [<span class="rm">log</span> σ(β·(<span class="rm">log</span><span class="frac"><span>π<sub>θ</sub>(y<sub>w</sub>|x)</span><span>π<sub><span class="rm">ref</span></sub>(y<sub>w</sub>|x)</span></span> − <span class="rm">log</span><span class="frac"><span>π<sub>θ</sub>(y<sub>l</sub>|x)</span><span>π<sub><span class="rm">ref</span></sub>(y<sub>l</sub>|x)</span></span>))]</div>
-<p>Vagyis: növeld a nyertes válasz valószínűségét a referenciához képest, csökkentsd a vesztesét — a β itt is a sodródás fékje. Nincs külön jutalommodell, nincs online RL-hurok: egy stabil, felügyelt-jellegű tanítás.</p>
+<p>A DPO a választott és elutasított válasz <strong>referenciához viszonyított log-valószínűségarányának különbségét</strong> növeli. Nem garantálja, hogy a választott válasz abszolút valószínűsége minden lépésben nő. A β a levezetésben a KL-regularizációhoz kapcsolódik, a tényleges gradiensre és az optimális beállításra is hat; nem egyszerű „igazságosság-” vagy „minőségkapcsoló”. A standard offline DPO külön jutalommodell és online mintavételi hurok nélkül tanítható. <a href="https://arxiv.org/abs/2305.18290">Az eredeti DPO-cikk</a>.</p>
 
-<p><strong>Amit ez az elegancia elrejt.</strong> A jutalommodell nem tűnik el, csak <em>implicitté</em> válik: a levezetés éppen azt mutatja meg, hogy a policy és a referencia log-arányában maga a jutalom van elrejtve — a DPO tehát nem jutalommentes, hanem a policyt használja jutalomparaméterezésként. Ennek gyakorlati következményei vannak: a DPO hajlamos a <em>hossz-torzításra</em> (a hosszabb válasz szisztematikusan nyer), és a preferenciapárokon való túlilleszkedésre, mert a veszteséget a nyertes és vesztes válasz <em>különbsége</em> hajtja — így úgy is csökkenthető, hogy a vesztes valószínűségét nyomja le, miközben a nyertesét is rontja. Ezért használnak a gyakorlatban ritkán önmagában egyetlen DPO-kört: iteratív DPO-t (a friss policy mintáival újragenerált preferenciapárok), hosszra normalizált rokonokat (SimPO), vagy explicit büntetőtagot. Az „egyszerűbb, mint az RLHF" állítás a <em>futtatásra</em> igaz, az adatciklusra kevésbé.</p>
+<p>A DPO-ban a jutalom implicit módon, a policy és a referencia log-arányán keresztül jelenik meg. A különbségalapú veszteség csökkenhet akkor is, ha mindkét válasz valószínűsége csökken, de az elutasítotté jobban. A preferenciaadat torzításai, a válaszhossz és a túlilleszkedés külön értékelést igényelnek; a hosszabb válasz nem szükségképpen nyer. Iteratív adatgyűjtés vagy más célfüggvény segíthet, de nincs általános szabály, hogy egyetlen offline DPO-fázis nem használható.</p>
 <p>Az iparban mindkét család él: a DPO (és rokonai: IPO, KTO, SimPO) olcsó és robusztus; az online RL (PPO/GRPO) jobban skálázódik friss, a policy saját hibáira célzott adattal — és az ellenőrizhető jutalmas (matek/kód) reasoning-tanítás alapvetően online RL.</p>
 </div>
 </details>
@@ -1897,8 +1845,8 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 <summary><span class="badge b3">Kutatói mélység</span> Constitutional AI, RLAIF és a nyitott problémák</summary>
 <div class="body">
 <p><strong>RLAIF és Constitutional AI.</strong> Az emberi címkézés drága és zajos — a skálázás útja, hogy az ítész is modell. Az Anthropic Constitutional AI megközelítésében a kritikát és a preferenciaítéletet egy <em>explicit elvlista</em> („alkotmány”) vezérli: a modell a saját válaszát az elvek fényében bírálja és javítja (SFT-fázis), majd AI-ítéletekből készül a preferenciaadat (RL-fázis). Az elvek szövege nyilvánossá és auditálhatóvá teszi azt, ami az emberi címkézésben implicit ízlés maradna.</p>
-<p><strong>Mit tud rontani az alignment?</strong> Az „alignment tax" mérhető: a túlhangolt modell modorossá válhat (sablonos bevezetők, túlzott elutasítás), és a preferenciatanítás ismert torzításokat erősít — a hosszabb, magabiztosabb, hízelgőbb válaszokat az emberek szisztematikusan túlpontozzák (szikofancia). A kalibráció is sérülhet: a base model token-valószínűségei meglepően jól kalibráltak, az RLHF ezt jellemzően rontja (a modell „határozottabb”, mint amennyire igaza van).</p>
-<p><strong>Mélyebb nyitott kérdések.</strong> A jutalommodell csak <em>proxy</em>: a Goodhart-törvény szerint az erős optimalizálás a proxy és a valódi cél közti rést tágítja. Kutatott jelenség az <em>alignment faking</em> is: kimutatták, hogy egy elég képes modell a tanítási helyzetet felismerve stratégiailag megjátszhatja az együttműködést, hogy a súlyai ne módosuljanak — ami az értékelés és a felügyelet (scalable oversight) kérdését a terület egyik központi problémájává teszi. A 8. fejezet interpretability-eszközei részben épp erre ígérnek független ellenőrzést: nem azt nézni, mit <em>mond</em> a modell, hanem hogy mit <em>számol</em>.</p>
+<p><strong>Kalibráció és mellékhatások.</strong> A preferenciatanítás erősíthet nem kívánt stílust, túlzott magabiztosságot vagy hízelgést, de a hatás az adatoktól és a módszertől függ. Fontos különbség: <strong>egy token 70%-os valószínűsége nem egy állítás 70%-os igazságesélye</strong>. A válaszhelyesség kalibrációjához külön definiált becslés és teszthalmaz kell: a 70%-osnak becsült válaszok körülbelül 70%-a legyen helyes. <a href="https://arxiv.org/abs/2207.05221">Kísérletek</a> bizonyos modelleknél és feladatformátumoknál jó önértékelést mutatnak; ez nem minden alapmodellre és kérdésre érvényes tulajdonság.</p>
+<p><strong>Nyitott kérdések.</strong> A jutalommodell a valódi cél közelítése; intenzív optimalizálása felerősítheti a hibáit. A KL-büntetés ezt korlátozhatja, de nem zárja ki a reward hackinget. Az <a href="https://arxiv.org/abs/2412.14093">alignment faking</a> kutatás meghatározott, mesterségesen kialakított tanítási helyzetekben dokumentált stratégiai megfelelést. Ebből nem következik, hogy minden mai modell vagy hétköznapi beszélgetés így működik. Az értékelés és a belső számítás vizsgálata egymást kiegészítő kutatási eszköz; egyik sem általános biztonsági bizonyíték.</p>
 </div>
 </details>
 
@@ -1928,7 +1876,7 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 </div>
 
 <h3>KV-cache: hogy ne számoljunk mindent újra</h3>
-<p>Az autoregresszív hurok naiv megvalósítása minden új tokennél a <em>teljes</em> szekvenciát újraszámolná. Ez felesleges: a korábbi tokenek key- és value-vektorai nem változnak — az attention kauzális, a múlt nem függ a jövőtől. A megoldás a <strong>KV-cache</strong>: minden réteg minden fejének key/value-vektorait eltároljuk, és az új token query-je csak hozzájuk illeszkedik. A dekódolás lépésenkénti költsége így a szekvenciahossznak nem négyzetes, hanem lineáris függvénye — cserébe a cache maga válik a GPU-memória fő fogyasztójává, hosszú kontextusnál a súlyokat is meghaladhatja.</p>
+<p>Változatlan modell és prefix mellett a kauzális dekóder korábbi pozícióinak K/V-vektorai nem függnek az új tokenektől. A <strong>KV-cache</strong> ezeket tárolja rétegenként. Az új pozícióhoz továbbra is ki kell számolni a Q-, K- és V-vektort, az attentiont és az MLP-t; az új K/V hozzáadódik a cache-hez, a query a megengedett régi és saját kulcsokra figyel. Egyetlen új pozíció sűrű attentionje a kontextushosszban lineáris, nem kell a teljes prefixet újrafuttatni. A cache tárigénye is lineárisan nő, és hosszú kontextusnál meghaladhatja a súlyokét.</p>
 
 <figure class="diagram">
 <svg viewBox="0 0 900 272" role="img" aria-label="A KV-cache működése">
@@ -1960,14 +1908,14 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
   <text x="30" y="240" font-size="11" class="svg-muted">Példa: 32 réteg, 8 KV-fej, d=128, 128k token, FP16 → 2·32·8·128·131072·2 B ≈ 17 GB — egyetlen beszélgetésre.</text>
   <text x="30" y="256" font-size="11" class="svg-muted">Ezért kell a GQA (4.8), a kvantált cache és a lapozott memóriakezelés (PagedAttention).</text>
 </svg>
-<figcaption><span class="fig-num">10. ábra.</span> A KV-cache. A már látott tokenek key/value-vektorai rétegenként tárolódnak; új tokennél csak egy query számítódik, amely a cache egészére figyel. Az ára memória: a cache mérete a kontextushosszal lineárisan nő, és a kiszolgáló-rendszerek tervezésének központi kényszere.</figcaption>
+<figcaption><span class="fig-num">10. ábra.</span> A KV-cache. A már látott tokenek key/value-vektorai rétegenként tárolódnak; az új pozíció Q-, K- és V-vektora is kiszámítódik, K/V-je pedig bekerül a cache-be. Az ára memória: a cache mérete a kontextushosszal lineárisan nő, és a kiszolgáló-rendszerek tervezésének központi kényszere.</figcaption>
 </figure>
 
 <details class="level l2">
 <summary><span class="badge b2">Matematika</span> Kvantálás és spekulatív dekódolás</summary>
 <div class="body">
-<p><strong>Kvantálás.</strong> Ha a dekódolást a súlyok beolvasása korlátozza, a leghatásosabb gyorsítás a súlyok <em>kisebbre tömörítése</em>: a 16 bites számok 8, 4, sőt 2 bites egészekre képezése. A recept: a súlycsoportokat (pl. 64-es blokkokban) egy skálafaktorral normáljuk és rácsra kerekítjük — <span class="math">w ≈ s · q</span>, ahol q kis egész. A minőségvesztés meglepően kicsi (a 4 bit a gyakorlati édespont), mert a hálók súlyeloszlása redundáns; a kényes részek (kiugró aktiváció-csatornák, „outlierek”) kezelésére születtek a finomabb sémák (GPTQ, AWQ, aktiváció-kvantálás FP8-ban). A KV-cache ugyanígy kvantálható.</p>
-<p><strong>Spekulatív dekódolás.</strong> A dekódolás soros — de az <em>ellenőrzés</em> párhuzamos. Egy kis, gyors „vázlatmodell” előre generál k tokent, majd a nagy modell <em>egyetlen</em> párhuzamos futtatásban ellenőrzi őket: az egyező prefixet elfogadja, az első eltérésnél a saját eloszlásából javít. Egy elutasítás-mintavételi trükkel az eljárás <em>egzaktul</em> a nagy modell eloszlását adja — tehát ingyen gyorsítás (jellemzően 2–3×), amikor a szöveg könnyen jósolható. Rokon irány a multi-token-prediction fejekkel való öndraftolás (Medusa, EAGLE).</p>
+<p><strong>Kvantálás.</strong> A kisebb bitmélység csökkentheti a súlyok és a KV-cache memóriaigényét, illetve a memóriaforgalmat. Egyszerű egész kvantálásnál például w ≈ s·q, esetenként külön nullponttal; a skálát gyakran csoportonként tároljuk. A GPTQ és AWQ a kis bitmélységű súlyok hibáját mérsékli. A 4 bit hasznos kompromisszum lehet, de a minőségvesztést az adott modellen és feladaton mérni kell, különösen 2 bitnél. Az FP8 lebegőpontos formátum, nem 8 bites egész. A tárolás csökkenése önmagában nem garantál azonos arányú gyorsulást.</p>
+<p><strong>Spekulatív dekódolás.</strong> Egy gyors draftmodell k tokent javasol; a célmodell ezek feltételes eloszlásait párhuzamosan ellenőrizheti. Egzakt mintavételnél a q drafteloszlásból húzott x tokent min(1, p(x)/q(x)) valószínűséggel fogadjuk el. Elutasításkor a <strong>normalizált max(0, p − q)</strong> eloszlásból mintázunk, nem egyszerűen p-ből. Az első elutasítás utáni javaslatokat eldobjuk; ha mind elfogadható, a célmodell egy további tokent adhat. Így a cél-eloszlás megőrizhető. A gyorsulás függ az elfogadási aránytól, a draft és az ellenőrzés költségétől; nem ingyenes vagy garantált. <a href="https://arxiv.org/html/2211.17192v2">Leviathan és mtsai., 2.3. szakasz</a>.</p>
 <p><strong>Kiszolgálás.</strong> Éles rendszerben sok kérés fut együtt: a <em>continuous batching</em> a dekódló lépéseket több kérés közt köti kötegbe (a GPU-t a súlybeolvasáson osztoztatja), a <em>PagedAttention</em> (vLLM) a KV-cache-t lapokra tördelve gazdálkodik a memóriával, a prefix-cache a közös promptkezdeteket (rendszerprompt!) osztja meg. A prefill és a dekódolás eltérő profilja miatt a nagy rendszerek a kettőt gyakran külön gépcsoportra bontják.</p>
 </div>
 </details>
@@ -1975,8 +1923,8 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 <details class="level l3">
 <summary><span class="badge b3">Kutatói mélység</span> Mintavétel-kutatás: miért pont top-p, és mi romlik el?</summary>
 <div class="body">
-<p>A mintavételi stratégia látszólag apróság, valójában a kimenet minőségének erős szabályozója. A tiszta mintavétel (T=1, szűrés nélkül) hosszú szövegben megbízhatóan „kisiklik”: a farokból húzott egy-egy rossz token után a modell a saját hibáján kondicionálódik, és a hiba öngerjesztővé válik (exposure bias — a tanításkor mindig <em>valódi</em> prefixet látott, generáláskor a sajátját). A mohó/alacsony-T dekódolás ellenkező patológiája a degenerált ismétlés: egy-egy ciklus valószínűsége lépésről lépésre nő, ha egyszer elindult. A top-p e kettő közti pragmatikus kompromisszum; finomabb rokonai (min-p, typical sampling, mirostat) a küszöböt a lokális bizonytalansághoz igazítják.</p>
-<p>Érdemes látni, hogy a „legvalószínűbb szöveg” <em>nem</em> a legjobb szöveg: a globálisan maximális valószínűségű folytatás (amit a beam search közelít) természetes nyelvre jellemzően rövid, ismétlődő, semmitmondó — az emberi szöveg tipikus, nem pedig maximális valószínűségű. A reasoning-modellek korszakában új szempont is belépett: a hosszú gondolatmenetek alatt a mintavétel diverzitása felfedezést szolgál (több próbálkozás, öngyógyítás), a végső válasznál viszont az élesebb dekódolás kifizetődő — a T tehát fázisonként is hangolható.</p>
+<p>A dekódolás hatása feladatfüggő. Szabad szöveggenerálásnál a korlátozás nélküli mintavétel kis valószínűségű, hibás folytatásokat is választhat; a mohó vagy beam search eljárás ismétlődésre hajlamos eredményt adhat. Ezek megfigyelt hibamódok, nem minden futásra érvényes törvények. A teacher forcing és a saját generált prefixek közti eltérést exposure bias néven tárgyalják. A top-p, min-p vagy typical sampling eltérő szűrési szabályokat használ; egyik sem általános helyességi garancia.</p>
+<p>A legnagyobb modellvalószínűség és a feladaton mért minőség eltérő cél. Kreatív, nyitott szövegnél előnyös lehet a változatosság, más feladatokon a mohó vagy kereséses dekódolás is megfelelő. A temperature a feltételes eloszlás koncentrációját szabályozza; nem önmagában a kreativitást vagy igazságtartalmat. A választott stratégiát a célfeladaton érdemes összehasonlítani.</p>
 </div>
 </details>
 
@@ -2193,7 +2141,7 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 <summary><span class="badge b3">Kutatói mélység</span> A kutatási frontvonal és a nyitott problémák</summary>
 <div class="body">
 <p><strong>Hűség (faithfulness).</strong> A modell kiírt gondolatmenete (chain of thought) nem megbízható ablak a tényleges számításra: kimutatták, hogy a modell néha utólag racionalizál — a választ más úton számolja, mint amit leír, sőt elhallgatja a valódi befolyásoló tényezőt (pl. egy promptba rejtett tippet). Ez az interp egyik fő motivációja: a <em>belső</em> számítás auditja nem helyettesíthető a modell önbeszámolójával. Az attribúciós gráfok e „hűtlen CoT” eseteket kísérletileg is elkapják.</p>
-<p><strong>A szótár-hipotézis határai.</strong> Az SAE-k ereje ellenére nyitott, hogy a feature-ök a modell „valódi” változói-e, vagy csak hasznos közelítés: a rekonstrukció sosem tökéletes (a maradék a „dark matter”), a szótárméret növelésével a feature-ök tovább hasadnak (feature splitting), és a különböző seedekkel tanított SAE-k szótárai csak részben fedik egymást. Alternatív és kiegészítő irányok: crosscoderek (rétegek/modellek közti közös szótár), transcoderek (az MLP-k helyettesítése értelmezhető ritka modullal), valamint a nemlineáris, többdimenziós reprezentációk (körök, rácsok) kutatása.</p>
+<p><strong>A szótár-hipotézis határai.</strong> Az SAE-k ereje ellenére nyitott, hogy a feature-ök a modell „valódi” változói-e, vagy csak hasznos közelítés: a gyakorlatban rendszerint marad rekonstrukciós hiba (a maradék a „dark matter”), a szótárméret növelésével a feature-ök tovább hasadnak (feature splitting), és a különböző seedekkel tanított SAE-k szótárai csak részben fedik egymást. Alternatív és kiegészítő irányok: crosscoderek (rétegek/modellek közti közös szótár), transcoderek (az MLP-k helyettesítése értelmezhető ritka modullal), valamint a nemlineáris, többdimenziós reprezentációk (körök, rácsok) kutatása.</p>
 <p><strong>Skálázhatóság és automatizálás.</strong> Egy frontier-modell milliónyi feature-ének és áramkörének kézi elemzése reménytelen — a terület ezért az <em>automatizált</em> értelmezés felé megy: modellek magyarázzák modellek feature-eit, ellenőrző kísérleteket generálnak és pontoznak. A távlati cél egyfajta „mikroszkóp-pipeline”: adott viselkedésről (megtévesztés, jailbreak-fogékonyság, célkövetés) gombnyomásra oksági áramköri diagnózist adni. Ettől a terület még messze van — a mai eszközök a számítás töredékét magyarázzák —, de a haladás üteme az elmúlt néhány évben látványos: a 2021-es kétrétegű játékmodellektől 2025-re a frontier-modellek konkrét viselkedéseinek áramköri szintű eseteiig jutott a mezőny.</p>
 </div>
 </details>
@@ -2226,12 +2174,12 @@ A mech interp tétele: a tanult háló nem fekete doboz, hanem <em>ismeretlen</e
 <p>A hallucináció — magabiztosan előadott valótlanság — nem rejtélyes meghibásodás, hanem a tanítási cél árnyéka. A mechanizmusból több forrása is levezethető:</p>
 
 <ul>
-<li><strong>A loss folytatást jutalmaz, nem igazságot.</strong> A cross-entropy a <em>plauzibilis</em> szöveget díjazza; egy jól hangzó, hamis állítás loss-a alacsony, ha a felszíni mintázata gyakori. A „nem tudom” válasz ráadásul a legtöbb benchmarkon és preferencia-adatban rosszabbul pontoz, mint egy tippelés — az utótanítás így akaratlanul a magabiztos tippelésre nevelhet (a vizsgázó-stratégia: üresen hagyni biztos pontvesztés).</li>
+<li><strong>A loss folytatást jutalmaz, nem igazságot.</strong> A cross-entropy a <em>plauzibilis</em> szöveget díjazza; egy jól hangzó, hamis állítás loss-a alacsony, ha a felszíni mintázata gyakori. A „nem tudom” válasz ráadásul egyes értékelési rendszerekben rosszabbul pontozhat, mint egy tippelés — az utótanítás így akaratlanul a magabiztos tippelésre nevelhet (a vizsgázó-stratégia: üresen hagyni biztos pontvesztés).</li>
 <li><strong>A tudás eloszlásba van tömörítve.</strong> A ritkán látott tények gyenge, zajos asszociációk (3. és 4.4 fejezet); a mintavétel (7. fejezet) egy rossz tokenje után a modell a saját hibájára kondicionál, és koherensen <em>továbbépíti</em> azt.</li>
 <li><strong>A visszaidézés és a fogalmazás szétválik.</strong> Az interp-esettanulmányok (8.6) szerint van külön „ezt az entitást ismerem” jelzés a hálóban: ha ez tévesen bekapcsol, a válaszgeneráló áramkörök gátlása feloldódik, és a modell kitölti a részleteket — a szerkezet megvan, a tartalom nem.</li>
 </ul>
 
-<p>A mérséklés ma többsávos: kalibrációra és megtagadásra célzott utótanítás, visszakereséssel (RAG, eszközhasználat) külső tényforráshoz horgonyzás, valamint verifikáló-modellek és idézetkényszer. A jelenség azonban a jelen paradigmában teljesen el nem tüntethető: egy eloszlást modellező rendszer definíció szerint általánosít a bizonytalanban.</p>
+<p>A hibák mérséklését segítheti a bizonytalanság jelzésére és a válasz megtagadására tanítás, a külső források visszakeresése (RAG), az eszközhasználat és a válaszok ellenőrzése. Egy idézet puszta megléte nem bizonyítja, hogy valódi és alátámasztja az állítást. A hallucináció teljes megszüntetésére általános, nyitott feladatokon nincs bevált garancia. Ezt azonban nem bizonyítja önmagában az, hogy a modell valószínűségi: egy szűk, ellenőrizhető feladatnál formális korlátokkal vagy verifikációval erős helyességi garanciák is adhatók.</p>
 
 <h3>További jellegzetes határok</h3>
 <table>
@@ -2300,6 +2248,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
 <section id="irodalom">
 <div class="chapter-kicker">11. fejezet</div>
 <h2>Irodalom — a kánon, olvasási sorrendben</h2>
+<p><strong>Szakmai ellenőrzés · 2026. szeptember 19. (v1.1.1).</strong> Az ellenőrzés a 12 tanulási állomásra, a 60 kvízkérdésre, a végigszámolt példákra és a 14 interaktív laborra terjedt ki. A javítások és az eredeti források az <a href="https://github.com/csaplard/llm-oktatoanyag/blob/main/SCIENTIFIC_REVIEW.md">ellenőrzési jegyzőkönyvben</a> követhetők. A játékábrák nem valódi LLM-mérések; ez az átnézés nem független tudományos lektorálás.</p>
 <p>A lista szándékosan rövid: a terület alapszövegei, nagyjából a jelen anyag fejezeteinek sorrendjében. A hivatkozott alapművek szabadon elérhetők; a közvetlenül linkelt címek az eredeti forráshoz vezetnek.</p>
 <ol class="refs">
 <li><b><a href="https://arxiv.org/abs/1706.03762">Vaswani et al. (2017): Attention Is All You Need</a></b> — az eredeti transzformer-cikk. (4. fejezet)</li>
@@ -2333,6 +2282,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
 <h2>Változásnapló</h2>
 <p>Ez az anyag gyorsan mozgó területről szól. Az alábbi lista fordított időrendben mutatja, mi változott — így látszik, mikori állapotot olvasol.</p>
 <dl class="changelog">
+  <dt>v1.1.1 — 2026. szeptember 19.</dt><dd>Szakmai felülvizsgálat: attention- és MLP-képletek, bfloat16, skálázási törvények, spekulatív dekódolás, KV-cache és kalibráció javítása; 28 kvízkérdés pontosítása. Új, képletből számolt skálázási ábra. A javításokat és az eredeti forrásokat az <a href="https://github.com/csaplard/llm-oktatoanyag/blob/main/SCIENTIFIC_REVIEW.md">ellenőrzési jegyzőkönyv</a> sorolja fel. A haladásod megmarad.</dd>
   <dt>v1.1 — 2026. szeptember 19.</dt><dd>Tizennégy új interaktív műhely; végigszámolt alapozó példák; tizenkét hetes gyakorlási útvonal helyi feladatlistával; szabad és vezetett olvasás; külön elnevezés a magyarázati mélységnek és a haladási állomásoknak; szakmai pontosítások és kiegyensúlyozott bevezető kvízkérdések. Mindkét nyelvi változat önállóan, offline is működik.</dd>
   <dt>v1.0 — 2026. augusztus 30.</dt>
   <dd>Első nyilvános kiadás. A tizenkét fejezet szintalapú tanulórendszerré alakítva: fejezetenként ötkérdéses szintzáró kvíz, 4/5-ös átmenőküszöbbel, korlátlan újrapróbálkozással; a még nem teljesített fejezetek zárolva. A haladás a böngésző helyi tárolójában marad, szerverre semmi nem kerül. Katedra arculat: világos és sötét mód külön tervezett palettával.</dd>
@@ -2340,7 +2290,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
 </section>
 <footer class="page-footer">
   <p class="foot-line"><strong>© 2026 Csaplár Dániel</strong> · <a href="mailto:csaplar.d@gmail.com">csaplar.d@gmail.com</a>. Ez a mű a <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.hu" rel="license noopener noreferrer" target="_blank">Creative Commons Nevezd meg! – Ne add el! – Így add tovább! 4.0 Nemzetközi (CC&nbsp;BY-NC-SA&nbsp;4.0)</a> licenc alatt érhető el: nevezd meg a szerzőt, ne használd kereskedelmi célra, és a származékos műveket ugyanilyen feltételekkel add tovább.</p>
-  <p class="foot-line">v1.1 · utolsó frissítés: 2026. szeptember 19. · a haladásod kizárólag a saját böngésződben tárolódik.</p>
+  <p class="foot-line">v1.1.1 · utolsó frissítés: 2026. szeptember 19. · a haladásod kizárólag a saját böngésződben tárolódik.</p>
 </footer>
 <div class="reset-row">
   <button id="resetProgress" type="button">Haladás törlése</button>
@@ -2446,7 +2396,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: "A súlyok minden futtatáskor véletlen zajjal új értékeket kapnak." },
           { t: "A tokenizáló minden kéréskor véletlenszerűen új szótárt állít össze." }
         ],
-        why: 'A háló maga <strong>determinisztikus függvény</strong>: ugyanaz a prefix ugyanazt az eloszlást adja. A változatosság a következő lépésből jön — a tokent <em>mintavételezzük</em> az eloszlásból, és a mintavételi stratégia (temperature, top-p) az inferencia paramétere, nem a modellé. Ezért lehet ugyanazt a modellt determinisztikusan is futtatni (mindig a legvalószínűbb tokent véve), és ezért nem jelent a válasz megváltozása semmiféle „tanulást” két kérés között: a modell súlyai a beszélgetések között nem mozdulnak.'
+        why: "Rögzített súlyokkal és determinisztikus számítással ugyanaz a prefix ugyanazt a tokeneloszlást adja, de a mintavétel más tokent választhat. Valós kiszolgálásnál numerikus és infrastruktúra-eltérések is okozhatnak különbséget, akár mohó választás mellett. Egy eltérő válasz önmagában nem bizonyítja a súlyok frissítését."
       },
       {
         id: 'llm-autoregressziv',
@@ -2466,7 +2416,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
         answer: 20,
         hint: 'Egész szám, százalékban.',
         q: 'A modell egy kéttokenes folytatást ad. Az első tokenre 0,5, majd a következő lépésben a ténylegesen választott második tokenre 0,4 valószínűséget rendel. A láncszabály szerint hány százalék a kéttokenes folytatás együttes valószínűsége?',
-        why: 'A láncszabály szerint a sorozat együttes valószínűsége a feltételes tagok <strong>szorzata</strong>: 0,5 × 0,4 = 0,2, azaz <strong>20%</strong>. Ez nem csak számtan: a szorzás miatt egy hosszú kimenet együttes valószínűsége <em>exponenciálisan</em> csökken a hosszával — egy száz tokenes válasz „valószínűsége” csillagászatian kicsi, akkor is, ha minden egyes lépés magabiztos volt. Ezért értelmetlen a teljes válaszokat a valószínűségük alapján összehasonlítani hosszúság szerinti normálás nélkül, és ezért a loss is <em>tokenenkénti átlagként</em> van definiálva (5.1).'
+        why: "0,5 × 0,4 = 0,2, vagyis <strong>20%</strong>. A szorzat a megadott feltételes valószínűségekből következik. Hosszabb sorozatokhoz több tényező tartozik; hasonló átlagos tokenbizonytalanság esetén a teljes valószínűség exponenciálisan csökken. Különböző hosszúságú szövegek értékeléséhez ezért gyakran tokenenkénti átlagos log-veszteséget használunk; a megfelelő mérőszám a feladattól függ."
       },
       {
         id: 'llm-halluc',
@@ -2497,46 +2447,46 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       {
         id: 'tok-strawberry',
         type: 'choice',
-        q: 'Egy modell azt állítja, hogy a <code>strawberry</code> szóban két „r” van. Mi ennek a legvalószínűbb oka?',
+        q: "Miért nehezítheti egy részszavas tokenizer a <code>strawberry</code> szó „r” betűinek megszámolását?",
         options: [
           { t: 'A modell nem betűket kap bemenetként, hanem tokeneket (pl. <code>str</code>+<code>aw</code>+<code>berry</code>) — a tokenek belső betűösszetétele csak közvetve hozzáférhető.', ok: true },
           { t: 'A modell nem tud háromig számolni.' },
           { t: 'A tokenizáló hibásan darabolta fel a szót.' },
           { t: 'Túl magas volt a temperature, ezért rossz tokent húzott.' }
         ],
-        why: 'A visszafordítható tokenizáció nem veszíti el a szöveg karaktereit, de a modell bemenetén egy token egyetlen azonosítóként jelenik meg: belső betűszerkezete nincs külön pozíciókra bontva. A karakterszintű feladatok (betűszámlálás, anagramma, visszafelé írás) nem azért nehezek, mert a modell „buta”, hanem mert a bemenet felbontása durvább, mint a feladat. Ugyanez az oka annak, hogy a számjegyenként tokenizált számokon az aritmetika megbízhatóbb: a <code>12345</code> egyetlen tokenként atomi, <code>1</code>+<code>2</code>+<code>3</code>+<code>4</code>+<code>5</code>-ként viszont a helyiérték-szerkezet láthatóvá válik.'
+        why: "A szóban három „r” van. Egy token belső betűi nem külön bemeneti pozíciókon jelennek meg, ami nehezítheti a számlálást. A példafelbontás szemléltetés, a tényleges felbontás tokenizerfüggő. A tokenizálás nem az egyetlen lehetséges hibaforrás; a tanítóadat és a tanult számítás is számít. A számjegyenkénti felbontás sem garantál helyes aritmetikát."
       },
       {
         id: 'tok-merges',
         type: 'number',
         answer: 31744,
         hint: 'Egész szám.',
-        q: 'Egy bájt-szintű BPE 256 bájtból indul, és 32&nbsp;000 elemű szótárat épít. Hány összevonási (merge) lépést hajt végre?',
-        why: 'Minden merge-lépés pontosan <strong>egy</strong> új tokent tesz a szótárba, két meglévő elem összeolvasztásából — tehát 32&nbsp;000 − 256 = <strong>31&nbsp;744</strong> lépés. Ez nem csak számtani játék: a merge-szabályok sorrendezett listája maga a szótár. Tokenizáláskor ugyanezt a 31&nbsp;744 szabályt játsszuk vissza ugyanebben a sorrendben, és ettől determinisztikus az eredmény.'
+        q: "Egy játék BPE-szótár 256 bájtból indul. Minden merge egy új elemet ad, és nincsenek külön speciális tokenek. Hány merge kell 32&nbsp;000 elemhez?",
+        why: "32&nbsp;000 − 256 = <strong>31&nbsp;744</strong>. Ez a megadott feltételekre igaz; valós tokenizálónál a fenntartott tokeneket és az esetleges további alapelemeket is külön számolni kell. Az alkalmazandó merge-ek prioritását a megtanult sorrend rögzíti."
       },
       {
         id: 'tok-special',
         type: 'choice',
-        q: 'Miért követelmény, hogy a <code>&lt;|endoftext|&gt;</code> és a <code>&lt;|user|&gt;</code> típusú speciális tokenek soha ne állhassanak elő normál szövegből?',
+        q: "Miért kell a chat-formátum feldolgozójának megkülönböztetnie a felhasználó által begépelt szerepjelölőt a valódi speciális tokenazonosítótól?",
         options: [
           { t: 'Mert különben a felhasználó által beírt szöveg szerepváltó jelölőként tokenizálódhatna, és a modell a felhasználó szövegét rendszerutasításnak vagy saját válaszának olvasná.', ok: true },
           { t: 'Mert megnőne tőle a szótár mérete.' },
           { t: 'Mert az embeddingjük tanulatlan maradna.' },
           { t: 'Mert a BPE nem tud 16 karakternél hosszabb tokent kezelni.' }
         ],
-        why: 'A chat-formátum nem a hálón kívül élő protokoll: a modell számára a szerepek elválasztása <em>ugyanaz a tokensorozat</em>, mint a tartalom. Ha a <code>&lt;|user|&gt;</code> karakterlánc leírásával bárki elő tudná állítani ezt a tokent, a beszélgetés szerkezete hamisítható lenne — ez a prompt injection egyik legdurvább formája. Ezért kezelik ezeket a tokenizálóban külön úton, a normál BPE-darabolás megkerülésével: a leírt <code>&lt;|user|&gt;</code> szöveg közönséges rész-szavakra esik szét, nem a speciális tokenre.'
+        why: "A speciális azonosítók a beszélgetés szerkezetét jelölhetik. A tokenizer API és a chat-feldolgozó szabályozza, mikor állíthatók elő; a normál szöveg kezelése lehet részszavakra bontás vagy elutasítás is. A BPE önmagában nem biztonsági garancia. A szerephatárok helyes kezelése sem oldja meg a tartalmi prompt injection minden formáját."
       },
       {
         id: 'tok-glitch',
         type: 'choice',
-        q: 'Egy token gyakori volt a szótárépítő korpuszban, de a modell tanítóadatából kiszűrték. Mi történik, ha valaki mégis beírja?',
+        q: "Egy token kevés közvetlen tanítási példát kapott a nyelvi modellben. Milyen következtetés indokolt az esetleges szokatlan viselkedéséről?",
         options: [
-          { t: 'Az embeddingje lényegében az inicializálási zaj maradt, így a modell kiszámíthatatlanul viselkedik rá: nem tudja kimondani, félreérti, vagy irreleváns választ ad.', ok: true },
+          { t: "A ritkaság lehetséges magyarázat, de az embedding állapotát és a konkrét hibát külön kell vizsgálni.", ok: true },
           { t: 'A tokenizáló hibát dob, mert ismeretlen szimbólum.' },
           { t: 'A modell a leggyakoribb tokennel helyettesíti.' },
           { t: 'Semmi különös, csak lassabb lesz a feldolgozás.' }
         ],
-        why: 'Ezek a „glitch tokenek”; klasszikus példa a <code>SolidGoldMagikarp</code>. Ez a legvalószínűbb magyarázat a jelenségre — az egyes esetek pontos ok-lánca nem bizonyított, a viselkedés viszont reprodukálható. A tanulság általánosabb a kuriózumnál: a tokenizáló és a modell <strong>két külön tanított rendszer</strong>, külön korpusszal — ahol a kettő nem fedi egymást, ott mérhető hibaosztály keletkezik. Az „ismeretlen szimbólum” válasz azért téves, mert bájt-szintű BPE-ben ilyen nem létezhet: minden bemenet tokenizálható, a baj nem a darabolásnál, hanem az embedding-táblában van.'
+        why: "A bemeneti lookup ritkán használt sorai kevés közvetlen gradienst kapnak. Ebből nem következik, hogy az embedding változatlan inicializálási zaj maradt: weight tying, weight decay és optimalizálóállapot is módosíthatja. A „glitch token” megfigyelt viselkedés címkéje, nem egyetlen bizonyított ok neve."
       },
       {
         id: 'tok-order',
@@ -2555,14 +2505,14 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       {
         id: 'emb-poliszemia',
         type: 'choice',
-        q: 'A „vár” szó két jelentése (épület, illetve várakozik) az embedding-táblában <em>ugyanazt</em> az egyetlen vektort kapja. Hogyan tud mégis helyesen folytatni a modell a „<em>a vár fokán</em>” és a „<em>rám vár</em>” mondatban?',
+        q: "Tegyük fel, hogy a „vár” ugyanaz az egy token a „kőből épült vár” és a „rám vár” szövegben. Miért lehet eltérő a reprezentációja a transzformer rétegei után?",
         options: [
           { t: 'A vektor csak kiindulópont — a szótári jelentés. A transzformer rétegei ezt írják át fokozatosan szövegkörnyezetbeli jelentéssé, tehát a két mondatban a rétegek után már más vektor áll ugyanott.', ok: true },
           { t: 'A tokenizáló a két jelentést két különböző tokenre bontja.' },
           { t: 'Az embedding-tábla minden jelentéshez külön sort tárol, és a modell a megfelelőt választja ki.' },
           { t: 'A pozíciókódolás elkülöníti a két jelentést egymástól.' }
         ],
-        why: 'A statikus embedding a token <em>eloszlási profilját</em> tömöríti — mindent, amit a szó a környezetei alapján általában jelent —, egyetlen vektorba. A poliszémia feloldása, a szintaktikai szerep, a koreferencia mind a rétegek munkája. A modern nézőpont szerint az embedding a <strong>residual stream kezdőállapota</strong>: egy kommunikációs sáv első üzenete, amelyet minden réteg olvas és felülír. Ez magyarázza azt is, miért van értelme ugyanannak a tokennek különböző rétegmélységben megnézni a reprezentációját — a 8. fejezet nagyrészt erről szól.'
+        why: "A token kezdeti embeddingje azonos, de a korábbi szöveg más. A kauzális attention ezt a megelőző környezetet használhatja fel, így a rétegek kontextusfüggő reprezentációt építhetnek. A token utáni szöveg nem módosítja visszamenőleg a korábbi pozíció állapotát."
       },
       {
         id: 'emb-tabla',
@@ -2601,12 +2551,12 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
         type: 'choice',
         q: 'Kiszámolod két, egymással semmilyen kapcsolatban nem álló token embeddingjének koszinusz-hasonlóságát, és 0,7-et kapsz. Mit érdemes ebből következtetni?',
         options: [
-          { t: 'Önmagában semmit: a tanult embeddingek egy szűk kúpban koncentrálódnak, így az átlagos páronkénti hasonlóság eleve jóval nulla fölött van — a 0,7-et ehhez az alapszinthez kell viszonyítani.', ok: true },
+          { t: "Az alapszinthez kell viszonyítani: egyes embeddingterekben a független párok hasonlósága is nagy lehet.", ok: true },
           { t: 'Hogy a két token jelentése valójában rokon, csak nem vettük észre.' },
           { t: 'Hogy a modell alultanított, mert jól tanított modellben minden hasonlóság 0 közeli.' },
           { t: 'Hogy a két vektor normája nagyon eltérő.' }
         ],
-        why: 'A naiv kép — egyenletesen szétszórt vektorok egy gömbön — empirikusan hamis. A tanult embeddingek <strong>anizotrópok</strong>: részben a token-gyakoriság torzítása, részben az optimalizálás dinamikája miatt egy szűk kúpba tömörülnek. Emiatt a nyers koszinusz-érték nem értelmezhető abszolút skálán; a reprezentáció-elemzésben ezért szokás előbb kivonni az átlagvektort, vagy fehéríteni a teret. A gyakorlati tanulság általánosabb: egy belső mérőszám önmagában ritkán jelent valamit — mindig kell hozzá egy <em>alapvonal</em>, amihez viszonyítani lehet.'
+        why: "A nagy koszinusz önmagában nem bizonyít szemantikai kapcsolatot. A tanult tér lehet anizotrop, de ennek mértéke modell-, réteg- és adatfüggő. Vizsgáld meg sok összehasonlítható pár eloszlását és a konkrét feladatot; a 0,7 nem univerzális jelentésküszöb."
       }
     ],
     4: [
@@ -2647,12 +2597,12 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
         type: 'choice',
         q: 'Egy nagy fejdimenziójú modellben kihagyod az attention-pontszámok <span class="math">√d<sub>h</sub></span>-val való osztását. Mi lesz a következménye a tanításra nézve?',
         options: [
-          { t: 'A pontszámok szórása túl nagy lesz, a softmax gyakorlatilag one-hottá telítődik, és a telített tartományban eltűnik a gradiens — a fej nem tud tanulni.', ok: true },
+          { t: "Nagyobb lehet a score-ok szórása és a softmax telítődése, ami kicsi gradiensekkel nehezítheti a tanítást.", ok: true },
           { t: 'A figyelem egyenletesen szétterül minden pozíción, ezért a fej semmit nem tud kiemelni.' },
           { t: 'Semmi, a skálázás csak numerikus kényelmi lépés, a softmax úgyis normalizál.' },
           { t: 'A kauzális maszk hatástalanná válik, és a modell a jövőbe lát.' }
         ],
-        why: 'Ha a query és a key komponensei független, egységszórású mennyiségek, a skalárszorzatuk szórása <span class="math">√d<sub>h</sub></span>-val nő. Nagy fejdimenzió mellett a pontszámok annyira szétszóródnak, hogy a softmax kimenete gyakorlatilag one-hot lesz — és épp ott, a telített tartományban a deriváltja közel nulla. A skálázás tehát nem kozmetika: a pontszámokat a softmax <em>érzékeny</em> tartományában tartja, ahol egyáltalán van mit visszaterjeszteni. A harmadik válasz csapdája éppen az, hogy a softmax valóban normalizál — de a normalizálás nem állítja vissza az elveszett gradienst.'
+        why: "Független, nulla várható értékű, egységvarianciájú komponenseknél a skalárszorzat varianciája dₕ, szórása √dₕ. Az osztás ezt a méretfüggést ellensúlyozza. A tényleges skála a tanult súlyoktól és az esetleges QK-normalizálástól is függ; az osztás elhagyása nem minden beállításban teszi lehetetlenné a tanulást."
       },
       {
         id: 'trf-sulyok',
@@ -2685,12 +2635,12 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
         type: 'choice',
         q: 'Ha az MLP kulcs–érték memóriaként viselkedik, miért nem lehet a modell tudását egyszerűen neuronról neuronra kiolvasni?',
         options: [
-          { t: 'Mert a „kulcsok” nem a neuronbázisban élnek: a neuronok többsége poliszemantikus — ugyanaz a neuron egymással nem rokon mintázatokra is tüzel —, a jellemzők pedig szuperponált irányokként vannak eltárolva.', ok: true },
+          { t: "A súlyozott összeg nem garantál fogalmonként egy neuront: a reprezentációk lehetnek elosztottak és a neuronok poliszemantikusak.", ok: true },
           { t: 'Mert a neuronok aktivációi titkosítva vannak, és csak a modell tudja visszafejteni őket.' },
           { t: 'Mert a tudás nem az MLP-ben, hanem kizárólag az attention-fejekben tárolódik.' },
           { t: 'Mert egy neuron mindig pontosan egy fogalmat kódol, de túl sok neuron van ahhoz, hogy végignézzük őket.' }
         ],
-        why: 'A kulcs–érték olvasat matematikailag pontos: a kimenet mindig az értékvektorok aktiváció-súlyozott összege. Ebből viszont <strong>nem</strong> következik, hogy egy sor egyetlen, emberi fogalommal címkézhető kulcs lenne. A valóságban ugyanaz a neuron tüzelhet akadémiai idézetekre, angol párbeszédekre és HTTP-kérésekre egyszerre. A 8.4 szerint ez nem hiba, hanem tömörítés: a modell több jellemzőt tárol, mint ahány neuronja van, nem-bázis-irányokban. Ezért fordult a terület a neuronokról a <em>tanult szótárirányok</em> (SAE-k, 8.5) felé — az MLP kulcs–érték memóriaként <em>viselkedik</em>, de a szótára nem a neuronok listája.'
+        why: "Sorvektoros jelölésben W_in oszlopai adják a neuronok bemeneti súlyait, W_out sorai a kimeneti irányokat. Ez pontos algebrai felírás, de a neuron aktivációja több eltérő mintázathoz is kapcsolódhat. A szuperpozíció ennek egyik kutatott magyarázata; egy SAE-szótár sem automatikusan a modell egyedi, teljes fogalomlistája."
       },
       {
         id: 'out-logit',
@@ -2711,7 +2661,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: 'Mert a kontextusablakot bármely modellnél szabadon át lehet állítani, a pozíciókódolás típusától függetlenül.' },
           { t: 'Mert a RoPE minden lehetséges pozícióhoz előre tanult egy külön vektort, 32k-ig is.' }
         ],
-        why: 'A RoPE nem hozzáad a tartalomhoz, hanem <em>elforgatja</em> a query- és key-vektorokat a pozícióval arányos szöggel. Mivel a forgatás ortogonális, a skalárszorzatba a pozíció kizárólag az <span class="math">m−n</span> különbségen át kerül be: az attention automatikusan relatív távolságot érzékel. Pontosan ezért nyújtható a skála — position interpolation, NTK-aware skálázás, YaRN mind a frekvenciákat módosítja, nem a modell tudását. A negyedik válasz a <em>tanult</em> pozíció-embeddingek világa: ott tényleg minden pozícióhoz külön vektor tartozik, és épp ezért nem lehet a tanított hosszon túllépni.'
+        why: "Rögzített tartalmi Q/K-vektoroknál a RoPE a relatív pozíciókülönbségen át módosítja a skalárszorzatot. Frekvencia- vagy pozícióskálázással hosszabb tartomány célozható meg, gyakran további tanítással. Ez nem garantálja a hosszú kontextus megbízható használatát; visszakeresési és feladattesztekkel ellenőrizni kell. Tanult pozíciótáblák is bővíthetők, de ehhez külön megoldás szükséges."
       },
       {
         id: 'norm-prenorm',
@@ -2751,38 +2701,38 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       {
         id: 'bp-gradiens',
         type: 'choice',
-        q: 'A kimeneti rétegben a gradiens pontosan <span class="math">p<sub>i</sub> − y<sub>i</sub></span> — a jóslat és a valóság különbsége. Mit jelent ez a <em>helytelen</em> tokenek szempontjából?',
+        q: "Egyetlen megfigyelt token softmax–cross-entropy veszteségét a logitok szerint deriváljuk, T = 1 mellett. Mit jelent a pᵢ − yᵢ képlet a nem cél-tokenre?",
         options: [
-          { t: 'Mindegyik pontosan akkora lefelé tolást kap, amekkora valószínűséget kapott: amelyikre a modell sok valószínűséget pazarolt, azt nyomja le erősen, amelyiket eleve nullának hitte, azt békén hagyja.', ok: true },
+          { t: "A logit szerinti derivált pᵢ; közvetlen logit-gradienslépés ezt a logitot csökkentené.", ok: true },
           { t: 'Mindegyik ugyanakkora lefelé tolást kap, hiszen mindegyik egyformán hibás.' },
           { t: 'A helytelen tokenek nem kapnak gradienst, csak a helyes kap felfelé tolást.' },
           { t: 'A helytelen tokenek felfelé tolást kapnak, hogy az eloszlás simább maradjon.' }
         ],
-        why: 'A képlet meglepően kevés dolgot mond, és épp ez a lényege: a tanítójel nem azt közli, hogy „ez lett volna a helyes válasz és a többi rossz”, hanem hogy <em>hova mennyi valószínűség került feleslegesen</em>. Egy 0,51-et kapó helyes token gradiense −0,49 („tolj még felfelé”), miközben egy 0,3-at kapó téves token 0,3-as lenyomást kap, egy 0,001-es pedig gyakorlatilag semmit. Ezért „olcsó” a modellnek az, amit már eleve kizárt, és ezért a tanítás energiája oda megy, ahol a modell magabiztosan téved. Numerikusan is kegyes a képlet: nincs benne osztás közel-nulla számmal.'
+        why: "A cél-tokenre a derivált p_c − 1, más tokenre p_i. A tényleges tanítás azonban a megosztott paramétereket frissíti, nem a logitokat külön változóként. A láncszabály, a többi példa és az optimalizáló miatt nem állítható, hogy minden nem cél-token logitja pontosan p_i-vel csökken a frissítés után. A cél a megfigyelt token, nem minden más nyelvileg elfogadható folytatás kizárása."
       },
       {
         id: 'bp-entropia',
         type: 'choice',
-        q: 'A tanítás során a loss szépen csökken, majd megáll egy határozottan nulla fölötti értéken, és onnan már nem megy lejjebb. Baj ez?',
+        q: "A valódi adatgeneráló eloszláson vett várható keresztentrópiát miért korlátozza alul az adat entrópiája?",
         options: [
-          { t: 'Nem: magának a szövegnek is van entrópiája — a következő token gyakran valóban nem kiszámítható —, és a loss elvileg sem mehet ez alá. A nulla loss tökéletes jóslást jelentene, ami a nyelvnél értelmetlen elvárás.', ok: true },
-          { t: 'Igen: ez biztos jele annak, hogy a modell alultanított, és több lépés kellene neki.' },
-          { t: 'Igen: a jól működő tanítás a lossot mindig nullához viszi.' },
-          { t: 'Nem, de csak azért nem, mert a cross-entropy technikai okokból sosem tud nullát adni.' }
+          { t: "Mert H(P,Q) = H(P) + KL(P‖Q), és a KL-divergencia nemnegatív.", ok: true },
+          { t: "Mert a softmax minden tokennek legalább 1/V valószínűséget ad." },
+          { t: "Mert minden véges tanítóminta loss-a szükségképpen azonos az eloszlás entrópiájával." },
+          { t: "Mert a keresztentrópia csak egész számú bitekben mérhető." }
         ],
-        why: 'A loss a modell eloszlása és a valóság közti KL-divergenciát csökkenti, <em>plusz egy konstanst</em>: az adat saját entrópiáját. Ez a konstans nem tüntethető el, mert nem a modellről szól, hanem a szövegről: sok helyen több folytatás is teljesen legitim. Innen érthető a tömörítéses olvasat is — a cross-entropy azt méri, hány bittel tudná a modell tömöríteni a szöveget, és a tömörítésnek is van elvi alsó határa. A perplexitás (a loss exponenciálisa) ugyanezt mondja emberi léptékben: a 20-as perplexitás nagyjából azt jelenti, mintha pozíciónként húsz egyenlően valószínű folytatás közül kellene választani.'
+        why: "Ez eloszláson vett várható értékre igaz. Egy véges tanítóminta loss-a memorizálással közel nullára is vihető, miközben az általánosítás rossz. Egy loss-plató önmagában nem bizonyítja az entrópiapadló elérését: optimalizálási vagy kapacitáskorlát is okozhatja. Az itt használt ln miatt az egység nat/token; exp(loss) a perplexitás."
       },
       {
         id: 'bp-memoria',
         type: 'choice',
         q: 'Egy modell kényelmesen elfut inferenciában a GPU-don, tanítani viszont ugyanazon a hardveren nem tudod: elfogy a memória. Mi ennek a fő oka?',
         options: [
-          { t: 'Az előrefuttatásnak meg kell őriznie a köztes értékeket, mert a visszafuttatás épp ezekből számol — inferenciakor viszont minden köztes érték eldobható, amint felhasználtuk.', ok: true },
+          { t: "Tanításkor a súlyokon felül aktivációk, gradiensek és optimalizálóállapot is szükséges.", ok: true },
           { t: 'A tanításhoz a modell két példányban van a memóriában: egy az előre-, egy a visszafuttatáshoz.' },
           { t: 'A tanítás nagyobb pontosságú számábrázolást igényel, ezért minden súly kétszer annyi helyet foglal.' },
           { t: 'A gradiensek több helyet foglalnak, mint maguk a paraméterek.' }
         ],
-        why: 'A számítási gráf nem absztrakció, hanem konkrét memóriaigény: a visszafuttatás minden csomóponton a saját lokális deriváltjával szoroz, ahhoz pedig ismernie kell, milyen értékekkel dolgozott ott az előrefuttatás. Ezért kell az aktivációkat végig megőrizni — és ezért nő a memóriaigény a batch-mérettel, a szekvenciahosszal és a mélységgel együtt, miközben a paraméterek száma változatlan. Az optimalizáló állapota és a gradiensek is fogyasztanak (erről a 7. állomáson lesz szó), de a tipikusan domináns tétel az aktivációk. Innen a gradient checkpointing ötlete: nem tároljuk mindet, hanem egy részüket visszafuttatáskor újraszámoljuk — memóriát cserélünk számításra.'
+        why: "A visszaterjesztéshez köztes értékeket tárolunk vagy újraszámolunk. A gradiensek és például az Adam momentumállapotai további memóriát igényelnek; a domináns tétel a konfigurációtól függ. A checkpointing az aktivációs tárolást csökkenti újraszámolás árán. Inferenciakor is vannak ideiglenes tömbök és gyakran KV-cache, de nincs szükség a teljes tanítási állapotra."
       }
     ],
     7: [
@@ -2791,24 +2741,24 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
         type: 'choice',
         q: 'Miért nem elég egyetlen, globális tanulási rátával lépni a gradiens ellenében — miért tart karban az Adam <em>paraméterenként</em> külön skálát?',
         options: [
-          { t: 'Mert a különböző paraméterek gradiensei nagyságrendekkel eltérnek: ugyanaz a ráta az egyiknek túl nagy, a másiknak túl kicsi lépés. Az Adam mindenkit a saját szokásos gradiensnagyságához mér, így közelítőleg egységnyi lépéseket kapunk.', ok: true },
+          { t: "A momentumot a négyzetes gradiens mozgóátlagából becsült skálához igazítja, így koordinátánként adaptálja a lépést.", ok: true },
           { t: 'Mert a gradiens iránya paraméterenként más, és a rátának ezt kell korrigálnia.' },
           { t: 'Mert a globális tanulási ráta megsértené a láncszabályt.' },
           { t: 'Mert így minden paraméter külön szálon számolható, ami gyorsítja a tanítást.' }
         ],
-        why: 'Két dolog rontja el a naiv SGD-t egy nagy modellben: a gradiensek nagyságrendi szórása a rétegek és a paramétertípusok között, és a batchekből érkező zaj. Az Adam mindkettőre válaszol, két mozgó statisztikával: a gradiens átlaga <em>lendületként</em> kisimítja a zajt, a gradiens négyzetének átlaga pedig <em>skálaként</em> normalizálja a lépést. A hatás az, hogy a jól kondicionált lépéshossz nem egy kézzel belőtt ráta szerencséjén múlik. Az ár közvetlen és mérhető: paraméterenként két extra állapotvektor.'
+        why: "Az Adam két mozgóátlagot tárol és torzításkorrekciót alkalmaz. A lépések nagyságát továbbra is a tanulási ráta és a statisztikák határozzák meg; nem szükségképpen egységnyiek. A jó beállítások kiválasztása és az eredmény ellenőrzése továbbra is szükséges."
       },
       {
         id: 'opt-memoria',
         type: 'choice',
         q: 'Egy 7 milliárd paraméteres modell súlyai bőven elférnek a GPU-n, a tanítás mégis elszáll memóriahiánnyal — az aktivációkat már optimalizáltad. Mi a másik nagy tétel?',
         options: [
-          { t: 'Az optimalizáló állapota: az Adam paraméterenként két statisztikát tárol, ami önmagában a modell méretének nagyjából kétszerese — a gradiensek mellett.', ok: true },
+          { t: "Az Adam két momentumbecslése és a gradiensek; a bájtigény az adattípusoktól függ.", ok: true },
           { t: 'A tanítás a modellt két példányban tartja: egyet az előre-, egyet a visszafuttatáshoz.' },
           { t: 'A számítási gráf szerkezetének leírása, amely a paraméterek számával arányosan nő.' },
           { t: 'A tanítóadat, amelyet teljes egészében a GPU memóriájában kell tartani.' }
         ],
-        why: 'Egy tanítási lépés memóriája négy nagy tételből áll: a súlyok, a gradiensek, az <strong>optimalizáló-állapot</strong> és az aktivációk. Az AdamW-nél a harmadik tétel paraméterenként két vektor — vagyis a súlyok kétszerese —, tehát már a súly + gradiens + optimalizáló-állapot hármas is a modellméret négyszerese körül van, mielőtt egyetlen aktivációt eltároltunk volna. Ezért oszlik szét a ZeRO/FSDP a replikák között éppen a súlyokon és az optimalizáló-állapoton, és ezért nem old meg mindent önmagában a gradient checkpointing: az csak az aktivációkra hat.'
+        why: "N súlyhoz 2N momentumérték tartozik. BF16 súly és két FP32 állapot esetén ez 2N bájt súly és 8N bájt állapot: utóbbi négyszeres, nem kétszeres. FP32 súlyok mellett az arány kétszeres. A gradiensek és esetleges mestersúlyok külön tételek; a checkpointing ezeket nem távolítja el."
       },
       {
         id: 'scale-chinchilla',
@@ -2817,7 +2767,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
         tol: 0.5,
         hint: 'Egész szám, milliárd tokenben.',
         q: 'A Chinchilla-ökölszabály szerint a compute-optimális tanításhoz nagyjából 20 token jut egy paraméterre. Hány <strong>milliárd</strong> tanítótoken kell eszerint egy 7 milliárd paraméteres modellhez?',
-        why: '7 × 20 = <strong>140 milliárd</strong> token. A Chinchilla-elemzés lényege nem ez a konkrét szám, hanem az arány: a modellt és az adatot <em>együtt</em> kell skálázni, mert a <span class="math">C ≈ 6ND</span> keret mellett az optimum nagyjából fele-fele elosztást kíván. Ez felülírta a korábbi gyakorlatot, amely a paraméterszámot hizlalta az adat rovására — a GPT-3 e mérce szerint jelentősen alultanított volt. Innen nézve a „mekkora a modell?” kérdés önmagában nem is válaszol arra, hogy mit tud: a token/paraméter arány nélkül a paraméterszám félrevezető.'
+        why: "7 × 20 = <strong>140 milliárd</strong> token a kérdésben megadott ökölszabály szerint. A közel azonos ütemű paraméter- és adatskálázás nem fele-fele költségfelosztás: a C ≈ 6ND szorzatos összefüggés. A konkrét optimum az illesztéstől, az adattól és attól is függ, számolunk-e későbbi inferenciaköltséggel."
       },
       {
         id: 'scale-inferencia',
@@ -2867,7 +2817,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: 'A modell elfelejti az előtanított tudását, és véletlenszerű szöveget generál.' },
           { t: 'Semmi különös: a jutalommodell pontszáma és a valódi minőség egybeesik, a fék csak a tanítást lassítja.' }
         ],
-        why: 'A jutalommodell nem a valódi cél, hanem annak <strong>proxyja</strong> — az emberi ízlés tömörített, gépi helyettesítője. A Goodhart-törvény pontosan erről szól: minél erősebben optimalizálunk egy proxyra, annál jobban tágul a rés a proxy és a valódi cél között. A KL-fék ezért nem finomhangolási apróság, hanem a reward hacking elleni fő védelem: azt bünteti, ha a policy túl messzire sodródik a kiinduló modelltől, vagyis behatárolja, mennyire szabad a jutalommodell hibáiba beleszaladni. Az utolsó válasz csábítása az, hogy ha a proxy tökéletes lenne, tényleg nem kellene fék — csak épp sosem tökéletes.'
+        why: "A KL-büntetés korlátozza a policy eltérését a referenciától. Ez segíthet a jutalommodell túloptimalizálása ellen, de KL mellett is előfordulhat reward hacking. A következmény a jutalommodelltől, adatoktól és optimalizálástól függ; valódi minőségméréssel kell ellenőrizni, nem csak a jutalompontszámmal."
       },
       {
         id: 'al-bradley',
@@ -2887,19 +2837,19 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
           { t: 'Mert a DPO nem használ referenciamodellt, így nincs mihez viszonyítani a valószínűségeket.' },
           { t: 'Mert a KL-fék a DPO-ban a nyertes válaszokat is bünteti.' }
         ],
-        why: 'A DPO eleganciája — nincs külön jutalommodell, nincs online RL-hurok — elrejt egy fontos részletet: a jutalom nem tűnt el, csak <em>implicitté</em> vált a policy és a referencia log-arányában. A célfüggvény a különbségre optimalizál, tehát nem garantálja, hogy a nyertes abszolút valószínűsége nőjön. Innen erednek a DPO ismert torzításai is: a hossz-torzítás (a hosszabb válasz szisztematikusan nyer) és a preferenciapárokra való túlilleszkedés. Ezért ritkán használnak önmagában egyetlen DPO-kört: iteratív DPO, hosszra normalizált rokonok (SimPO) vagy explicit büntetőtag a szokásos válasz. Az „egyszerűbb, mint az RLHF” állítás a futtatásra igaz, az adatciklusra kevésbé.'
+        why: "A DPO célja a referenciával korrigált log-valószínűségkülönbséget növeli. A nyertes és vesztes abszolút valószínűsége egyaránt csökkenhet, ha a vesztesé jobban csökken. Ezért az alacsonyabb preferenciaveszteség mellett külön mérni kell a válaszminőséget, a hossztorzítást és az általánosítást. Nem szükségszerű, hogy a hosszabb válasz nyerjen, vagy hogy csak iteratív DPO legyen használható."
       },
       {
         id: 'al-kalibracio',
         type: 'choice',
-        q: 'Az alapmodell token-valószínűségei meglepően jól kalibráltak: amire 70%-ot mond, az nagyjából az esetek 70%-ában igaz. Az RLHF után ez jellemzően romlik. Mi ennek az oka?',
+        q: "Egy token 70%-os valószínűséget kapott. Következik-e ebből, hogy az egész válasz állítása 70%-os eséllyel igaz?",
         options: [
-          { t: 'A preferenciajel maga torzít: az emberek szisztematikusan magasabbra pontozzák a magabiztosabb, hosszabb, hízelgőbb válaszokat — a tanítás így a határozottságot jutalmazza, függetlenül attól, hogy indokolt-e.', ok: true },
-          { t: 'A megerősítéses tanulás matematikailag képtelen kalibrált valószínűségeket előállítani.' },
-          { t: 'Az RLHF során a modell elveszti a softmax-réteget, és helyette diszkrét döntést hoz.' },
-          { t: 'A kalibráció romlása mérési hiba: valójában javul, csak más skálán.' }
+          { t: "Nem: tokenjóslást és állításhelyességet mérünk; utóbbihoz külön becslés és kalibrációs vizsgálat kell.", ok: true },
+          { t: "Igen: a softmax minden tokenvalószínűséget automatikusan igazságvalószínűséggé alakít." },
+          { t: "Igen, feltéve hogy a temperature pontosan 1." },
+          { t: "Nem, mert a modell tokenvalószínűségei mindig egyenlők." }
         ],
-        why: 'Ez az „alignment tax” egyik legkonkrétabb formája. A jutalommodell azt tanulja meg, amit az emberek ténylegesen preferálnak — és az emberek a bizonytalanságot bevalló választ szisztematikusan alulértékelik a magabiztoshoz képest. A modell tehát pontosan azt tanulja meg, amit kértünk tőle, csak nem azt, amit akartunk: határozottabb lesz, mint amennyire igaza van. Ugyaninnen ered a szikofancia és a modorosság is (sablonos bevezetők, túlzott elutasítás). Ez a megfigyelés az egyik legfőbb érv amellett, hogy a felügyelethez a modell <em>viselkedésének</em> vizsgálata mellett arra is szükség van, amit belül <em>számol</em> — ez a következő fejezet programja.'
+        why: "A tokeneloszlás a következő szövegegységre vonatkozik. A helyesség kalibrációja azt vizsgálja, hogy a megadott bizonyosságú válaszok milyen arányban helyesek egy meghatározott teszten. Ez modell-, feladat- és promptfüggő; utótanítás javíthatja vagy ronthatja. A magabiztos megfogalmazás egyiknek sem bizonyítéka."
       }
     ],
     9: [
@@ -2932,12 +2882,12 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
         type: 'choice',
         q: 'A spekulatív dekódolásban egy kicsi, gyengébb modell találgatja meg előre a következő néhány tokent. Miért nem romlik ettől a kimenet minősége?',
         options: [
-          { t: 'Mert a nagy modell egyetlen párhuzamos futtatásban ellenőrzi a javaslatot, és az első eltérésnél a saját eloszlásából javít — egy elutasítás-mintavételi trükkel a végeredmény egzaktul a nagy modell eloszlása.', ok: true },
+          { t: "Az egzakt elfogadási és korrigált újramintázási szabály megőrzi a célmodell eloszlását.", ok: true },
           { t: 'Romlik, csak a gyorsulásért cserébe ezt elfogadjuk.' },
           { t: 'Mert a vázlatmodellt ugyanazon az adaton tanították, ezért a javaslatai mindig egyeznek a nagy modelléivel.' },
           { t: 'Mert a két modell kimenetét átlagoljuk, és az átlag jobb, mint bármelyik külön-külön.' }
         ],
-        why: 'A kulcs az aszimmetria: a generálás <em>soros</em>, az ellenőrzés viszont <em>párhuzamos</em>. A nagy modell ugyanannyi idő alatt tud k tokent leellenőrizni, mint egyet legenerálni — a vázlat tehát ingyen próbálkozás. Ami ezt korrektté teszi, az az elfogadási szabály: nem egyszerűen „ha egyezik, elfogadjuk”, hanem egy olyan elutasítás-mintavétel, amely bizonyíthatóan a nagy modell eredeti eloszlását állítja elő. A gyorsulás így nem minőség-kompromisszum, hanem tiszta nyereség — akkora, amennyire a szöveg épp könnyen jósolható, jellemzően 2–3×.'
+        why: "A draft q eloszlásából húzott x elfogadási esélye min(1,p(x)/q(x)). Elutasításnál normalizált max(0,p−q) az új mintavételi eloszlás. Ez őrzi meg p-t; a p-ből való egyszerű újramintázás általában torzítana. A gyorsulás nem garantált: a draftolás és a többtokenes ellenőrzés is munkát igényel."
       },
       {
         id: 'inf-temperature',
@@ -2950,14 +2900,14 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       {
         id: 'inf-legvaloszinubb',
         type: 'choice',
-        q: 'Miért nem az a jó stratégia, hogy megkeressük a globálisan legnagyobb valószínűségű folytatást?',
+        q: "Miért nem garantálja a legnagyobb modellvalószínűségű folytatás a legjobb választ egy nyitott szövegfeladaton?",
         options: [
-          { t: 'Mert az emberi szöveg <em>tipikus</em>, nem maximális valószínűségű: a globális optimumhoz közeli folytatás természetes nyelvre jellemzően rövid, ismétlődő és semmitmondó.', ok: true },
+          { t: "A modellvalószínűség és a feladat minőségi követelménye eltérő cél; ismétlődő vagy kevéssé informatív folytatás is kaphat nagy valószínűséget.", ok: true },
           { t: 'Mert a globális optimum megkeresése ugyan a legjobb szöveget adná, de kiszámíthatatlanul drága.' },
           { t: 'Mert a modell valószínűségei nem elég pontosak ahhoz, hogy a maximumot megbízhatóan megtaláljuk.' },
           { t: 'Mert a legvalószínűbb folytatás mindig szó szerint a tanítóadatból másolna.' }
         ],
-        why: 'Ez a szint legfontosabb gondolata, mert szembemegy az intuícióval: a modell célja a valószínűség maximalizálása volt tanításkor, generáláskor mégsem a maximumot akarjuk. Az ok az, hogy a természetes szöveg statisztikailag <em>tipikus</em> mintája az eloszlásnak, nem a módusza — a maximum felé hajtva degenerált ismétlésbe futunk (egy elkezdett ciklus valószínűsége lépésről lépésre nő). A másik véglet, a szűrés nélküli mintavétel, az ellenkező patológiát adja: egy farokból húzott rossz token után a modell a saját hibáján kondicionálódik, és a hiba öngerjesztővé válik. A top-p e két patológia közti pragmatikus kompromisszum. A második válasz azért téves, mert nem a költség a fő baj: a beam search közelíti a maximumot, és épp a közelítés sikerén látszik, hogy az eredmény nem jó.'
+        why: "A dekódolást a feladathoz kell értékelni. A nyitott generálásban megfigyelt ismétlődés nem jelenti, hogy a mohó vagy beam search módszer minden más feladatra rossz. A top-p és a temperature sem garantál igaz vagy hasznos választ."
       }
     ],
     10: [
@@ -3002,8 +2952,8 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
         type: 'number',
         answer: 2,
         hint: 'Egész szám.',
-        q: 'Legkevesebb hány rétegre van szükség ahhoz, hogy egy induction-áramkör egyáltalán kialakulhasson?',
-        why: 'Kettőre. Az áramkör két fej <em>kompozíciója</em>: egy korábbi rétegbeli előző-token-fej minden pozícióra ráírja a streamre az őt megelőző token azonosítóját, és csak egy <em>későbbi</em> réteg feje tudja ezt az annotációt query-vel megkeresni. Egyetlen rétegben nincs mire építeni: a második fejnek szüksége van arra, hogy az első már írt a streambe. Ebből egy módszertani tanulság is következik: az áramkört <strong>nem találod meg</strong>, ha a fejeket egyenként vizsgálod — az előző-token-fej önmagában unalmas pozicionális fej, a jelentés a kettő együttműködésében van.'
+        q: "A bemutatott előző-token-fej → induction head áramkörben hány egymás utáni attention-rétegre van szükség a két fej összekapcsolásához?",
+        why: "<strong>Kettő</strong>: a második fej a korábbi réteg által létrehozott annotációból olvas. Egy hagyományos multi-head attention alegység párhuzamos fejei nem olvassák egymás aznapi kimenetét. Ez a konkrét konstrukció rétegigénye, nem minden lehetséges architektúrára és indukciószerű viselkedésre kimondott alsó korlát."
       },
       {
         id: 'mi-fazisatmenet',
@@ -3037,7 +2987,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
         answer: 65536,
         hint: 'Egész szám.',
         q: 'Egy 4&nbsp;096 dimenziós aktivációt sparse autoencoderrel kódolsz, 16-szoros bővítési tényezővel. Hány elemű lesz a tanult szótár?',
-        why: '4&nbsp;096 × 16 = <strong>65&nbsp;536</strong>. A lényeg az, hogy a szótárnak <em>jóval bővebbnek</em> kell lennie, mint a kódolt tér — és ez nem tervezési szeszély, hanem közvetlenül a szuperpozícióból következik: éppen azért nem olvashatók ki a jellemzők a 4&nbsp;096 dimenzióból közvetlenül, mert több van belőlük, mint ahány dimenzió. Az SAE tehát azt a bővebb teret állítja helyre, amelyben a jellemzők külön tengelyeken ülhetnek — a ritkasági kényszer pedig arra hajtja, hogy tényleg szétszálazza őket, ne csak átforgassa a bázist. Nagy modelleknél ezért dolgoznak milliós nagyságrendű szótárakkal.'
+        why: "4&nbsp;096 × 16 = <strong>65&nbsp;536</strong>. Ez a választott bővítési tényezőből következik. A nagyobb szótár segíthet több jellemző elkülönítésében, de nem garantál egyedi vagy teljesen helyes felbontást. Az SAE ritkasági korlátja, rekonstrukciós hibája és értelmezhetősége külön vizsgálandó; a bővítés mértéke tervezési és empirikus döntés."
       },
       {
         id: 'mi-abláció',
@@ -3094,44 +3044,44 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
         type: 'number',
         answer: 12000,
         hint: 'Egész szám.',
-        q: 'Egy 40 rétegű modell 300 gondolkodási tokent generál, mielőtt válaszolna. Hány rétegnyi számítást végzett ezalatt összesen?',
-        why: '40 × 300 = <strong>12&nbsp;000</strong> rétegnyi. Ez teszi kézzelfoghatóvá, miért segít egyáltalán a gondolatmenet kiíratása: egyetlen előrefuttatás <em>rögzített mélységű</em> számítás — 40 réteg, pont annyi —, és amit ennyi lépésben nem lehet kiszámolni, azt a modell egyetlen tokenben nem tudja helyesen kiadni. A generált tokenek viszont visszakerülnek a bemenetre, így a modell a szekvencia irányában „mélyíti” a számítást: a köztes eredményeket externalizálja, és a következő lépésben már rájuk támaszkodik. A reasoning-modellek ezt teszik rendszerré — RL-lel tanulják meg, hogyan használják jól ezt a munkateret.'
+        q: "Egy 40 rétegű modell 300 egymást követő dekódolási lépésben lépésenként egy új pozíciót dolgoz fel. Hány réteg–pozíció kiértékelés ez, a prompt előfeldolgozása nélkül?",
+        why: "40 × 300 = <strong>12&nbsp;000</strong>. Ez ismételt rétegalkalmazások száma, nem egy 12&nbsp;000 különböző rétegű háló, és nem FLOP-becslés. A lépések újrahasználják ugyanazokat a súlyokat és a KV-cache-t. A köztes tokenek segíthetnek a további számításban, de több token önmagában nem garantál jobb következtetést."
       },
       {
         id: 'cap-reversal',
         type: 'choice',
         q: 'A modell tudja, hogy „X szülője Y”, de a „Ki Y gyermeke?” kérdésre nem válaszol helyesen. Mi ennek a mechanikus oka?',
         options: [
-          { t: 'Az autoregresszív loss <em>irányított</em> asszociációkat tanít: a tény abban a sorrendben kódolódott, ahogy a szövegben előfordult, és a fordított irányú előhívás külön tanulást igényel.', ok: true },
+          { t: "Az egyik irányban tanult tény nem garantálja a fordított előhívást; az eredmény függ a tanítóadatoktól és a feladattól.", ok: true },
           { t: 'A modell csak a tanítóadatban szó szerint szereplő mondatokat tudja visszaadni.' },
           { t: 'A kérdés más tokenekre bomlik, ezért a modell nem ismeri fel ugyanazt az entitást.' },
           { t: 'A fordított kérdés hosszabb kontextust igényel, mint amennyi a modell ablakába fér.' }
         ],
-        why: 'Ez a „reversal curse”, és pontosan azért tanulságos, mert egy emberi intuíciót cáfol: a tudás nálunk szimmetrikus relációként áll, a modellben viszont <em>bejósolható folytatásként</em>. A next-token-cél mindig balról jobbra jutalmaz, tehát az „X szülője Y” minta az X → Y irányt erősíti; a Y → X irány ebből nem áll elő magától. Ugyanez a gondolat magyarázza a fejezet több más korlátját is: a modell nem tényeket tárol absztrakt relációkként, hanem folytatási mintázatokat, és minden képessége annak a lenyomata, hogy milyen sorrendben látta a szöveget.'
+        why: "A reversal curse kísérletekben megfigyelt általánosítási hiányosság. Az autoregresszív cél önmagában nem kényszeríti ki a reláció megfordítását, de nem is bizonyítja, hogy a modell képtelen absztrakt relációt vagy fordított lekérdezést megtanulni. A „szülője” reláció ráadásul nem szimmetrikus: a megfordításhoz a „gyermeke” relációt használjuk."
       },
       {
         id: 'cap-nemtudom',
         type: 'choice',
         q: 'Miért nem oldja meg a hallucinációt önmagában az, hogy a modellt „mondja azt, hogy nem tudja, ha bizonytalan”?',
         options: [
-          { t: 'Mert az utótanítás mérőrendszere ellene dolgozik: a „nem tudom” a legtöbb benchmarkon és preferencia-adatban rosszabbul pontoz, mint egy tipp — a modell így a magabiztos tippelésre tanul rá.', ok: true },
+          { t: "Az utasítás nem biztosít megbízható önértékelést; a jutalmazás egyes beállításokban a tippelést is ösztönözheti.", ok: true },
           { t: 'Mert a modell elvileg nem tud különbséget tenni aközött, amit tud és amit nem.' },
           { t: 'Mert a „nem tudom” válasz tokenjei ritkák a szótárban, ezért nehezen generálhatók.' },
           { t: 'Mert a bizonytalanság csak inferenciakor derül ki, tanításkor nem mérhető.' }
         ],
-        why: 'A vizsgázó-stratégia: üresen hagyni biztos pontvesztés, tippelni legalább esély. A modell pontosan ezt tanulja meg, ha a jutalomjel így van felépítve — nem hibából, hanem engedelmességből. Ez összeér a 8. állomás kalibrációs kérdésével: ott láttuk, hogy az emberi preferencia a magabiztosságot jutalmazza; itt ugyanez a mérőrendszer oldaláról néz ki. A második válasz azért téves, mert a modellben <em>van</em> bizonytalanság-jelzés — az alapmodell valószínűségei meglepően jól kalibráltak, sőt az interp-esettanulmányok külön „ezt az entitást ismerem” jelzést is találtak. A baj nem a jel hiánya, hanem hogy a tanítás nem azt jutalmazza, hogy hallgasson rá.'
+        why: "Ha az értékelés a helyes tippet jutalmazza, a téves tippet pedig nem bünteti jobban a tartózkodásnál, megéri tippelni. Ez nem minden benchmark vagy preferenciaadat szabálya. A bizonytalanság felismerése, annak közlése és a válasz ellenőrzése külön képesség; egy mondatnyi utasítás egyiket sem garantálja."
       },
       {
         id: 'cap-mentalis',
         type: 'choice',
         q: 'Melyik a leghasznosabb mentális modell arról, hogy hol a legveszélyesebb egy LLM tévedése?',
         options: [
-          { t: 'Ott, ahol a felszíni illeszkedés jó, de a mögöttes tény vagy számítás ritka: a modell tanult eloszlás fölött általánosít, tehát ilyenkor formailag kifogástalan, tartalmilag hibás választ ad.', ok: true },
+          { t: "Különösen megtévesztő lehet a hihető formájú, de ellenőrizetlen tényt vagy számítást tartalmazó válasz.", ok: true },
           { t: 'Ott, ahol a kérdés nyelvtanilag bonyolult, mert a hosszú mondatokat nehezebben dolgozza fel.' },
           { t: 'Ott, ahol a kérdés teljesen ismeretlen témát érint, mert olyankor semmilyen válasza nincs.' },
           { t: 'Ott, ahol a válasz hosszú, mert a hosszú válaszokban több hiba halmozódik fel.' }
         ],
-        why: 'Az LLM nem adatbázis (nem garantált a visszaidézés) és nem logikai gép (nem garantált a levezetés), hanem tanult eloszlás fölött futó, kontextusra kondicionált <strong>általánosító</strong>. A veszélyes zóna épp ezért nem a nyilvánvalóan nehéz kérdés: ott a bizonytalanság látszik. A baj ott van, ahol a feladat <em>felszíne</em> ismerős — egy hivatkozás formája, egy szokásos számítási minta —, de a konkrét tartalom ritka volt a tanításban. Ilyenkor a forma tökéletes, a tartalom hamis, és épp a forma miatt nehéz észrevenni. Innen adódik a gyakorlati recept, amivel ez az anyag zárul: ellenőrizhető kimenetek, külső tényforrás, eszközhasználat, és ember a körben a nagy tétű döntéseknél.'
+        why: "A gördülékeny megfogalmazás nem helyességi bizonyíték. A ritka vagy ismeretlen tartalom kockázatot jelenthet, de nem minden ilyen válasz hibás, és gyakori témában is lehet tévedés. Fontos állításnál ellenőrizd a forrást vagy a számítást, ne a stílusból következtess a megbízhatóságra."
       }
     ]
   };
