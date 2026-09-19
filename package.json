@@ -1,0 +1,13 @@
+{
+  "name": "katedra-llm-guide",
+  "private": true,
+  "version": "1.1.0",
+  "description": "Offline-capable bilingual LLM learning guide",
+  "scripts": {
+    "build": "python3 scripts/build.py",
+    "test": "node --test tests/*.test.cjs"
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0"
+  }
+}
