@@ -140,7 +140,7 @@
 
   K.register({
     id: 'rope', anchor: 'pozicio',
-    title: L('RoPE: a közös forgatás kiesik', 'RoPE: a common rotation cancels out'),
+    title: L('RoPE: a relatív távolság számít', 'RoPE: relative distance matters'),
     intro: L('A query és a key egy-egy kétdimenziós párját forgatjuk. Minden pozíciólépés itt 30°. Az attention pontszámát a két nyíl skalárszorzata befolyásolja.',
       'We rotate one two-dimensional pair of query and key coordinates. Each position step is 30° here. The arrows’ dot product contributes to the attention score.'),
     challenge: L('Mozgasd csak a közös eltolást. A nyilak elfordulnak, de a pontszám ugyanaz marad. Most csak a key pozícióját változtasd: marad-e a pontszám? Keress azonos relatív távolságú pozíciópárt.',
