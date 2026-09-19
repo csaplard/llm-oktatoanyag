@@ -1,0 +1,76 @@
+/* New learning components reuse the Katedra palette in both themes. */
+.reading-tools { margin-top: 28px; border-top: 1px solid var(--border-strong); padding-top: 20px; max-width: 760px; }
+.reading-tools > label { display:block; font:12px var(--font-mono); letter-spacing:.06em; margin-bottom:8px; }
+.reading-tools select,.learn-route select,.lab-control select { color:var(--ink-1); background:var(--surface-1); border:1px solid var(--border-strong); border-radius:2px; padding:10px; font:inherit; max-width:100%; }
+.reading-tools p { font-size:13px; margin:10px 0; color:var(--ink-3); }
+.reading-shortcuts { display:flex; flex-wrap:wrap; gap:10px 24px; font-size:14px; margin-top:16px; }
+nav#toc .toc-learning { font-size:13px; color:var(--accent); padding-block:7px; }
+.learn-section { margin-top:48px; padding-top:32px; }
+.learn-section p { max-width:70ch; }
+.learn-foundation,.learn-week { border:1px solid var(--border); margin:12px 0; padding:0; background:var(--surface-1); }
+.learn-foundation > summary,.learn-week > summary { padding:17px 20px; font-weight:600; color:var(--ink-1); cursor:pointer; }
+.learn-foundation[open],.learn-week[open] { padding-bottom:20px; }
+.learn-foundation > :not(summary),.learn-week > :not(summary) { margin-left:20px; margin-right:20px; }
+.learn-example,.learn-equation { background:var(--surface-2); border-left:3px solid var(--accent); padding:14px 16px; overflow-wrap:anywhere; }
+.learn-equation { font:15px/1.7 var(--font-mono); }
+.learn-solution { margin-top:12px; }
+.learn-solution summary { cursor:pointer; color:var(--accent); }
+.learn-solution p { font-size:15px; }
+.learn-route { padding:16px 0; }
+.learn-route label { display:block; margin-bottom:8px; font-weight:600; }
+.learn-routine { border-left:3px solid var(--gold); padding-left:20px; }
+.learn-checklist { list-style:none; padding:0; }
+.learn-checklist li { margin:10px 0; }
+.learn-checklist label { display:flex; gap:10px; align-items:flex-start; cursor:pointer; }
+.learn-checklist input { margin-top:6px; flex:none; width:18px; height:18px; accent-color:var(--accent); }
+.learn-status { font:13px var(--font-mono); color:var(--accent); }
+.learn-deliverable { border-top:1px solid var(--border); padding-top:14px; }
+.learn-lab-links { display:grid; grid-template-columns:1fr 1fr; gap:0 28px; }
+.learn-lab-links a { display:flex; gap:13px; padding:12px 0; border-bottom:1px solid var(--border); text-decoration:none; font-size:14px; }
+.learn-lab-links a span { font:12px var(--font-mono); color:var(--ink-3); padding-top:4px; }
+.learning-lab { border:1px solid var(--border-strong); border-top:3px solid var(--accent); background:var(--surface-1); border-radius:2px; padding:24px; margin:30px 0; max-width:100%; min-width:0; box-sizing:border-box; scroll-margin-top:65px; }
+.learning-lab figcaption { margin:0; font:inherit; color:var(--ink-2); }
+.lab-kicker { font:11px var(--font-mono); text-transform:uppercase; letter-spacing:.1em; color:var(--accent); }
+.learning-lab h4 { font:600 24px/1.25 var(--font-display); color:var(--ink-1); margin:10px 0; }
+.learning-lab p { font-size:15px; line-height:1.7; max-width:75ch; margin:12px 0; }
+.lab-controls { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:18px 24px; padding:20px 0; border-bottom:1px solid var(--border); }
+.lab-control { display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center; min-width:0; }
+.lab-control label { grid-column:1/-1; font-size:13px; color:var(--ink-2); }
+.lab-control input[type=range] { width:100%; min-width:0; accent-color:var(--accent); cursor:pointer; }
+.lab-control input[type=checkbox] { width:20px;height:20px;accent-color:var(--accent); }
+.lab-control select { grid-column:1/-1; font-size:14px; width:100%; }
+.lab-control output { font:13px var(--font-mono); min-width:3em; text-align:right; }
+.lab-result { padding-top:20px; overflow-wrap:anywhere; }
+.lab-diagram { max-width:100%;overflow-x:auto; }
+.lab-svg { display:block; width:100%; height:auto; max-height:380px; color:var(--ink-2); fill:var(--ink-2); background:var(--surface-2); }
+.lab-svg text { font-family:var(--font-text); }
+.lab-equation,.lab-math { font:14px/1.8 var(--font-mono); padding:10px 12px; background:var(--surface-2); }
+.lab-bars { display:grid;gap:10px;margin:16px 0; }
+.lab-bar-row { display:grid;grid-template-columns:minmax(70px,1fr) 3fr 65px;gap:12px;align-items:center;font-size:13px; }
+.lab-bar-row strong { text-align:right; font:13px var(--font-mono); }
+.lab-bar-track { height:18px; background:var(--surface-2); }
+.lab-bar-track > span { display:block;height:100%;background:var(--accent);min-width:0; }
+.lab-table-wrap { overflow:auto;max-width:100%;margin:14px 0; }
+.lab-table-wrap table { font-size:13px; min-width:0; width:100%; }
+.lab-table-wrap th,.lab-table-wrap td { padding:8px 10px; white-space:nowrap; }
+.lab-challenge { border-left:3px solid var(--gold); padding:10px 14px; background:var(--gold-soft); }
+.lab-boundary { border:none;background:transparent;margin:12px 0; }
+.lab-boundary summary { cursor:pointer;font-size:13px;color:var(--ink-3);padding:8px 0; }
+.lab-boundary p { color:var(--ink-3);font-size:13px; }
+.lab-actions { display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid var(--border);padding-top:16px;margin-top:16px;font-size:13px; }
+.lab-reset { background:var(--surface-1);color:var(--ink-1);border:1px solid var(--border-strong);border-radius:2px;padding:9px 14px;font:inherit;cursor:pointer; }
+.lab-reset:hover { background:var(--surface-2); }
+.foundation-link { font-size:14px;border-left:2px solid var(--gold);padding:9px 14px;background:var(--gold-soft); }
+.reading-tools select:focus-visible,.learning-lab :is(button,input,select,a,summary):focus-visible,.learn-section :is(input,select,a,summary):focus-visible { outline:2px solid var(--accent);outline-offset:4px; }
+@media(max-width:600px) {
+ .lab-svg { min-width:480px; }
+ .learning-lab { padding:16px 12px; }
+ .learning-lab h4 { font-size:22px; }
+ .lab-controls { grid-template-columns:1fr; gap:15px; }
+ .learn-lab-links { grid-template-columns:1fr; }
+ .learn-foundation > summary,.learn-week > summary { padding:14px 12px; }
+ .learn-foundation > :not(summary),.learn-week > :not(summary) { margin-left:12px;margin-right:12px; }
+ .lab-bar-row { grid-template-columns:65px 1fr 52px;gap:7px; }
+ .reading-tools select { width:100%;font-size:14px; }
+}
+@media print { .lab-controls,.lab-actions,.reading-tools,.learn-checklist input { display:none; } .learning-lab { break-inside:avoid; } }
