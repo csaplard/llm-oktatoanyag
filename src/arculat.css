@@ -1,0 +1,129 @@
+/* ════════════════════════════════════════════════════════════
+   AI-tananyagok közös arculata („Tér”). A korábbi stíluslap
+   változóit írja felül, ezért minden komponens és SVG-ábra
+   automatikusan átveszi. A szerkezet, a haladásmentés és az
+   ábrák sorozatszínei (--s1…--s8) nem változnak.
+   ════════════════════════════════════════════════════════════ */
+:root {
+  color-scheme: light;
+  --font-display: "Geologica", ui-sans-serif, system-ui, sans-serif;
+  --font-text: "Literata", "Iowan Old Style", Georgia, serif;
+  --font-ui: "Geologica", ui-sans-serif, system-ui, sans-serif;
+  --fs-h1: 52px; --lh-h1: 1.04;
+  --fs-h2: 32px; --lh-h2: 1.12;
+  --fs-h3: 21px; --lh-h3: 1.3;
+  --fs-body: 17px; --lh-body: 1.7;
+  --radius: 0px;
+  /* világos */
+  --bg: #e7e8ea;
+  --surface-1: #f3f4f5;
+  --surface-2: #dcdee2;
+  --ink-1: #101113;
+  --ink-2: #43454a;
+  --ink-3: #595c61;
+  --border: #c9cbcf;
+  --border-strong: #7e8289;
+  --accent: #7c5700;
+  --accent-hover: #5c4000;
+  --accent-soft: #efe0b8;
+  --on-accent: #ffffff;
+  --gold: #7c5700;
+  --gold-ink: #7c5700;
+  --gold-soft: #efe0b8;
+  --q: #1b57b8;
+  --s7: #8C6334;   /* az ábrák arany sorozatszíne: szürkébb papíron is AA */
+  --q-soft: #dde6f5;
+  --ok: #176b3c;
+  --ok-soft: #d9eee0;
+  --care: #9c4600;
+  --care-soft: #f4e2d2;
+  --shadow-1: none;
+  --shadow-2: 0 24px 48px -26px rgba(16,17,19,.3);
+  --page: #e7e8ea;
+  --ink-muted: #595c61;
+  --grid: #c9cbcf;
+  --baseline: #7e8289;
+  --code-bg: #dcdee2;
+  --wash-blue: #dde6f5;
+  --wash-violet: #ebe0ef;
+  --wash-green: #d9eee0;
+  --wash-orange: #f4e2d2;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b0c0e;
+  --surface-1: #141619;
+  --surface-2: #1d2024;
+  --ink-1: #eceae4;
+  --ink-2: #b2b1ab;
+  --ink-3: #8f8e89;
+  --border: #24262a;
+  --border-strong: #666a72;
+  --accent: #e8b44c;
+  --accent-hover: #f3c870;
+  --accent-soft: #2a2312;
+  --on-accent: #0b0c0e;
+  --gold: #e8b44c;
+  --gold-ink: #e8b44c;
+  --gold-soft: #2a2312;
+  --q: #86b4ff;
+  --q-soft: #121c2c;
+  --ok: #62d296;
+  --ok-soft: #11261a;
+  --care: #f39a5b;
+  --care-soft: #2c1b10;
+  --shadow-1: none;
+  --shadow-2: 0 24px 48px -26px rgba(0,0,0,.7);
+  --page: #0b0c0e;
+  --ink-muted: #8f8e89;
+  --grid: #24262a;
+  --baseline: #666a72;
+  --code-bg: #1d2024;
+  --wash-blue: #121c2c;
+  --wash-violet: #221828;
+  --wash-green: #11261a;
+  --wash-orange: #2c1b10;
+}
+
+/* — tipográfia: olvasószöveg Literata, címek és kezelőfelület Geologica — */
+body { -webkit-hyphens: auto; hyphens: auto; font-optical-sizing: auto; }
+header.hero h1, h2, h3, h4, dl.gloss dt {
+  font-family: var(--font-display); font-weight: 560; letter-spacing: -0.025em;
+  -webkit-hyphens: manual; hyphens: manual; text-wrap: balance;
+}
+header.hero h1 { font-size: clamp(38px, 6vw, var(--fs-h1)); letter-spacing: -0.035em; }
+h2 { font-size: clamp(27px, 3.6vw, var(--fs-h2)); letter-spacing: -0.03em; }
+p, li { text-wrap: pretty; }
+nav#toc, #progressBar, #floatDock, summary, button, select, label, th, figcaption,
+.chapter-kicker, .badge, .label, .demo-title, .meta-line, .fig-num, .toc-title,
+.reading-tools, .learn-route, .lab-control, .quiz, .quiz-options, .glossary-hint {
+  font-family: var(--font-ui);
+}
+.chapter-kicker, .note .label, .example .label, .warn .label, .badge, .demo .demo-title,
+figcaption .fig-num, th, #progressBar .pb-row, #themeToggle, #langSwitch {
+  font-family: var(--font-ui); letter-spacing: 0.08em;
+}
+svg text { font-family: var(--font-ui); }
+a { text-decoration-color: var(--accent); text-underline-offset: .18em; }
+a:hover { color: var(--ink-1); }
+
+/* — tartalomjegyzék: halk, arany jelöléssel — */
+nav#toc a:hover { background: var(--surface-2); }
+nav#toc a.active { color: var(--ink-1); border-left-color: var(--accent); background: transparent; }
+
+/* — mélységi szintek: a kutatói szint kék, hogy elváljon a matematikai (arany) szinttől — */
+details.l3 { border-left-color: var(--q); --bar-a: var(--q); --bar-b: var(--q); --bar-c: var(--q); }
+.badge.b3 { color: var(--q); }
+.eq { background: var(--surface-1); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+/* — vissza a központba — */
+.hub-link {
+  display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px;
+  font: 500 14px/1.2 var(--font-ui); color: var(--ink-2); text-decoration: none;
+}
+.hub-link:hover { color: var(--ink-1); }
+.hub-link::before { content: ""; width: 18px; height: 3px; background: var(--accent); }
+nav#toc .hub-link { margin: 0 0 18px 10px; }
+
+/* — lebegő gombok — */
+#themeToggle, #langSwitch { background: var(--bg); border-color: var(--border-strong); }

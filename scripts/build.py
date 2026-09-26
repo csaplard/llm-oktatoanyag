@@ -181,7 +181,7 @@ def single_language(js, keep, arrays=False):
 def build(check=False):
     """Write both editions, or with check=True only report the stale ones."""
     stale = []
-    css = (ROOT / 'src/learning.css').read_text(encoding='utf-8')
+    css = '\n'.join((ROOT / 'src' / n).read_text(encoding='utf-8') for n in ('learning.css', 'arculat.css'))
     sources = [(name, (ROOT / 'src' / name).read_text(encoding='utf-8')) for name in MODULES]
     assert all('</script' not in text.lower() for _, text in sources), 'Source must not close its inline script'
     for name, lang in [('index.html', 'hu'), ('en/index.html', 'en')]:
@@ -190,7 +190,7 @@ def build(check=False):
         html = re.sub(r'\n?<!-- LEARNING-CSS:START -->.*?<!-- LEARNING-CSS:END -->\n?', '', html, flags=re.S)
         html = re.sub(r'\n?<!-- LEARNING-JS:START -->.*?<!-- LEARNING-JS:END -->\n?', '', html, flags=re.S)
         bundle = '\n'.join(single_language(text, lang, name in PAIR_ARRAY_MODULES) for name, text in sources)
-        bundle += '\nwindow.KatedraLabs.boot();\n'
+        bundle += '\nwindow.AITLabs.boot();\n'
         html = html.replace('</head>', '\n<!-- LEARNING-CSS:START -->\n<style>\n' + css + '\n</style>\n<!-- LEARNING-CSS:END -->\n</head>')
         html = html.replace('</body>', '\n<!-- LEARNING-JS:START -->\n<script>\n' + bundle + '\n</script>\n<!-- LEARNING-JS:END -->\n</body>')
         if check:

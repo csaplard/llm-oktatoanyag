@@ -1,5 +1,20 @@
 # Változásnapló / Changelog
 
+## Kiadatlan / Unreleased — 2026-09-26
+
+### Magyar
+
+- Az oldal átvette az AI-tananyagok közös arculatát (`src/arculat.css`): Geologica és Literata betűk, alapból sötét mód, a témaválasztás az egész oldalon közös (`ait-theme`). A szerkezet, a 13 ábra, a kvízek és a haladásmentés nem változott; a tárolási kulcsok ugyanazok, így a mentett haladás megmarad.
+- „Vissza az AI-tananyagokhoz” link a fejlécben és a tartalomjegyzékben.
+- A „Katedra” név a kódból is kikerült (csak a két régi tárolási kulcs neve maradt meg, hogy a haladás ne vesszen el).
+- Javítva: a tartalomjegyzék görgetéskövetője csak az oldalon belüli linkeket figyeli.
+
+### English
+
+- The page adopts the shared AI-tananyagok design (`src/arculat.css`): Geologica and Literata type, dark mode by default, a site-wide theme choice (`ait-theme`). Structure, the 13 figures, quizzes and saved progress are unchanged; storage keys are the same, so progress is kept.
+- “Back to the learning hub” link in the header and the table of contents.
+- The “Katedra” name is gone from the code as well (only two legacy storage key names remain, so progress is not lost).
+- Fixed: the table-of-contents scroll spy only tracks in-page links.
 ## v1.1.3 — 2026-09-19
 
 ### Magyar

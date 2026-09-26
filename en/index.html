@@ -30,15 +30,23 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://csaplard.github.io/llm-oktatoanyag/en/og-image.png?v=3">
 <title>How do large language models work? — A comprehensive guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geologica:slnt,wght,CRSV,SHRP@-12..0,100..900,0..1,0..100&family=Literata:ital,opsz,wght@0,7..72,300..700;1,7..72,300..700&display=swap" rel="stylesheet">
+<script>
+  /* Téma: a látogató választása (az egész oldalon közös), különben a rendszerbeállítás, alapból sötét. */
+  (function(){var t=null;try{t=localStorage.getItem('ait-theme')}catch(e){}
+  if(t!=='dark'&&t!=='light')t=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t)})();
+</script>
 <style>
 /* ════════════════════════════════════════════════════════════
-   KATEDRA — design tokens.
+   DESIGN — tokens.
    Light and dark modes are designed separately; dark is NOT an
    inversion of light. Components contain no hex codes — everything
    comes from here. The old variable names survive as aliases so that
    the 13 SVG figures can stay untouched — only their values change.
    NOTE: the names --s1…--s8 are the figures' series colors (every SVG
-   refers to them), which is why the Katedra 4px spacing grid lives
+   refers to them), which is why the 4px spacing grid lives
    under the names --sp1…--sp8.
    ════════════════════════════════════════════════════════════ */
 :root {
@@ -329,7 +337,7 @@ svg .svg-mono { font-family: ui-monospace, "SF Mono", Consolas, monospace; }
 .svg-box { fill: var(--surface-1); stroke: var(--baseline); }
 .tag { display:inline-block; font-size:11px; font-weight:700; border-radius: 4px; padding: 1px 7px; margin-right:6px; }
 /* ════════════════════════════════════════════════════════════
-   KATEDRA — base typography. It overrides the earlier rules, which is
+   DESIGN — base typography. It overrides the earlier rules, which is
    why it sits at the end of the stylesheet.
    ════════════════════════════════════════════════════════════ */
 body {
@@ -485,7 +493,7 @@ details.l2 > summary, details.l3 > summary { color: var(--ink-1); }
 .bar-val { color: var(--ink-3); }
 
 /* ════════════════════════════════════════════════════════════
-   KATEDRA — components of the level system
+   DESIGN — components of the level system
    ════════════════════════════════════════════════════════════ */
 
 /* 01 · Progress bar — a 3px rule with a quiet caption line beneath */
@@ -747,7 +755,7 @@ details.level > summary:focus-visible, main a:focus-visible {
 
 <!-- LEARNING-CSS:START -->
 <style>
-/* New learning components reuse the Katedra palette in both themes. */
+/* New learning components reuse the site palette in both themes. */
 .reading-tools { margin-top: 28px; border-top: 1px solid var(--border-strong); padding-top: 20px; max-width: 760px; }
 .reading-tools > label { display:block; font:12px var(--font-mono); letter-spacing:.06em; margin-bottom:8px; }
 .reading-tools select,.learn-route select,.lab-control select { color:var(--ink-1); background:var(--surface-1); border:1px solid var(--border-strong); border-radius:2px; padding:10px; font:inherit; max-width:100%; }
@@ -824,6 +832,136 @@ nav#toc .toc-learning { font-size:13px; color:var(--accent); padding-block:7px; 
 }
 @media print { .lab-controls,.lab-actions,.reading-tools,.learn-checklist input { display:none; } .learning-lab { break-inside:avoid; } }
 
+/* ════════════════════════════════════════════════════════════
+   AI-tananyagok közös arculata („Tér”). A korábbi stíluslap
+   változóit írja felül, ezért minden komponens és SVG-ábra
+   automatikusan átveszi. A szerkezet, a haladásmentés és az
+   ábrák sorozatszínei (--s1…--s8) nem változnak.
+   ════════════════════════════════════════════════════════════ */
+:root {
+  color-scheme: light;
+  --font-display: "Geologica", ui-sans-serif, system-ui, sans-serif;
+  --font-text: "Literata", "Iowan Old Style", Georgia, serif;
+  --font-ui: "Geologica", ui-sans-serif, system-ui, sans-serif;
+  --fs-h1: 52px; --lh-h1: 1.04;
+  --fs-h2: 32px; --lh-h2: 1.12;
+  --fs-h3: 21px; --lh-h3: 1.3;
+  --fs-body: 17px; --lh-body: 1.7;
+  --radius: 0px;
+  /* világos */
+  --bg: #e7e8ea;
+  --surface-1: #f3f4f5;
+  --surface-2: #dcdee2;
+  --ink-1: #101113;
+  --ink-2: #43454a;
+  --ink-3: #595c61;
+  --border: #c9cbcf;
+  --border-strong: #7e8289;
+  --accent: #7c5700;
+  --accent-hover: #5c4000;
+  --accent-soft: #efe0b8;
+  --on-accent: #ffffff;
+  --gold: #7c5700;
+  --gold-ink: #7c5700;
+  --gold-soft: #efe0b8;
+  --q: #1b57b8;
+  --s7: #8C6334;   /* az ábrák arany sorozatszíne: szürkébb papíron is AA */
+  --q-soft: #dde6f5;
+  --ok: #176b3c;
+  --ok-soft: #d9eee0;
+  --care: #9c4600;
+  --care-soft: #f4e2d2;
+  --shadow-1: none;
+  --shadow-2: 0 24px 48px -26px rgba(16,17,19,.3);
+  --page: #e7e8ea;
+  --ink-muted: #595c61;
+  --grid: #c9cbcf;
+  --baseline: #7e8289;
+  --code-bg: #dcdee2;
+  --wash-blue: #dde6f5;
+  --wash-violet: #ebe0ef;
+  --wash-green: #d9eee0;
+  --wash-orange: #f4e2d2;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b0c0e;
+  --surface-1: #141619;
+  --surface-2: #1d2024;
+  --ink-1: #eceae4;
+  --ink-2: #b2b1ab;
+  --ink-3: #8f8e89;
+  --border: #24262a;
+  --border-strong: #666a72;
+  --accent: #e8b44c;
+  --accent-hover: #f3c870;
+  --accent-soft: #2a2312;
+  --on-accent: #0b0c0e;
+  --gold: #e8b44c;
+  --gold-ink: #e8b44c;
+  --gold-soft: #2a2312;
+  --q: #86b4ff;
+  --q-soft: #121c2c;
+  --ok: #62d296;
+  --ok-soft: #11261a;
+  --care: #f39a5b;
+  --care-soft: #2c1b10;
+  --shadow-1: none;
+  --shadow-2: 0 24px 48px -26px rgba(0,0,0,.7);
+  --page: #0b0c0e;
+  --ink-muted: #8f8e89;
+  --grid: #24262a;
+  --baseline: #666a72;
+  --code-bg: #1d2024;
+  --wash-blue: #121c2c;
+  --wash-violet: #221828;
+  --wash-green: #11261a;
+  --wash-orange: #2c1b10;
+}
+
+/* — tipográfia: olvasószöveg Literata, címek és kezelőfelület Geologica — */
+body { -webkit-hyphens: auto; hyphens: auto; font-optical-sizing: auto; }
+header.hero h1, h2, h3, h4, dl.gloss dt {
+  font-family: var(--font-display); font-weight: 560; letter-spacing: -0.025em;
+  -webkit-hyphens: manual; hyphens: manual; text-wrap: balance;
+}
+header.hero h1 { font-size: clamp(38px, 6vw, var(--fs-h1)); letter-spacing: -0.035em; }
+h2 { font-size: clamp(27px, 3.6vw, var(--fs-h2)); letter-spacing: -0.03em; }
+p, li { text-wrap: pretty; }
+nav#toc, #progressBar, #floatDock, summary, button, select, label, th, figcaption,
+.chapter-kicker, .badge, .label, .demo-title, .meta-line, .fig-num, .toc-title,
+.reading-tools, .learn-route, .lab-control, .quiz, .quiz-options, .glossary-hint {
+  font-family: var(--font-ui);
+}
+.chapter-kicker, .note .label, .example .label, .warn .label, .badge, .demo .demo-title,
+figcaption .fig-num, th, #progressBar .pb-row, #themeToggle, #langSwitch {
+  font-family: var(--font-ui); letter-spacing: 0.08em;
+}
+svg text { font-family: var(--font-ui); }
+a { text-decoration-color: var(--accent); text-underline-offset: .18em; }
+a:hover { color: var(--ink-1); }
+
+/* — tartalomjegyzék: halk, arany jelöléssel — */
+nav#toc a:hover { background: var(--surface-2); }
+nav#toc a.active { color: var(--ink-1); border-left-color: var(--accent); background: transparent; }
+
+/* — mélységi szintek: a kutatói szint kék, hogy elváljon a matematikai (arany) szinttől — */
+details.l3 { border-left-color: var(--q); --bar-a: var(--q); --bar-b: var(--q); --bar-c: var(--q); }
+.badge.b3 { color: var(--q); }
+.eq { background: var(--surface-1); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+/* — vissza a központba — */
+.hub-link {
+  display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px;
+  font: 500 14px/1.2 var(--font-ui); color: var(--ink-2); text-decoration: none;
+}
+.hub-link:hover { color: var(--ink-1); }
+.hub-link::before { content: ""; width: 18px; height: 3px; background: var(--accent); }
+nav#toc .hub-link { margin: 0 0 18px 10px; }
+
+/* — lebegő gombok — */
+#themeToggle, #langSwitch { background: var(--bg); border-color: var(--border-strong); }
+
 </style>
 <!-- LEARNING-CSS:END -->
 </head>
@@ -841,6 +979,7 @@ nav#toc .toc-learning { font-size:13px; color:var(--accent); padding-block:7px; 
 </div>
 <div class="layout">
 <nav id="toc" aria-label="Table of contents">
+  <a class="hub-link" href="https://csaplard.github.io/" hreflang="hu">AI-tananyagok (hub, in Hungarian)</a>
   <div class="toc-title">Contents</div>
   <a href="#bevezetes" data-level="1"><span class="st"></span>1 · What is an LLM?</a>
   <a href="#tokenizacio" data-level="2"><span class="st"></span>2 · Tokenization</a>
@@ -877,6 +1016,7 @@ nav#toc .toc-learning { font-size:13px; color:var(--accent); padding-block:7px; 
 </nav>
 <main>
 <header class="hero">
+  <a class="hub-link" href="https://csaplard.github.io/" hreflang="hu">Back to the learning hub (in Hungarian)</a>
   <h1>How do large language models work?</h1>
   <div class="subtitle">A comprehensive guide, from tokenization through backpropagation to the research frontier of mechanistic interpretability — written in layers: every topic first intuitively, then with mathematical precision, and finally at research depth.</div>
   <div class="meta-line">
@@ -2308,21 +2448,23 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
   var btn = document.getElementById('themeToggle');
   var root = document.documentElement;
   function setTheme(t){
-    if(t === 'dark'){ root.setAttribute('data-theme','dark'); btn.textContent = '◑ Light mode'; }
-    else { root.removeAttribute('data-theme'); btn.textContent = '◐ Dark mode'; }
+    root.setAttribute('data-theme', t);
+    btn.textContent = t === 'dark' ? '◑ Light mode' : '◐ Dark mode';
   }
-  var theme = 'light';   // default: light mode
+  // the head script has already set it; the choice is shared across the site
+  var theme = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
   setTheme(theme);
   btn.addEventListener('click', function(){
     theme = (theme === 'dark') ? 'light' : 'dark';
     setTheme(theme);
+    try { localStorage.setItem('ait-theme', theme); } catch(e){}
   });
 
   // Scroll-spy for the table of contents
-  var links = Array.prototype.slice.call(document.querySelectorAll('#toc a'));
+  var links = Array.prototype.slice.call(document.querySelectorAll('#toc a[href^="#"]'));
   var targets = links.map(function(a){ return document.querySelector(a.getAttribute('href')); });
   function onScroll(){
-    links = Array.prototype.slice.call(document.querySelectorAll('#toc a'));
+    links = Array.prototype.slice.call(document.querySelectorAll('#toc a[href^="#"]'));
     targets = links.map(function(a){ return document.querySelector(a.getAttribute('href')); });
     var pos = window.scrollY + 120;
     var active = 0, lastTop = -Infinity;
@@ -3130,7 +3272,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
     return false;
   }
 
-  // ── Katedra: icon set and the mascot ──
+  // ── Icon set and the mascot ──
   var BOT_FIGURE =
     '<g class="bot-figure">' +
       '<g class="bot-antenna"><line x1="40" y1="24" x2="40" y2="13" stroke="var(--ink-2)" stroke-width="1.5" stroke-linecap="round"></line>' +
@@ -3564,7 +3706,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
     });
   }
 
-  window.KatedraProgress = {
+  window.AITProgress = {
     mode: function(){ return readMode; },
     setMode: function(mode){
       readMode = mode === 'guided' ? 'guided' : 'free';
@@ -3673,13 +3815,13 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
   }
   function boot() {
     if (instances.length) return;
-    if (window.KatedraLearning) window.KatedraLearning.init();
+    if (window.AITLearning) window.AITLearning.init();
     specs.forEach(mount);
     var list = document.querySelector('[data-lab-links]');
     if (list) list.innerHTML = specs.map(function (s, i) { return '<a href="#lab-' + esc(s.id) + '"><span>' + String(i + 1).padStart(2, '0') + '</span>' + esc(t(s.title)) + '</a>'; }).join('');
     addReadingControls();
     addFoundationLinks();
-    if (window.KatedraProgress) window.KatedraProgress.refresh();
+    if (window.AITProgress) window.AITProgress.refresh();
     // Hash targets can be generated labs, weeks or foundation blocks.
     if (location.hash) {
       var target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
@@ -3692,9 +3834,9 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
     box.innerHTML = '<label for="reading-mode">' + t({hu:'',en:'Reading mode'}) + '</label><select id="reading-mode"><option value="free">' + t({hu:'',en:'Free reading · all chapters available'}) + '</option><option value="guided">' + t({hu:'',en:'Guided learning · unlock with quizzes'}) + '</option></select><p id="reading-mode-note">' + t({hu:'',en:'Quiz results are kept in both modes. Free reading does not mark anything as completed.'}) + '</p><div class="reading-shortcuts"><a href="#alapok">' + t({hu:'',en:'Foundation help'}) + '</a><a href="#lab-directory">' + t({hu:'',en:'14 interactive experiments'}) + '</a><a href="#tanulasi-ut">' + t({hu:'',en:'12-week path'}) + '</a></div>';
     hero.appendChild(box);
     var select = box.querySelector('select'); select.setAttribute('aria-describedby','reading-mode-note');
-    select.value = window.KatedraProgress ? window.KatedraProgress.mode() : 'free';
-    select.addEventListener('change', function () { if (window.KatedraProgress) window.KatedraProgress.setMode(select.value); });
-    var toc = document.getElementById('toc'), first = toc.querySelector('a');
+    select.value = window.AITProgress ? window.AITProgress.mode() : 'free';
+    select.addEventListener('change', function () { if (window.AITProgress) window.AITProgress.setMode(select.value); });
+    var toc = document.getElementById('toc'), first = toc.querySelector('a[href^="#"]');
     [{id:'alapok',hu:'',en:'Foundation help'},{id:'lab-directory',hu:'',en:'Interactive experiments'},{id:'tanulasi-ut',hu:'',en:'12-week path'}].forEach(function (entry) {
       var a = document.createElement('a'); a.href = '#' + entry.id; a.className = 'toc-learning'; a.textContent = t(entry); toc.insertBefore(a, first);
     });
@@ -3709,13 +3851,13 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
     links.forEach(function (entry) { var target = document.getElementById(entry[0]); if (!target || !document.getElementById(entry[1])) return; var p = document.createElement('p'); p.className='foundation-link'; p.innerHTML='<a href="#'+entry[1]+'">'+esc(t(entry[2]))+'</a>'; if(target.tagName==='SECTION') target.insertBefore(p,target.querySelector('h2').nextSibling); else target.insertAdjacentElement('afterend',p); });
     document.addEventListener('click', function (event) { var a=event.target.closest('a[href^="#alapok-"]'); if(!a)return;var target=document.getElementById(a.getAttribute('href').slice(1));if(target){var d=target.tagName==='DETAILS'?target:target.closest('details');if(d)d.open=true;} });
   }
-  window.KatedraLabs = {register:function (spec) { if(specs.some(function(s){return s.id===spec.id;}))throw new Error('Duplicate lab id'); specs.push(spec); }, boot:boot, specs:specs, instances:instances, api:api, math:{}};
+  window.AITLabs = {register:function (spec) { if(specs.some(function(s){return s.id===spec.id;}))throw new Error('Duplicate lab id'); specs.push(spec); }, boot:boot, specs:specs, instances:instances, api:api, math:{}};
 })();
 
 /* Deterministic teaching models. No requests, external dependencies or model data. */
 (function () {
   'use strict';
-  const L = window.KatedraLabs;
+  const L = window.AITLabs;
   const bi = (hu, en) => ({ hu, en });
   const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
   const dot = (a, b) => a.reduce((s, x, i) => s + x * b[i], 0);
@@ -3972,10 +4114,10 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
   });
 })();
 
-/* Katedra: explicit, deterministic teaching models. No model activations are sampled. */
+/* Explicit, deterministic teaching models. No model activations are sampled. */
 (function () {
   'use strict';
-  const K = window.KatedraLabs;
+  const K = window.AITLabs;
   const L = (hu, en) => ({ hu, en });
   const range = (key, hu, en, min, max, step, value) => ({ key, label: L('', en), type: 'range', min, max, step, value });
   const check = (key, hu, en, value) => ({ key, label: L('', en), type: 'checkbox', value });
@@ -4265,10 +4407,10 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
   });
 })();
 
-/* Katedra learning companion: no dependencies, shared HU/EN local progress. */
+/* Learning companion: no dependencies, shared HU/EN local progress. */
 (function () {
   'use strict';
-  var KEY = 'katedra-learning-path-v1';
+  var KEY = 'katedra-learning-path-v1';  // legacy key name: keeps saved progress
   var lang = document.documentElement.lang.toLowerCase().indexOf('en') === 0 ? 'en' : 'hu';
   function t(hu, en) { return lang === 'hu' ? hu : en; }
   function esc(value) { return String(value).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
@@ -4564,10 +4706,10 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
     updateRoute();
     updateStatus();
   }
-  window.KatedraLearning = { init: init };
+  window.AITLearning = { init: init };
 }());
 
-window.KatedraLabs.boot();
+window.AITLabs.boot();
 
 </script>
 <!-- LEARNING-JS:END -->

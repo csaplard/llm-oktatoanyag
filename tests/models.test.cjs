@@ -2,10 +2,10 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const vm=require('node:vm');
 const fs=require('node:fs');
-const context={window:{KatedraLabs:{math:{},register(){}}}};
+const context={window:{AITLabs:{math:{},register(){}}}};
 vm.createContext(context);
 for(const f of ['labs-foundations.js','labs-advanced.js'])vm.runInContext(fs.readFileSync('src/'+f,'utf8'),context);
-const m=context.window.KatedraLabs.math;
+const m=context.window.AITLabs.math;
 const near=(a,b,tol=1e-10)=>assert.ok(Math.abs(a-b)<tol,`${a} != ${b}`);
 test('BPE pair counts include corpus frequency and merges preserve text',()=>{
  const corpus=[['low',5],['lower',2],['newest',6],['widest',3]];

@@ -1,4 +1,4 @@
-/* New learning components reuse the Katedra palette in both themes. */
+/* New learning components reuse the site palette in both themes. */
 .reading-tools { margin-top: 28px; border-top: 1px solid var(--border-strong); padding-top: 20px; max-width: 760px; }
 .reading-tools > label { display:block; font:12px var(--font-mono); letter-spacing:.06em; margin-bottom:8px; }
 .reading-tools select,.learn-route select,.lab-control select { color:var(--ink-1); background:var(--surface-1); border:1px solid var(--border-strong); border-radius:2px; padding:10px; font:inherit; max-width:100%; }

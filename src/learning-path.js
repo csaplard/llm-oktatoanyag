@@ -1,7 +1,7 @@
-/* Katedra learning companion: no dependencies, shared HU/EN local progress. */
+/* Learning companion: no dependencies, shared HU/EN local progress. */
 (function () {
   'use strict';
-  var KEY = 'katedra-learning-path-v1';
+  var KEY = 'katedra-learning-path-v1';  // legacy key name: keeps saved progress
   var lang = document.documentElement.lang.toLowerCase().indexOf('en') === 0 ? 'en' : 'hu';
   function t(hu, en) { return lang === 'hu' ? hu : en; }
   function esc(value) { return String(value).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
@@ -297,5 +297,5 @@
     updateRoute();
     updateStatus();
   }
-  window.KatedraLearning = { init: init };
+  window.AITLearning = { init: init };
 }());

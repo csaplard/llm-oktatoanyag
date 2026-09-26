@@ -1,7 +1,7 @@
-/* Katedra: explicit, deterministic teaching models. No model activations are sampled. */
+/* Explicit, deterministic teaching models. No model activations are sampled. */
 (function () {
   'use strict';
-  const K = window.KatedraLabs;
+  const K = window.AITLabs;
   const L = (hu, en) => ({ hu, en });
   const range = (key, hu, en, min, max, step, value) => ({ key, label: L(hu, en), type: 'range', min, max, step, value });
   const check = (key, hu, en, value) => ({ key, label: L(hu, en), type: 'checkbox', value });

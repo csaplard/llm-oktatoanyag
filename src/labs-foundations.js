@@ -1,7 +1,7 @@
 /* Deterministic teaching models. No requests, external dependencies or model data. */
 (function () {
   'use strict';
-  const L = window.KatedraLabs;
+  const L = window.AITLabs;
   const bi = (hu, en) => ({ hu, en });
   const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
   const dot = (a, b) => a.reduce((s, x, i) => s + x * b[i], 0);

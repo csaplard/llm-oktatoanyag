@@ -79,13 +79,13 @@
   }
   function boot() {
     if (instances.length) return;
-    if (window.KatedraLearning) window.KatedraLearning.init();
+    if (window.AITLearning) window.AITLearning.init();
     specs.forEach(mount);
     var list = document.querySelector('[data-lab-links]');
     if (list) list.innerHTML = specs.map(function (s, i) { return '<a href="#lab-' + esc(s.id) + '"><span>' + String(i + 1).padStart(2, '0') + '</span>' + esc(t(s.title)) + '</a>'; }).join('');
     addReadingControls();
     addFoundationLinks();
-    if (window.KatedraProgress) window.KatedraProgress.refresh();
+    if (window.AITProgress) window.AITProgress.refresh();
     // Hash targets can be generated labs, weeks or foundation blocks.
     if (location.hash) {
       var target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
@@ -98,9 +98,9 @@
     box.innerHTML = '<label for="reading-mode">' + t({hu:'Olvasási mód',en:'Reading mode'}) + '</label><select id="reading-mode"><option value="free">' + t({hu:'Szabad olvasás · minden fejezet elérhető',en:'Free reading · all chapters available'}) + '</option><option value="guided">' + t({hu:'Vezetett tanulás · kvízekkel lépésenként',en:'Guided learning · unlock with quizzes'}) + '</option></select><p id="reading-mode-note">' + t({hu:'A kvízeredményeket mindkét módban megőrizzük. A szabad olvasás nem jelöl teljesítettnek semmit.',en:'Quiz results are kept in both modes. Free reading does not mark anything as completed.'}) + '</p><div class="reading-shortcuts"><a href="#alapok">' + t({hu:'Alapozó segítség',en:'Foundation help'}) + '</a><a href="#lab-directory">' + t({hu:'14 interaktív kísérlet',en:'14 interactive experiments'}) + '</a><a href="#tanulasi-ut">' + t({hu:'12 hetes útvonal',en:'12-week path'}) + '</a></div>';
     hero.appendChild(box);
     var select = box.querySelector('select'); select.setAttribute('aria-describedby','reading-mode-note');
-    select.value = window.KatedraProgress ? window.KatedraProgress.mode() : 'free';
-    select.addEventListener('change', function () { if (window.KatedraProgress) window.KatedraProgress.setMode(select.value); });
-    var toc = document.getElementById('toc'), first = toc.querySelector('a');
+    select.value = window.AITProgress ? window.AITProgress.mode() : 'free';
+    select.addEventListener('change', function () { if (window.AITProgress) window.AITProgress.setMode(select.value); });
+    var toc = document.getElementById('toc'), first = toc.querySelector('a[href^="#"]');
     [{id:'alapok',hu:'Alapozó segítség',en:'Foundation help'},{id:'lab-directory',hu:'Interaktív kísérletek',en:'Interactive experiments'},{id:'tanulasi-ut',hu:'12 hetes útvonal',en:'12-week path'}].forEach(function (entry) {
       var a = document.createElement('a'); a.href = '#' + entry.id; a.className = 'toc-learning'; a.textContent = t(entry); toc.insertBefore(a, first);
     });
@@ -115,5 +115,5 @@
     links.forEach(function (entry) { var target = document.getElementById(entry[0]); if (!target || !document.getElementById(entry[1])) return; var p = document.createElement('p'); p.className='foundation-link'; p.innerHTML='<a href="#'+entry[1]+'">'+esc(t(entry[2]))+'</a>'; if(target.tagName==='SECTION') target.insertBefore(p,target.querySelector('h2').nextSibling); else target.insertAdjacentElement('afterend',p); });
     document.addEventListener('click', function (event) { var a=event.target.closest('a[href^="#alapok-"]'); if(!a)return;var target=document.getElementById(a.getAttribute('href').slice(1));if(target){var d=target.tagName==='DETAILS'?target:target.closest('details');if(d)d.open=true;} });
   }
-  window.KatedraLabs = {register:function (spec) { if(specs.some(function(s){return s.id===spec.id;}))throw new Error('Duplicate lab id'); specs.push(spec); }, boot:boot, specs:specs, instances:instances, api:api, math:{}};
+  window.AITLabs = {register:function (spec) { if(specs.some(function(s){return s.id===spec.id;}))throw new Error('Duplicate lab id'); specs.push(spec); }, boot:boot, specs:specs, instances:instances, api:api, math:{}};
 })();
