@@ -2434,6 +2434,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
 </dl>
 </section>
 <footer class="page-footer">
+  <p class="foot-line feedback-line">Using it in teaching or at work? I would love to hear about it: <a href="mailto:csaplar.d@gmail.com">csaplar.d@gmail.com</a></p>
   <p class="foot-line"><strong>© 2026 Dániel Csaplár</strong> · <a href="mailto:csaplar.d@gmail.com">csaplar.d@gmail.com</a>. This work is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="license noopener noreferrer" target="_blank">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC&nbsp;BY-NC-SA&nbsp;4.0)</a>: credit the author, do not use it commercially, and share any derivative work under the same terms.</p>
   <p class="foot-line">v1.1.3 · last updated: 19 September 2026 · your progress is stored only in your own browser. · <a href="../" hreflang="hu">Hungarian version</a></p>
 </footer>
@@ -3590,6 +3591,10 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
       progress.wrong[lvl] = missed;
       var newly = false;
       if(passed){
+        if(!progress.passed[lvl]){
+          /* mérés: csak az első teljesítés ténye, személyes adat nélkül */
+          try { if(window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: 'kviz/llm-oktatoanyag-en/szint-' + lvl, title: 'llm-oktatoanyag (EN) ' + lvl + '. szint teljesítve', event: true }); } catch(e){}
+        }
         progress.passed[lvl] = true;
         newly = unlock(lvl + 1);
       }

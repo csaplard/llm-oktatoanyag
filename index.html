@@ -2431,6 +2431,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
 </dl>
 </section>
 <footer class="page-footer">
+  <p class="foot-line feedback-line">Tanításban vagy a munkahelyeden használod? Örülnék, ha megírnád: <a href="mailto:csaplar.d@gmail.com">csaplar.d@gmail.com</a></p>
   <p class="foot-line"><strong>© 2026 Csaplár Dániel</strong> · <a href="mailto:csaplar.d@gmail.com">csaplar.d@gmail.com</a>. Ez a mű a <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.hu" rel="license noopener noreferrer" target="_blank">Creative Commons Nevezd meg! – Ne add el! – Így add tovább! 4.0 Nemzetközi (CC&nbsp;BY-NC-SA&nbsp;4.0)</a> licenc alatt érhető el: nevezd meg a szerzőt, ne használd kereskedelmi célra, és a származékos műveket ugyanilyen feltételekkel add tovább.</p>
   <p class="foot-line">v1.1.3 · utolsó frissítés: 2026. szeptember 19. · a haladásod kizárólag a saját böngésződben tárolódik.</p>
 </footer>
@@ -3585,6 +3586,10 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
       progress.wrong[lvl] = missed;
       var newly = false;
       if(passed){
+        if(!progress.passed[lvl]){
+          /* mérés: csak az első teljesítés ténye, személyes adat nélkül */
+          try { if(window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: 'kviz/llm-oktatoanyag/szint-' + lvl, title: 'llm-oktatoanyag ' + lvl + '. szint teljesítve', event: true }); } catch(e){}
+        }
         progress.passed[lvl] = true;
         newly = unlock(lvl + 1);
       }
