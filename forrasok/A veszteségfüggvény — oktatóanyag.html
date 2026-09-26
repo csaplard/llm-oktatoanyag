@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A veszteségfüggvény — oktatóanyag</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EDF0EA; --panel:#F8F9F5; --ink:#1C2530; --muted:#56626C; --rule:#C8D0C4;
+  --contour:#2E7A74; --contour-soft:rgba(46,122,116,.13); --err:#B23A2E; --err-soft:rgba(178,58,46,.14);
+  --min:#9A6F0E; --blue:#3A5A9C; --code-bg:#E2E8E0; --lock:#8A949C; --on-accent:#FFFFFF;
+  --serif:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans:"Archivo", "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#18212A; --panel:#1F2A34; --ink:#E3E8E1; --muted:#9BA7AF; --rule:#34434E;
+    --contour:#62B6AC; --contour-soft:rgba(98,182,172,.15); --err:#E36B5D; --err-soft:rgba(227,107,93,.16);
+    --min:#E2B24C; --blue:#86A3DE; --code-bg:#151D25; --lock:#6C7780; --on-accent:#10211F; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#18212A; --panel:#1F2A34; --ink:#E3E8E1; --muted:#9BA7AF; --rule:#34434E;
+  --contour:#62B6AC; --contour-soft:rgba(98,182,172,.15); --err:#E36B5D; --err-soft:rgba(227,107,93,.16);
+  --min:#E2B24C; --blue:#86A3DE; --code-bg:#151D25; --lock:#6C7780; --on-accent:#10211F; color-scheme: dark;
+}
+:root{ box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+*,*::before,*::after{ box-sizing:inherit; }
+html{ scroll-padding-top:calc(env(safe-area-inset-top,0px) + 64px); scroll-behavior:smooth; }
+@media (prefers-reduced-motion: reduce){ html{ scroll-behavior:auto; } }
+body{ margin:0; background:var(--paper); color:var(--ink); font-family:var(--serif); font-size:18px; line-height:1.65; -webkit-text-size-adjust:100%; }
+img,svg{ max-width:100%; }
+a{ color:var(--blue); }
+:focus-visible{ outline:2.5px solid var(--blue); outline-offset:2px; border-radius:3px; }
+
+/* ---------- layout ---------- */
+.shell{ display:grid; grid-template-columns: 280px minmax(0,1fr); min-height:100%; }
+.side{ position:sticky; top:env(safe-area-inset-top,0px); align-self:start; max-height:100dvh; overflow:auto;
+  border-right:1px solid var(--rule); padding:26px 22px 30px; font-family:var(--sans); font-size:15px; line-height:1.4; }
+.side .brand{ font-weight:750; font-stretch:80%; font-size:21px; letter-spacing:-.01em; margin:0 0 4px; }
+.side .brand-sub{ color:var(--muted); margin:0 0 20px; font-size:14px; }
+.ruler{ margin:0 0 22px; }
+.ruler-track{ position:relative; height:12px; border:1px solid var(--rule); border-radius:2px; background:var(--panel); overflow:hidden; }
+.ruler-fill{ position:absolute; inset:0 auto 0 0; width:0; background:var(--contour); transition:width .5s ease; }
+.ruler-ticks{ display:flex; justify-content:space-between; font-size:11.5px; color:var(--muted); margin-top:4px; font-variant-numeric:tabular-nums; }
+.ruler-label{ font-size:13.5px; color:var(--muted); margin-top:6px; }
+.nav{ list-style:none; margin:0 0 20px; padding:0; }
+.nav li{ margin:0; }
+.nav a{ display:grid; grid-template-columns:28px 1fr 18px; gap:6px; align-items:baseline; padding:7px 8px; border-radius:5px; color:var(--ink); text-decoration:none; }
+.nav a:hover{ background:var(--contour-soft); }
+.nav .num{ font-weight:700; font-stretch:75%; font-size:17px; color:var(--contour); font-variant-numeric:tabular-nums; }
+.nav .st{ font-size:13px; text-align:right; color:var(--muted); }
+.nav li.is-locked a{ color:var(--lock); }
+.nav li.is-locked .num{ color:var(--lock); }
+.nav li.is-done .st{ color:var(--contour); }
+.nav-extra a{ grid-template-columns:1fr; }
+.side-tools{ border-top:1px solid var(--rule); padding-top:14px; display:flex; flex-direction:column; gap:8px; }
+.btn{ font-family:var(--sans); font-size:15px; font-weight:600; border:1.5px solid var(--ink); background:transparent; color:var(--ink);
+  padding:8px 14px; border-radius:5px; cursor:pointer; line-height:1.2; }
+.btn:hover{ background:var(--ink); color:var(--paper); }
+.btn.primary{ background:var(--contour); border-color:var(--contour); color:var(--on-accent); }
+.btn.primary:hover{ filter:brightness(1.08); background:var(--contour); color:var(--on-accent); }
+.btn.small{ font-size:13.5px; padding:6px 10px; font-weight:550; }
+.btn.ghost{ border-color:var(--rule); color:var(--muted); }
+.btn.ghost:hover{ background:var(--rule); color:var(--ink); }
+.btn:disabled{ opacity:.45; cursor:not-allowed; }
+
+.topbar{ display:none; }
+main{ min-width:0; padding:0 40px 80px; }
+.col{ max-width:760px; margin:0 auto; }
+
+/* ---------- hero ---------- */
+.hero{ max-width:1080px; margin:0 auto; display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr); gap:36px; align-items:center; padding:56px 0 40px; border-bottom:1px solid var(--rule); }
+.hero h1{ font-family:var(--sans); font-weight:800; font-stretch:68%; font-size:clamp(52px, 8.6vw, 104px); line-height:.9; letter-spacing:-.015em; margin:0 0 20px; }
+.hero .lede{ font-size:21px; line-height:1.5; margin:0 0 14px; max-width:34ch; }
+.hero .meta{ font-family:var(--sans); font-size:15px; color:var(--muted); margin:0 0 22px; max-width:46ch; }
+.hero-map{ width:100%; aspect-ratio:1/1; }
+.hero-map .cl{ fill:none; stroke:var(--contour); stroke-width:1.1; opacity:.8; }
+.hero-map .cl.major{ stroke-width:1.8; }
+.hero-map .gd{ fill:none; stroke:var(--err); stroke-width:2.2; stroke-linejoin:round; stroke-linecap:round; }
+.hero-map .gdpt{ fill:var(--err); }
+.hero-map .minpt{ fill:var(--min); }
+.hero-map .ax{ font-family:var(--sans); font-size:13px; fill:var(--muted); }
+
+/* ---------- levels ---------- */
+.intro{ padding:40px 0 10px; }
+.intro h2, .level h2, .extra h2{ font-family:var(--sans); font-weight:750; font-stretch:78%; font-size:34px; line-height:1.1; letter-spacing:-.01em; margin:0 0 12px; }
+.level{ padding:56px 0 20px; border-top:1px solid var(--rule); }
+.lvl-head{ display:grid; grid-template-columns:auto 1fr; gap:4px 18px; align-items:end; margin-bottom:8px; }
+.lvl-num{ font-family:var(--sans); font-weight:800; font-stretch:62%; font-size:92px; line-height:.8; color:var(--contour); font-variant-numeric:tabular-nums; }
+.lvl-head h2{ margin:0; }
+.lvl-goal{ font-family:var(--sans); color:var(--muted); font-size:16px; margin:12px 0 22px; }
+.lvl-lock{ display:none; border:1.5px dashed var(--lock); border-radius:6px; padding:20px 22px; color:var(--muted); font-family:var(--sans); font-size:16px; }
+.level.locked .lvl-body{ display:none; }
+.level.locked .lvl-lock{ display:block; }
+.level.locked .lvl-num{ color:var(--lock); }
+
+.tabs{ display:flex; gap:4px; border-bottom:1.5px solid var(--rule); margin:0 0 22px; overflow-x:auto; }
+.tabs button{ font-family:var(--sans); font-size:15.5px; font-weight:600; background:none; border:none; color:var(--muted); padding:10px 14px 9px; cursor:pointer; border-bottom:3px solid transparent; margin-bottom:-1.5px; white-space:nowrap; }
+.tabs button[aria-selected="true"]{ color:var(--ink); border-bottom-color:var(--contour); }
+.tabs button:hover{ color:var(--ink); }
+.pane[hidden]{ display:none; }
+.pane h3{ font-family:var(--sans); font-weight:700; font-stretch:88%; font-size:22px; margin:30px 0 8px; }
+.pane h3:first-child{ margin-top:6px; }
+p{ margin:0 0 16px; }
+ul.plain, ol.plain{ margin:0 0 16px; padding-left:22px; }
+ul.plain li, ol.plain li{ margin-bottom:6px; }
+
+.key, .note{ border-left:4px solid var(--contour); background:var(--contour-soft); padding:14px 18px; margin:22px 0; border-radius:0 5px 5px 0; }
+.note{ border-left-color:var(--min); background:transparent; border-top:1px solid var(--rule); border-right:1px solid var(--rule); border-bottom:1px solid var(--rule); }
+.key b.lbl, .note b.lbl{ font-family:var(--sans); display:block; font-size:15px; margin-bottom:4px; }
+.key p:last-child, .note p:last-child{ margin-bottom:0; }
+
+/* math */
+.m{ font-style:italic; white-space:nowrap; }
+.m .u{ font-style:normal; }
+.eq{ display:block; text-align:center; font-size:1.1em; margin:18px 0 20px; padding:6px 0; overflow-x:auto; white-space:nowrap; }
+.eq .m{ white-space:nowrap; }
+.frac{ display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center; margin:0 3px; font-size:.92em; line-height:1.15; }
+.frac > span:first-child{ border-bottom:1.2px solid currentColor; padding:0 3px 1px; }
+.frac > span:last-child{ padding:1px 3px 0; }
+.symb{ font-style:normal; }
+
+/* tables */
+.tw{ overflow-x:auto; margin:10px 0 20px; }
+table{ border-collapse:collapse; font-family:var(--sans); font-size:15px; min-width:100%; font-variant-numeric:tabular-nums; }
+th, td{ text-align:left; padding:7px 12px 7px 0; border-bottom:1px solid var(--rule); vertical-align:top; }
+th{ font-weight:650; border-bottom:1.5px solid var(--ink); }
+
+/* code */
+pre.py{ background:var(--code-bg); border-radius:6px; padding:14px 16px; overflow-x:auto; font-family:var(--mono); font-size:13.8px; line-height:1.55; margin:12px 0 20px; tab-size:4; }
+pre.py .k{ color:var(--blue); font-weight:600; }
+pre.py .s{ color:var(--contour); }
+pre.py .n{ color:var(--min); }
+pre.py .c{ color:var(--muted); font-style:italic; }
+code.i{ font-family:var(--mono); font-size:.86em; background:var(--code-bg); padding:1px 5px; border-radius:3px; }
+
+/* demos */
+.demo{ border:1px solid var(--rule); background:var(--panel); border-radius:7px; padding:18px 18px 14px; margin:26px 0; font-family:var(--sans); font-size:15px; line-height:1.45; }
+.demo-title{ font-weight:700; font-size:17px; margin:0 0 4px; }
+.demo-hint{ color:var(--muted); margin:0 0 14px; }
+.ctrl{ display:grid; grid-template-columns: minmax(150px,auto) 1fr; gap:6px 14px; align-items:center; margin:0 0 10px; }
+.ctrl label{ font-weight:550; }
+.ctrl output{ font-variant-numeric:tabular-nums; font-weight:700; }
+input[type=range]{ width:100%; accent-color:var(--contour); }
+.row{ display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 10px; align-items:center; }
+.readout{ display:flex; flex-wrap:wrap; gap:6px 18px; margin:8px 0 10px; font-variant-numeric:tabular-nums; }
+.readout span b{ font-weight:700; }
+.plots{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.plots.one{ grid-template-columns:1fr; }
+.plotbox{ min-width:0; }
+.plotcap{ font-size:13.5px; color:var(--muted); margin:2px 0 0; }
+svg.plot{ width:100%; height:auto; display:block; }
+svg.plot .axis{ stroke:var(--muted); stroke-width:1; }
+svg.plot .grid{ stroke:var(--rule); stroke-width:1; }
+svg.plot .tick{ font-family:var(--sans); font-size:12px; fill:var(--muted); }
+svg.plot .alabel{ font-family:var(--sans); font-size:12.5px; fill:var(--muted); }
+svg.plot .c-contour{ stroke:var(--contour); fill:none; stroke-width:2.2; }
+svg.plot .c-err{ stroke:var(--err); fill:none; stroke-width:2.2; }
+svg.plot .c-blue{ stroke:var(--blue); fill:none; stroke-width:2.2; }
+svg.plot .c-min{ stroke:var(--min); fill:none; stroke-width:2.2; }
+svg.plot .c-ink{ stroke:var(--ink); fill:none; stroke-width:1.6; }
+svg.plot .dash{ stroke-dasharray:5 4; }
+svg.plot .f-contour{ fill:var(--contour); }
+svg.plot .f-err{ fill:var(--err); }
+svg.plot .f-blue{ fill:var(--blue); }
+svg.plot .f-min{ fill:var(--min); }
+svg.plot .f-ink{ fill:var(--ink); }
+svg.plot .band{ fill:var(--contour-soft); }
+svg.plot .band-err{ fill:var(--err-soft); }
+svg.plot .lbl{ font-family:var(--sans); font-size:12.5px; }
+.legend{ display:flex; flex-wrap:wrap; gap:4px 16px; font-size:13.5px; color:var(--muted); margin:6px 0 0; }
+.sw{ display:inline-block; width:18px; height:3px; vertical-align:middle; margin-right:6px; border-radius:2px; }
+.bars{ display:grid; gap:8px; margin:10px 0; }
+.bar{ display:grid; grid-template-columns:110px 1fr 64px; gap:10px; align-items:center; }
+.bar-track{ height:18px; background:var(--paper); border:1px solid var(--rule); border-radius:3px; overflow:hidden; }
+.bar-fill{ height:100%; background:var(--blue); width:0; transition:width .15s; }
+.bar.correct .bar-fill{ background:var(--contour); }
+.bar.correct .bar-name{ font-weight:700; }
+.bar-val{ text-align:right; font-variant-numeric:tabular-nums; }
+.msg{ font-weight:600; margin:6px 0 4px; min-height:1.4em; }
+.msg.bad{ color:var(--err); }
+.msg.good{ color:var(--contour); }
+.steps td, .steps th{ padding:4px 12px 4px 0; font-size:13.5px; }
+.radio-row{ display:flex; flex-wrap:wrap; gap:6px 16px; margin:4px 0 10px; }
+.radio-row label{ font-weight:500; cursor:pointer; }
+
+/* quiz */
+.quiz{ margin:40px 0 10px; border-top:2px solid var(--ink); padding-top:18px; font-family:var(--sans); font-size:16px; line-height:1.45; }
+.quiz h3{ font-family:var(--sans); font-weight:750; font-stretch:85%; font-size:22px; margin:0 0 4px; }
+.quiz .qintro{ color:var(--muted); margin:0 0 16px; font-size:15px; }
+.q{ border:none; padding:0; margin:0 0 20px; }
+.q legend{ font-weight:650; margin-bottom:8px; padding:0; }
+.opt{ display:flex; gap:10px; align-items:flex-start; padding:8px 10px; border:1px solid var(--rule); border-radius:5px; margin-bottom:6px; cursor:pointer; background:var(--panel); }
+.opt input{ margin-top:4px; accent-color:var(--contour); }
+.opt.ok{ border-color:var(--contour); background:var(--contour-soft); }
+.opt.wrong{ border-color:var(--err); background:var(--err-soft); }
+.expl{ font-size:14.5px; color:var(--muted); margin:4px 2px 0; }
+.qres{ margin:10px 0; font-weight:650; }
+.qres.pass{ color:var(--contour); }
+.qres.fail{ color:var(--err); }
+
+/* extras */
+.extra{ padding:56px 0 20px; border-top:1px solid var(--rule); }
+dl.gloss{ margin:0; font-size:17px; }
+dl.gloss dt{ font-family:var(--sans); font-weight:700; margin-top:14px; }
+dl.gloss dt span{ font-weight:400; color:var(--muted); }
+dl.gloss dd{ margin:2px 0 0; }
+ol.refs{ padding-left:30px; font-size:16px; line-height:1.5; }
+ol.refs li{ margin-bottom:8px; }
+ol.refs .used{ color:var(--muted); font-family:var(--sans); font-size:13.5px; }
+a.ref{ font-family:var(--sans); font-size:.78em; text-decoration:none; vertical-align:super; line-height:0; }
+footer{ font-family:var(--sans); font-size:14px; color:var(--muted); padding:40px 0; border-top:1px solid var(--rule); margin-top:40px; }
+
+/* ---------- mobile ---------- */
+@media (max-width: 920px){
+  .shell{ grid-template-columns:1fr; }
+  .topbar{ display:flex; position:sticky; top:0; z-index:30; align-items:center; gap:12px; padding:10px 18px; padding-top:calc(10px + env(safe-area-inset-top,0px)); margin-top:calc(-1 * env(safe-area-inset-top,0px));
+    background:var(--paper); border-bottom:1px solid var(--rule); font-family:var(--sans); }
+  .topbar .t{ font-weight:700; font-stretch:80%; font-size:18px; flex:1; }
+  .topbar .mini{ width:90px; height:8px; border:1px solid var(--rule); border-radius:2px; overflow:hidden; background:var(--panel); }
+  .topbar .mini i{ display:block; height:100%; width:0; background:var(--contour); transition:width .5s; }
+  .side{ position:fixed; inset:0 auto 0 0; width:min(86vw,320px); max-height:none; height:100%; z-index:50; background:var(--paper);
+    transform:translateX(-102%); transition:transform .25s ease; padding-top:calc(24px + env(safe-area-inset-top,0px)); padding-bottom:calc(24px + env(safe-area-inset-bottom,0px)); }
+  .side.open{ transform:none; box-shadow:0 0 0 100vmax rgba(0,0,0,.35); }
+  main{ padding:0 18px 60px; }
+  .hero{ grid-template-columns:1fr; padding:30px 0 30px; gap:10px; }
+  .hero-map{ max-width:360px; justify-self:center; }
+  .lvl-num{ font-size:70px; }
+  .intro h2, .level h2, .extra h2{ font-size:28px; }
+  body{ font-size:17.5px; }
+  .plots{ grid-template-columns:1fr; }
+  .ctrl{ grid-template-columns:1fr; gap:2px; }
+  .bar{ grid-template-columns:88px 1fr 56px; }
+}
+@media (prefers-reduced-motion: reduce){ .ruler-fill, .topbar .mini i, .side, .bar-fill{ transition:none; } }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <button class="btn small" id="menuBtn" aria-controls="side" aria-expanded="false">Tartalom</button>
+  <span class="t">Veszteségfüggvény</span>
+  <span class="mini" aria-hidden="true"><i id="miniFill"></i></span>
+</div>
+<div class="shell">
+<aside class="side" id="side" aria-label="Tartalomjegyzék">
+  <p class="brand">A veszteségfüggvény</p>
+  <p class="brand-sub">8 szint, szintenként kvízzel</p>
+  <div class="ruler" aria-label="Haladás">
+    <div class="ruler-track"><div class="ruler-fill" id="rulerFill"></div></div>
+    <div class="ruler-ticks" aria-hidden="true"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span></div>
+    <div class="ruler-label" id="rulerLabel">0 / 8 szint teljesítve</div>
+  </div>
+  <ol class="nav" id="nav">
+    <li data-level="1"><a href="#szint-1"><span class="num">1</span><span>Egy szám a tévedésre</span><span class="st"></span></a></li>
+    <li data-level="2"><a href="#szint-2"><span class="num">2</span><span>Sok hibából egy szám</span><span class="st"></span></a></li>
+    <li data-level="3"><a href="#szint-3"><span class="num">3</span><span>A veszteségtáj</span><span class="st"></span></a></li>
+    <li data-level="4"><a href="#szint-4"><span class="num">4</span><span>Lejtőn lefelé</span><span class="st"></span></a></li>
+    <li data-level="5"><a href="#szint-5"><span class="num">5</span><span>Osztályozás és keresztentrópia</span><span class="st"></span></a></li>
+    <li data-level="6"><a href="#szint-6"><span class="num">6</span><span>Honnan jönnek a veszteségek?</span><span class="st"></span></a></li>
+    <li data-level="7"><a href="#szint-7"><span class="num">7</span><span>A mérce testre szabása</span><span class="st"></span></a></li>
+    <li data-level="8"><a href="#szint-8"><span class="num">8</span><span>Amikor a mérce elcsúszik</span><span class="st"></span></a></li>
+  </ol>
+  <ol class="nav nav-extra">
+    <li><a href="#osszefoglalo">Összefoglaló táblázat</a></li>
+    <li><a href="#glosszarium">Glosszárium</a></li>
+    <li><a href="#irodalom">Irodalom</a></li>
+  </ol>
+  <div class="side-tools">
+    <button class="btn small ghost" id="themeBtn">Sötét / világos mód</button>
+    <button class="btn small ghost" id="unlockAll">Minden szint feloldása (áttekintéshez)</button>
+    <button class="btn small ghost" id="resetBtn">Haladás törlése</button>
+  </div>
+</aside>
+
+<main id="main">
+<header class="hero">
+  <div>
+    <h1>A veszteség&shy;függvény</h1>
+    <p class="lede">Az a szám, amiből egy gép tanul, és ami eldönti, <em>mit</em> tanul meg.</p>
+    <p class="meta">Az esztergált átmérőtől a nagy nyelvi modellek finomhangolásáig. Minden szint három mélységben olvasható: intuíció, matematika, kutatói szint. A következő szint a kvíz teljesítésével nyílik meg (3-ból 2 jó válasz).</p>
+    <a class="btn primary" href="#szint-1" style="text-decoration:none;display:inline-block">Kezdés az 1. szintnél</a>
+  </div>
+  <svg class="hero-map" id="heroMap" viewBox="0 0 400 400" role="img" aria-label="Szintvonalas veszteségtáj, rajta a gradiens-módszer lépései a völgy aljáig"></svg>
+</header>
+
+<div class="col">
+<section class="intro">
+  <h2>Mielőtt elindulsz</h2>
+  <p>A képen egy veszteségtáj látható felülről, szintvonalakkal, mint egy turistatérképen. A piros vonal egy tanuló algoritmus útja: minden lépésben lefelé indul a lejtőn, amíg el nem ér a völgy aljára. Ez az anyag azt magyarázza el, mi ez a „magasság”, ki határozza meg, és miért ezen múlik minden, amit egy gép megtanul.</p>
+  <p>A három mélységi réteg közül bármikor válthatsz. Az <b>intuíció</b> képlet nélkül, példákkal magyaráz. A <b>matematika</b> réteg bevezeti a jelöléseket, és minden jelet megmagyaráz, amikor először előkerül. A <b>kutatói szint</b> a szakirodalomhoz köt. A kvízek az intuíció és a matematika rétegre épülnek. A kódrészletek olvasásra valók, soronként kommentálva.</p>
+</section>
+
+<!-- ================= 1. SZINT ================= -->
+<section class="level" id="szint-1" data-level="1">
+  <div class="lvl-head"><span class="lvl-num">1</span><h2>Egy szám, ami megmondja, mennyit tévedtünk</h2></div>
+  <p class="lvl-goal">Cél: megérteni, mi a veszteség, miért kell egyetlen számnak lennie, és hogy a mércét mi választjuk.</p>
+  <div class="lvl-lock">Ez a szint zárolva van. Teljesítsd az előző szint kvízét.</div>
+  <div class="lvl-body">
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-pane="1a">Intuíció</button>
+      <button role="tab" aria-selected="false" data-pane="1b">Matematika</button>
+      <button role="tab" aria-selected="false" data-pane="1c">Kutatói szint</button>
+    </div>
+
+    <div class="pane" id="p-1a" role="tabpanel">
+      <p>Egy tengelyt kell esztergálni 50,00 ± 0,05 mm-re. A gép 50,03 mm-t gyárt. Mennyire jó ez?</p>
+      <p>Egy embernek elég annyi, hogy „tűrésen belül van, kicsit nagy”. Egy tanuló gépnek viszont <b>egyetlen számra</b> van szüksége, amely annál nagyobb, minél rosszabb az eredmény. Csak így tudja eldönteni, hogy egy változtatás javított-e vagy rontott. Ez a szám a <b>veszteség</b>, a szabályt pedig, amellyel az eltérésből kiszámoljuk, <b>veszteségfüggvénynek</b> hívjuk.</p>
+      <h3>Miért nem jó maga az eltérés?</h3>
+      <p>Az eltérés itt +0,03 mm. Ha a következő darab −0,03 mm lesz, a kettő átlaga 0, mintha mindkét darab tökéletes lett volna. Az előjeles eltérés tehát nem mérce, mert a pozitív és a negatív hibák kioltják egymást. Két szokásos megoldás van: vesszük az eltérés <b>abszolút értékét</b> (az előjelet eldobjuk), vagy a <b>négyzetét</b> (a négyzet sosem negatív).</p>
+      <p>Van egy harmadik, a műhelyben megszokott mérce is: a <b>tűrésmező-szemlélet</b>. Tűrésen belül minden rendben (veszteség 0), kívül selejt (veszteség egy fix érték). Taguchi japán minőségmérnök éppen ezt kritizálta: szerinte már a névlegestől való kis eltérés is veszteség, mert a darab rosszabbul illeszkedik, hamarabb kopik, és ez a veszteség az eltérés négyzetével nő <a class="ref" href="#ref-1">[1]</a>. A gépi tanulás négyzetes vesztesége és a Taguchi-féle minőségi veszteség ugyanaz a gondolat.</p>
+
+      <div class="demo" id="d1">
+        <p class="demo-title">Kísérlet: egy darab, három mérce</p>
+        <p class="demo-hint">Húzd a csúszkát. Az eltérést tűrésegységben mérjük: 1 egység = 0,05 mm, vagyis a ±1 a tűrés határa.</p>
+        <div class="ctrl"><label for="d1x">Gyártott átmérő</label><div><output id="d1xv"></output> mm<input type="range" id="d1x" min="49.9" max="50.1" step="0.001" value="50.03"></div></div>
+        <div class="readout" id="d1r"></div>
+        <svg class="plot" id="d1svg" aria-label="A három veszteség az eltérés függvényében"></svg>
+        <div class="legend"><span><i class="sw" style="background:var(--blue)"></i>abszolút: |e|</span><span><i class="sw" style="background:var(--contour)"></i>négyzetes: e²</span><span><i class="sw" style="background:var(--err)"></i>tűrésmező (bent 0, kint selejt)</span></div>
+      </div>
+
+      <p>Figyeld meg, hol keresztezi egymást a kék és a zöld görbe: pontosan a tűrés határán, ±1-nél. Tűrésen belül a négyzetes veszteség <em>kisebb</em>, mint az abszolút, kívül <em>sokkal nagyobb</em>. A négyzetes mérce tehát elnézi az apró hibákat, a nagyokat viszont keményen bünteti.</p>
+      <div class="key"><b class="lbl">Kulcsgondolat</b><p>A veszteségfüggvény nem a gép része, hanem a mérce, amit mi választunk hozzá. Ugyanaz a gép más mércével mást tanul meg. Az egész anyag erről a mondatról szól.</p></div>
+    </div>
+
+    <div class="pane" id="p-1b" role="tabpanel" hidden>
+      <h3>Jelölések</h3>
+      <p>A gépi tanulásban a helyes (mért, elvárt) értéket <span class="m">y</span>-nal jelöljük, a modell válaszát <span class="m">ŷ</span>-nal („y kalap”). Az eltérés, más néven hiba vagy <b>reziduum</b>:</p>
+      <div class="eq"><span class="m">e = ŷ − y</span></div>
+      <p>A példában <span class="m">y</span> = 50,00 a névleges érték, <span class="m">ŷ</span> = 50,03 a gyártott, tehát <span class="m">e</span> = +0,03 mm.</p>
+      <h3>A két alap-veszteség</h3>
+      <div class="eq"><span class="m">L<sub>abs</sub>(ŷ, y) = |ŷ − y|</span> &nbsp;&nbsp;&nbsp;&nbsp; <span class="m">L<sub>négyz</sub>(ŷ, y) = (ŷ − y)²</span></div>
+      <p>Az <span class="m">L</span> betű az angol <em>loss</em> (veszteség) rövidítése. A függőleges vonal az abszolút érték: az előjelet dobja el, |−3| = 3 és |3| = 3. A négyzet szintén pozitívvá tesz mindent, de közben át is méretez: (−3)² = 9.</p>
+      <div class="tw"><table>
+        <thead><tr><th>Eltérés (tűrésegység)</th><th>|e|</th><th>e²</th><th>Mit jelent</th></tr></thead>
+        <tbody>
+          <tr><td>0,5</td><td>0,5</td><td>0,25</td><td>kis hiba: a négyzet elnézőbb</td></tr>
+          <tr><td>1</td><td>1</td><td>1</td><td>a két mérce itt egyenlő</td></tr>
+          <tr><td>2</td><td>2</td><td>4</td><td>kétszeres hiba, négyszeres büntetés</td></tr>
+          <tr><td>4</td><td>4</td><td>16</td><td>a nagy hiba uralja a számítást</td></tr>
+        </tbody>
+      </table></div>
+      <div class="note"><b class="lbl">Mértékegység</b><p>Ha az eltérés mm-ben van, a négyzetes veszteség mm²-ben. Ezért szokás a négyzetes veszteségek átlagából a végén gyököt vonni (RMSE, 2. szint): így az eredmény újra mm-ben olvasható. Az is következik ebből, hogy a „kis” és „nagy” hiba határa a mértékegységtől függ. A demóban ezért tűrésegységben mértünk: így a kereszteződés pont a tűrés határára esik.</p></div>
+      <pre class="py">import numpy as np
+
+cel = 50.00          # névleges átmérő [mm]
+tures = 0.05         # ± tűrés [mm]
+gyartott = 50.03     # a gép által gyártott átmérő [mm]
+
+e = gyartott - cel               # előjeles eltérés: +0.03 mm
+abs_veszteseg = abs(e)           # |e| = 0.03 mm
+negyzetes_veszteseg = e ** 2     # e² = 0.0009 mm² (figyelem: mm²!)
+
+# tűrésmező-szemlélet: tűrésen belül 0, kívül fix "selejt-ár"
+turesmezo_veszteseg = 0.0 if abs(e) &lt;= tures else 1.0</pre>
+    </div>
+
+    <div class="pane" id="p-1c" role="tabpanel" hidden>
+      <h3>Veszteség, költség, célfüggvény</h3>
+      <p>A szakirodalom három szót használ, sokszor lazán. A <b>veszteség</b> (<em>loss</em>) szigorúan véve egyetlen példára vonatkozik. A <b>költség</b> vagy <b>célfüggvény</b> (<em>cost</em>, <em>objective</em>) az, amit ténylegesen optimalizálunk: általában a veszteségek átlaga a tanítóadaton, néha kiegészítve egy büntetőtaggal (7. szint). Az átlagot <b>empirikus kockázatnak</b> hívják:</p>
+      <div class="eq"><span class="m">R̂(θ) = <span class="frac"><span>1</span><span>n</span></span> <span class="symb">Σ</span><sub>i</sub> L(f<sub>θ</sub>(x<sub>i</sub>), y<sub>i</sub>)</span></div>
+      <p>Itt <span class="m">θ</span> a modell paraméterei, <span class="m">f<sub>θ</sub></span> maga a modell. Amit valójában szeretnénk, az a <b>várható kockázat</b>: a veszteség átlaga az összes jövőbeli, még nem látott adaton. Ezt nem ismerjük, csak mintából becsüljük. A kettő közti rés a generalizáció kérdése, erről a 7. szint szól <a class="ref" href="#ref-6">[6]</a>.</p>
+      <h3>Döntéselméleti gyökerek</h3>
+      <p>A veszteségfüggvény fogalma a statisztikai döntéselméletből jön. Wald megfogalmazásában minden becslés egy döntés, a veszteség pedig a rossz döntés ára <a class="ref" href="#ref-2">[2]</a>. Ez a nézőpont azért fontos, mert világossá teszi, hogy a veszteség <em>értékítélet</em>: azt kódolja, mennyibe kerül nekünk egy adott tévedés. Taguchi minőségi veszteségfüggvénye, <span class="m">L(y) = k(y − m)²</span>, ugyanezt mondja a gyártásban: a <span class="m">k</span> állandó forintosítja az eltérést <a class="ref" href="#ref-1">[1]</a>.</p>
+      <h3>Miért nem a tűrésmező-veszteségen tanítunk?</h3>
+      <p>A 0/1 típusú (bent/kint) veszteség szinte mindenhol vízszintes: egy kis változtatás a paraméteren nem mozdítja az értékét. A 4. szinten kiderül, hogy a tanulás a veszteség meredekségéből tájékozódik, így ebből a mércéből nem kapna irányt. Ezért a gyakorlatban „helyettesítő” (<em>surrogate</em>) veszteségen tanítunk, amely sima és meredek, és csak a végén mérünk a számunkra fontos, de rosszul tanítható mércével.</p>
+    </div>
+
+    <div class="quiz" data-level="1"></div>
+  </div>
+</section>
+
+<!-- ================= 2. SZINT ================= -->
+<section class="level" id="szint-2" data-level="2">
+  <div class="lvl-head"><span class="lvl-num">2</span><h2>Sok hibából egy szám: MSE és MAE</h2></div>
+  <p class="lvl-goal">Cél: látni, hogy a veszteség megválasztása eldönti, melyik válasz lesz „a legjobb”, és hogy az átlag, illetve a medián honnan jön.</p>
+  <div class="lvl-lock">Ez a szint zárolva van. Teljesítsd az előző szint kvízét.</div>
+  <div class="lvl-body">
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-pane="2a">Intuíció</button>
+      <button role="tab" aria-selected="false" data-pane="2b">Matematika</button>
+      <button role="tab" aria-selected="false" data-pane="2c">Kutatói szint</button>
+    </div>
+
+    <div class="pane" id="p-2a" role="tabpanel">
+      <p>Egy darab helyett most hét darab átmérőjét mérted meg. A kérdés: ha egyetlen számmal kellene leírnod, mekkorát gyárt a gép, melyik szám lenne a legjobb? Ez a legegyszerűbb „modell”: egyetlen becslés, jelöljük <span class="m">c</span>-vel.</p>
+      <p>Minden darabra kiszámolod a veszteséget, aztán átlagolod. Ha a négyzetes veszteséget átlagolod, az az <b>MSE</b> (átlagos négyzetes hiba). Ha az abszolútat, az az <b>MAE</b> (átlagos abszolút hiba). A legjobb <span class="m">c</span> az, amelyiknél ez az átlag a legkisebb.</p>
+
+      <div class="demo" id="d2">
+        <p class="demo-title">Kísérlet: melyik szám írja le legjobban a mérést?</p>
+        <p class="demo-hint">Mozgasd a becslést, és figyeld, hol van a két görbe alja. Aztán kapcsold be a kiugró értéket: egy darabot forgáccsal a pofák között mértek meg.</p>
+        <div class="ctrl"><label for="d2c">Becslés (c)</label><div><output id="d2cv"></output> mm<input type="range" id="d2c" min="49.95" max="50.45" step="0.001" value="50.10"></div></div>
+        <div class="row">
+          <label style="font-weight:550;cursor:pointer"><input type="checkbox" id="d2out"> Kiugró érték (50,40 mm)</label>
+          <button class="btn small" id="d2mean">Átlagra állít</button>
+          <button class="btn small" id="d2med">Mediánra állít</button>
+        </div>
+        <div class="readout" id="d2r"></div>
+        <svg class="plot" id="d2strip" aria-label="A hét mérés egy tengelyen"></svg>
+        <div class="plots">
+          <div class="plotbox"><svg class="plot" id="d2mse"></svg><p class="plotcap">MSE(c), mm²</p></div>
+          <div class="plotbox"><svg class="plot" id="d2mae"></svg><p class="plotcap">MAE(c), mm</p></div>
+        </div>
+        <div class="legend"><span><i class="sw" style="background:var(--min)"></i>a becslés (c)</span><span><i class="sw" style="background:var(--blue)"></i>átlag</span><span><i class="sw" style="background:var(--contour)"></i>medián</span></div>
+      </div>
+
+      <p>Amit látnod kell: az MSE-görbe alja pontosan az <b>átlagnál</b> van, az MAE-görbéé a <b>mediánnál</b> (a sorba rendezett értékek középsőjénél). Kiugró érték nélkül a kettő szinte egybeesik. Ha bekapcsolod a hibás mérést, az átlag észrevehetően elmozdul, a medián alig.</p>
+      <p>Melyik a jó? Ez nem matematikai, hanem mérnöki kérdés. Ha a kiugró érték <em>valódi</em> (a gép tényleg gyártott egy ilyen darabot, és az drága), az MSE helyesen figyelmeztet rá. Ha <em>mérési hiba</em>, az MAE-nek van igaza, mert nem hagyja magát elhúzni.</p>
+      <div class="key"><b class="lbl">Kulcsgondolat</b><p>Nincs „semleges” veszteség. Az MSE-vel azt mondod, hogy a nagy hibák aránytalanul fontosak, az MAE-vel azt, hogy minden milliméter ugyanannyit ér. A két mérce más választ tart a legjobbnak.</p></div>
+    </div>
+
+    <div class="pane" id="p-2b" role="tabpanel" hidden>
+      <h3>A szumma jel</h3>
+      <p>A <span class="symb">Σ</span> (nagy görög szigma) azt jelenti: add össze. A <span class="m"><span class="symb">Σ</span><sub>i=1</sub><sup>n</sup> y<sub>i</sub></span> kiolvasva: „az <span class="m">y<sub>i</sub></span> értékek összege, ahol <span class="m">i</span> 1-től <span class="m">n</span>-ig fut”. Nálunk <span class="m">n</span> = 7, az <span class="m">y<sub>1</sub></span>, …, <span class="m">y<sub>7</sub></span> a hét mért átmérő.</p>
+      <div class="eq"><span class="m">MSE(c) = <span class="frac"><span>1</span><span>n</span></span> <span class="symb">Σ</span><sub>i</sub> (y<sub>i</sub> − c)²</span> &nbsp;&nbsp;&nbsp;&nbsp; <span class="m">MAE(c) = <span class="frac"><span>1</span><span>n</span></span> <span class="symb">Σ</span><sub>i</sub> |y<sub>i</sub> − c|</span></div>
+      <h3>Miért pont az átlag minimalizálja az MSE-t?</h3>
+      <p>Egy szép átrendezéssel, deriválás nélkül is látható. Jelölje <span class="m">ȳ</span> az átlagot, <span class="m">s²</span> pedig a mérések szórásnégyzetét (az átlagtól vett eltérések négyzetének átlaga). Ekkor minden <span class="m">c</span>-re igaz:</p>
+      <div class="eq"><span class="m">MSE(c) = (ȳ − c)² + s²</span></div>
+      <p>Az első tag azt méri, milyen messze van a becslés az átlagtól. Ez a becsléstől függ, és nulla, ha <span class="m">c = ȳ</span>. A második tag, <span class="m">s²</span>, egyáltalán nem függ <span class="m">c</span>-től: ez a mérések saját szórása. Ebből két dolog következik. Az MSE minimuma az átlagnál van, és a legkisebb elérhető érték maga a szórásnégyzet. Egyetlen állandó becslés sem lehet ennél jobb: ezt a részt a gép zaja okozza, nem a becslés. Ezt a gépi tanulásban <b>irreducibilis hibának</b> hívják.</p>
+      <h3>És miért a medián az MAE-t?</h3>
+      <p>Toljuk <span class="m">c</span>-t egy hajszálnyival jobbra. Minden olyan mérésnél, amely <span class="m">c</span> alatt van, a távolság nő, minden felette lévőnél csökken, mindegyiknél ugyanannyival. Ha több mérés van alatta, mint felette, a mozgatás rontott. Ha kevesebb, javított. A mérleg akkor áll egyensúlyban, amikor ugyanannyi mérés van alatta, mint felette: ez a medián. A kiugró érték ezért nem húzza el: az MAE-nek csak az számít, hogy egy mérés melyik oldalon van, az nem, hogy milyen messze.</p>
+      <div class="note"><b class="lbl">RMSE</b><p>Az MSE mm²-ben van. A gyöke, <span class="m">RMSE = √MSE</span>, újra mm-ben olvasható, és ha a becslés az átlag, pontosan a szórást adja. A tanításnál mindegy, melyiket minimalizáljuk, mert a gyökvonás nem változtat a minimum helyén. Az RMSE a jelentésben hasznos.</p></div>
+      <pre class="py">y = np.array([50.02, 49.98, 50.01, 50.03, 49.99, 50.00, 50.02])  # 7 mért átmérő [mm]
+
+def mse(c):                          # átlagos négyzetes hiba egy "c" becslésre
+    return np.mean((y - c) ** 2)
+
+def mae(c):                          # átlagos abszolút hiba
+    return np.mean(np.abs(y - c))
+
+print(y.mean(), mse(y.mean()))       # az átlagnál a legkisebb az MSE
+print(np.median(y), mae(np.median(y)))  # a mediánnál a legkisebb az MAE
+print(np.var(y))                     # = mse(y.mean()): ennél lejjebb nem lehet menni</pre>
+    </div>
+
+    <div class="pane" id="p-2c" role="tabpanel" hidden>
+      <h3>Legendre, Gauss és a legkisebb négyzetek</h3>
+      <p>A négyzetes hiba minimalizálását Legendre publikálta először 1805-ben, üstököspályák számításához <a class="ref" href="#ref-3">[3]</a>. Gauss 1809-ben valószínűségi indoklást adott hozzá: ha a mérési hibák normális (Gauss-) eloszlásúak, a legkisebb négyzetes becslés a legvalószínűbb <a class="ref" href="#ref-4">[4]</a>. Ez a kapcsolat a 6. szint központi gondolata. Az abszolút eltérések minimalizálása még régebbi, de sokáig háttérbe szorult, mert az abszolút érték a nullában nem deriválható, és kézzel sokkal nehezebb vele számolni.</p>
+      <h3>Robusztusság és a Huber-veszteség</h3>
+      <p>A <b>törési pont</b> (<em>breakdown point</em>) azt mondja meg, az adatok mekkora hányadát kell tetszőlegesen elrontani ahhoz, hogy a becslés tetszőlegesen elszálljon. Az átlagé 0 (elég egyetlen rossz mérés, ha elég rossz), a mediáné 50%. Huber 1964-ben a két világ ötvözetét javasolta <a class="ref" href="#ref-5">[5]</a>: kis hibánál négyzetes, nagynál lineáris veszteséget.</p>
+      <div class="eq"><span class="m">L<sub>δ</sub>(e) = ½ e²</span>, ha <span class="m">|e| ≤ δ</span>; &nbsp;&nbsp; <span class="m">L<sub>δ</sub>(e) = δ(|e| − ½δ)</span>, ha <span class="m">|e| &gt; δ</span></div>
+      <p>A <span class="m">δ</span> küszöb egy mérnöki döntés: meddig hiszünk a hibának, és honnan kezdjük gyanúsnak tartani. A mély tanulásban ennek egy változata a <em>smooth L1</em> veszteség, amelyet például objektumdetektorok dobozkoordinátáinak regressziójára használnak.</p>
+      <h3>A felbontás általánosan</h3>
+      <p>Az <span class="m">MSE(c) = (ȳ − c)² + s²</span> azonosság a torzítás–variancia felbontás legegyszerűbb esete. A tanult modelleknél a várható négyzetes hiba három részre bomlik: torzítás² + variancia + irreducibilis zaj <a class="ref" href="#ref-6">[6]</a>. A 7. szinten ez visszatér a túlillesztésnél.</p>
+    </div>
+
+    <div class="quiz" data-level="2"></div>
+  </div>
+</section>
+
+<!-- ================= 3. SZINT ================= -->
+<section class="level" id="szint-3" data-level="3">
+  <div class="lvl-head"><span class="lvl-num">3</span><h2>A veszteségtáj: a paraméterek térképe</h2></div>
+  <p class="lvl-goal">Cél: megérteni, hogy a tanulás egy táj legmélyebb pontjának keresése, és hogy ezt a tájat a modell és a veszteség együtt adja.</p>
+  <div class="lvl-lock">Ez a szint zárolva van. Teljesítsd az előző szint kvízét.</div>
+  <div class="lvl-body">
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-pane="3a">Intuíció</button>
+      <button role="tab" aria-selected="false" data-pane="3b">Matematika</button>
+      <button role="tab" aria-selected="false" data-pane="3c">Kutatói szint</button>
+    </div>
+
+    <div class="pane" id="p-3a" role="tabpanel">
+      <p>Eddig egyetlen számot becsültünk. Most legyen egy igazi modell. Egy rudat különböző erőkkel húzunk, és mérjük a megnyúlását. A Hooke-törvény szerint a megnyúlás arányos az erővel: <span class="m">Δl = w · F</span>. A <span class="m">w</span> arányossági tényező a modell egyetlen <b>paramétere</b>, ezt kell megtanulni a mérésekből.</p>
+      <p>Minden lehetséges <span class="m">w</span>-hez tartozik egy egyenes, és minden egyeneshez egy MSE. Ha minden <span class="m">w</span>-re kiszámolod az MSE-t, és felrajzolod, kapsz egy görbét. Ez a <b>veszteségtáj</b>. A tanulás nem más, mint ennek a tájnak a legmélyebb pontját megkeresni.</p>
+
+      <div class="demo" id="d3">
+        <p class="demo-title">Kísérlet: egy paraméter, egy táj</p>
+        <p class="demo-hint">Bal oldalon az egyenes és a piros hibaszakaszok, jobb oldalon ugyanez a helyzet a veszteségtájon, egyetlen pontként.</p>
+        <div class="ctrl"><label for="d3w">Paraméter (w)</label><div><output id="d3wv"></output> mm/kN<input type="range" id="d3w" min="0" max="0.24" step="0.001" value="0.06"></div></div>
+        <div class="readout" id="d3r"></div>
+        <div class="plots">
+          <div class="plotbox"><svg class="plot" id="d3fit"></svg><p class="plotcap">Mérés és modell: erő [kN] – megnyúlás [mm]</p></div>
+          <div class="plotbox"><svg class="plot" id="d3land"></svg><p class="plotcap">Veszteségtáj: MSE a w függvényében</p></div>
+        </div>
+      </div>
+
+      <p>Két paraméternél (például ha a modell <span class="m">Δl = w·F + b</span>, vagyis egy eltolást is tanul) a táj már felület, mint a lap tetején lévő szintvonalas térkép. Egy neurális hálónak milliónyi vagy milliárdnyi paramétere van, így a tája ennyi dimenziós. Ezt senki nem látja. Az algoritmus sem látja: csak azt érzékeli, merre lejt a talaj ott, ahol éppen áll. Erről szól a 4. szint.</p>
+      <div class="key"><b class="lbl">Kulcsgondolat</b><p>A táj alakját két dolog együtt adja: a modell (milyen függvényeket tud felvenni) és a veszteségfüggvény (mit tartunk rossznak). Ha bármelyiket kicseréled, más tájat kapsz, és más lesz a legmélyebb pont.</p></div>
+    </div>
+
+    <div class="pane" id="p-3b" role="tabpanel" hidden>
+      <h3>A táj képlete</h3>
+      <p>A modell jóslata az <span class="m">i</span>-edik mérésre <span class="m">ŷ<sub>i</sub> = w · x<sub>i</sub></span>, ahol <span class="m">x<sub>i</sub></span> az erő, <span class="m">y<sub>i</sub></span> a mért megnyúlás. A veszteségtáj:</p>
+      <div class="eq"><span class="m">L(w) = <span class="frac"><span>1</span><span>n</span></span> <span class="symb">Σ</span><sub>i</sub> (w x<sub>i</sub> − y<sub>i</sub>)²</span></div>
+      <p>Ha a zárójelet kibontjuk, és a felülvonással az átlagot jelöljük:</p>
+      <div class="eq"><span class="m">L(w) = <span style="text-decoration:overline">x²</span> · w² − 2 · <span style="text-decoration:overline">xy</span> · w + <span style="text-decoration:overline">y²</span></span></div>
+      <p>Ez egy közönséges másodfokú függvény <span class="m">w</span>-ben, vagyis felfelé nyíló parabola. A parabola csúcsa (a minimum) a középiskolából ismert <span class="m">−b/(2a)</span> képlettel adódik:</p>
+      <div class="eq"><span class="m">w* = <span class="frac"><span><span class="symb">Σ</span> x<sub>i</sub> y<sub>i</sub></span><span><span class="symb">Σ</span> x<sub>i</sub>²</span></span></span></div>
+      <p>A mérési adatainkkal <span class="m">Σ x<sub>i</sub>y<sub>i</sub></span> = 97,76 és <span class="m">Σ x<sub>i</sub>²</span> = 816, így <span class="m">w*</span> ≈ 0,1198 mm/kN. Ezt nem kellett keresgélni: ennél az egyszerű esetnél a legmélyebb pont zárt képlettel kiszámolható.</p>
+      <h3>Két paraméter</h3>
+      <p>Ha a modell <span class="m">ŷ = w·x + b</span>, a táj <span class="m">L(w, b)</span> egy kétváltozós felület: egy elliptikus tál. A szintvonalai ellipszisek. Az ellipszis lapultsága azt mutatja, hogy a két irányban mennyire eltérő a meredekség, és a 4. szinten kiderül, hogy ez lassítja a keresést.</p>
+      <pre class="py">F  = np.array([2, 4, 6, 8, 10, 12, 14, 16])                     # húzóerő [kN]
+dl = np.array([0.27, 0.44, 0.77, 0.94, 1.26, 1.39, 1.70, 1.89])  # megnyúlás [mm]
+
+def L(w):                         # a veszteségtáj egy paraméterre
+    return np.mean((w * F - dl) ** 2)
+
+ws = np.linspace(0, 0.24, 241)    # végigpásztázzuk a lehetséges w-ket
+taj = [L(w) for w in ws]          # ez a görbe maga a "táj"
+
+w_opt = np.sum(F * dl) / np.sum(F ** 2)   # zárt alakú minimum (a parabola csúcsa)
+print(round(w_opt, 4))                    # ≈ 0.1198 mm/kN</pre>
+    </div>
+
+    <div class="pane" id="p-3c" role="tabpanel" hidden>
+      <h3>Konvex és nem konvex tájak</h3>
+      <p>Egy függvény <b>konvex</b>, ha bármely két pontját összekötő szakasz a görbe felett halad. Egy konvex tájnak nincs „álvölgye”: minden lokális minimum egyben globális. A lineáris modell MSE-vel mindig konvex, ezért tudtunk zárt képletet adni. Amint a modellben nemlineáris rétegek jelennek meg (egy neurális háló aktivációs függvényei), a táj általában nem konvex <a class="ref" href="#ref-6">[6]</a>.</p>
+      <h3>Mi van egy magas dimenziós tájon?</h3>
+      <p>A régi félelem az volt, hogy a gradiens-módszer rossz lokális minimumokban ragad. Dauphin és munkatársai amellett érveltek, hogy nagy dimenzióban a kritikus pontok (ahol a lejtő nulla) túlnyomó többsége <b>nyeregpont</b>: bizonyos irányokban lefelé, másokban felfelé görbül. Az igazi akadály ezért inkább a nyeregpontok körüli lelassulás <a class="ref" href="#ref-7">[7]</a>. Li és munkatársai a táj alacsony dimenziós metszeteit vizualizálták, és azt találták, hogy az architektúra (például a reziduális kapcsolatok) jelentősen simábbá teheti a tájat <a class="ref" href="#ref-8">[8]</a>.</p>
+      <h3>Lapos és éles minimumok</h3>
+      <p>Egy régóta vizsgált hipotézis szerint a lapos, széles völgyekbe érkező megoldások jobban általánosítanak, mint az éles, keskeny völgyekbe érkezők. Keskar és munkatársai ezzel magyarázták, hogy a nagyon nagy minibatch-ekkel tanított hálók gyengébben teljesítenek új adaton <a class="ref" href="#ref-9">[9]</a>. A hipotézis vitatott, mert az élesség függ a paraméterezéstől, de jó példa arra, hogy nem csak a völgy mélysége számít, hanem az alakja is.</p>
+    </div>
+
+    <div class="quiz" data-level="3"></div>
+  </div>
+</section>
+
+<!-- ================= 4. SZINT ================= -->
+<section class="level" id="szint-4" data-level="4">
+  <div class="lvl-head"><span class="lvl-num">4</span><h2>Lejtőn lefelé: a gradiens-módszer</h2></div>
+  <p class="lvl-goal">Cél: megérteni, hogyan találja meg az algoritmus a völgy alját, amikor nem látja a tájat, és miért kritikus a lépésköz.</p>
+  <div class="lvl-lock">Ez a szint zárolva van. Teljesítsd az előző szint kvízét.</div>
+  <div class="lvl-body">
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-pane="4a">Intuíció</button>
+      <button role="tab" aria-selected="false" data-pane="4b">Matematika</button>
+      <button role="tab" aria-selected="false" data-pane="4c">Kutatói szint</button>
+    </div>
+
+    <div class="pane" id="p-4a" role="tabpanel">
+      <p>Képzeld el, hogy sűrű ködben állsz egy domboldalon, és le kell jutnod a völgybe. A völgyet nem látod, de a talpadon érzed, merre lejt a talaj. A legjobb stratégia: lépj egyet a lejtés irányába, aztán újra tapogasd ki, merre lejt, és lépj megint. Ez a <b>gradiens-módszer</b>. A <b>gradiens</b> a lejtő meredeksége és iránya.</p>
+      <p>Egyetlen fontos döntés marad: mekkorát lépj. Ez a <b>tanulási ráta</b>. Ha túl kicsit, évekig tart leérni. Ha túl nagyot, átlépsz a völgy felett a túloldalra, és ha nagyon nagyot, minden lépéssel egyre magasabbra jutsz: az algoritmus „szétszáll”.</p>
+
+      <div class="demo" id="d4">
+        <p class="demo-title">Kísérlet: találd meg a jó lépésközt</p>
+        <p class="demo-hint">Ugyanaz a táj, mint a 3. szinten. Állítsd be a tanulási rátát, és lépkedj. Próbáld ki a 0,003-at, a 0,009-et és a 0,011-et.</p>
+        <div class="ctrl"><label for="d4eta">Tanulási ráta (η)</label><div><output id="d4etav"></output><input type="range" id="d4eta" min="0.0005" max="0.012" step="0.0005" value="0.003"></div></div>
+        <div class="row">
+          <button class="btn small" id="d4step">1 lépés</button>
+          <button class="btn small" id="d4step10">10 lépés</button>
+          <button class="btn small ghost" id="d4reset">Újrakezdés</button>
+        </div>
+        <p class="msg" id="d4msg"></p>
+        <div class="plots">
+          <div class="plotbox"><svg class="plot" id="d4land"></svg><p class="plotcap">A lépések a veszteségtájon</p></div>
+          <div class="plotbox"><div class="tw" style="margin:0"><table class="steps" id="d4tbl"></table></div></div>
+        </div>
+      </div>
+
+      <p>Egy neurális hálóban ugyanez történik, csak nem egy, hanem millió paraméterrel egyszerre. Minden paraméterre kiszámolják, merre és mennyire lejt a táj abban az irányban, és mindegyiket egy kicsit a lejtővel ellentétesen mozdítják. Ezt a számítást végzi el hatékonyan a <b>visszaterjesztés</b> (<em>backpropagation</em>).</p>
+      <div class="key"><b class="lbl">Kulcsgondolat</b><p>A tanuló algoritmus csak a veszteség meredekségét érzékeli. Ezért kell a veszteségfüggvénynek simának lennie, és ezért nem lehet közvetlenül a „tűrésen belül vagy kívül” mércén tanítani: az szinte mindenhol vízszintes, nem mutat irányt.</p></div>
+    </div>
+
+    <div class="pane" id="p-4b" role="tabpanel" hidden>
+      <h3>A derivált mint meredekség</h3>
+      <p>A <span class="m">L′(w)</span> derivált azt mondja meg, mennyit változik a veszteség, ha <span class="m">w</span>-t egy nagyon kicsit megnöveljük. Közelítőleg:</p>
+      <div class="eq"><span class="m">L′(w) ≈ <span class="frac"><span>L(w + h) − L(w)</span><span>h</span></span></span>, &nbsp;&nbsp; ahol <span class="m">h</span> nagyon kicsi</div>
+      <p>Ha <span class="m">L′(w)</span> pozitív, a táj jobbra emelkedik, tehát balra kell lépni, és fordítva. Ezt a lépésszabály egy sorban kifejezi:</p>
+      <div class="eq"><span class="m">w<sub>új</sub> = w − η · L′(w)</span></div>
+      <p>A mi tájunkra a derivált: <span class="m">L′(w) = <span class="frac"><span>2</span><span>n</span></span> <span class="symb">Σ</span><sub>i</sub> x<sub>i</sub>(w x<sub>i</sub> − y<sub>i</sub>)</span>. Minden mérés a saját hibájával (<span class="m">w x<sub>i</sub> − y<sub>i</sub></span>) arányosan húzza a paramétert, súlyozva azzal, mekkora erő tartozott hozzá.</p>
+      <h3>Mikor konvergál? Egy sorban levezetve</h3>
+      <p>Parabolánál a derivált egyenes: <span class="m">L′(w) = L″ · (w − w*)</span>, ahol <span class="m">L″</span> a görbület, nálunk <span class="m">L″ = 2 · <span style="text-decoration:overline">x²</span></span> = 2 · 102 = 204. Behelyettesítve a lépésszabályba:</p>
+      <div class="eq"><span class="m">w<sub>új</sub> − w* = (1 − η L″) · (w − w*)</span></div>
+      <p>A minimumtól mért távolság minden lépésben a <span class="m">q = 1 − ηL″</span> szorzóval szorzódik. Ebből három eset adódik:</p>
+      <ul class="plain">
+        <li>Ha <span class="m">0 &lt; q &lt; 1</span>, vagyis <span class="m">η &lt; 1/L″ ≈ 0,0049</span>: a távolság egyenletesen csökken, mindig ugyanarról az oldalról közelítünk.</li>
+        <li>Ha <span class="m">−1 &lt; q &lt; 0</span>, vagyis <span class="m">0,0049 &lt; η &lt; 2/L″ ≈ 0,0098</span>: minden lépés átugrik a túloldalra, de egyre közelebb. Oszcillálva konvergál.</li>
+        <li>Ha <span class="m">q &lt; −1</span>, vagyis <span class="m">η &gt; 0,0098</span>: a távolság minden lépéssel nő. Szétszáll.</li>
+      </ul>
+      <p>A tanulság általános: a legnagyobb biztonságos lépésköz a táj görbületétől függ. Egy meredek falú völgyben kicsit kell lépni.</p>
+      <h3>Több paraméter: a gradiens vektor</h3>
+      <p>Sok paraméternél minden paraméter szerint külön deriválunk (ezek a <b>parciális deriváltak</b>, jelük <span class="m">∂</span>), és ezeket egy vektorba gyűjtjük. Ez a gradiens, jele <span class="m">∇L</span>. A lépésszabály ugyanaz, csak vektorokkal: <span class="m">θ<sub>új</sub> = θ − η ∇L(θ)</span>.</p>
+      <pre class="py">w   = 0.0        # kiinduló tipp
+eta = 0.003      # tanulási ráta (lépésköz)
+
+for k in range(50):
+    maradek = w * F - dl                 # reziduumok: jóslat mínusz mérés
+    grad = 2 * np.mean(F * maradek)      # L'(w): a lejtő meredeksége
+    w = w - eta * grad                   # lépés a lejtővel SZEMBEN
+print(w)   # közel 0.1198-hoz</pre>
+    </div>
+
+    <div class="pane" id="p-4c" role="tabpanel" hidden>
+      <h3>Sztochasztikus gradiens</h3>
+      <p>Egy nagy adathalmazon a teljes gradienst minden lépésben kiszámolni túl drága. A <b>sztochasztikus gradiens-módszer</b> (SGD) minden lépésben csak egy véletlen kis részhalmazon (<em>minibatch</em>) számol. Ez a gradiens zajos, de torzítatlan becslése. Robbins és Monro 1951-es sztochasztikus approximációs eredménye adja a konvergencia elméleti alapját, megfelelően csökkenő lépésközzel <a class="ref" href="#ref-10">[10]</a>. A zajnak gyakorlati haszna is lehet, mert segít kimozdulni a nyeregpontok környékéről.</p>
+      <h3>Visszaterjesztés</h3>
+      <p>Egy többrétegű hálóban a veszteség a paraméterek összetett függvénye. A láncszabály segítségével a gradiens a kimenettől visszafelé, rétegről rétegre számolható, nagyjából egy előreszámítás költségén. Rumelhart, Hinton és Williams 1986-os cikke tette ezt a módszert a neurális hálók tanításának standard eszközévé <a class="ref" href="#ref-11">[11]</a>. A modern keretrendszerek (PyTorch, JAX) ezt automatikusan végzik:</p>
+      <pre class="py">import torch
+
+w = torch.tensor(0.0, requires_grad=True)      # a paraméter, amelynek gradiensét követjük
+opt = torch.optim.SGD([w], lr=0.003)            # sima gradiens-módszer
+Ft  = torch.tensor(F,  dtype=torch.float32)
+dlt = torch.tensor(dl, dtype=torch.float32)
+
+for k in range(50):
+    loss = torch.mean((w * Ft - dlt) ** 2)      # ugyanaz az MSE, mint fent
+    opt.zero_grad()                             # az előző lépés gradiensének törlése
+    loss.backward()                             # visszaterjesztés: kiszámolja dL/dw-t
+    opt.step()                                  # w ← w − lr · grad</pre>
+      <h3>Lendület és adaptív módszerek</h3>
+      <p>Egy lapos, elnyújtott völgyben (ahol az egyik irányban sokkal nagyobb a görbület, mint a másikban) a sima gradiens-módszer cikcakkozik: a meredek irányhoz kell igazítani a lépésközt, a lapos irányban így alig halad. A <b>lendület</b> (<em>momentum</em>) a korábbi lépések irányát átlagolja, így kisimítja a cikcakkot. Az <b>Adam</b> paraméterenként skálázza a lépést a gradiens korábbi nagysága szerint <a class="ref" href="#ref-12">[12]</a>, ezért a mai mély tanulás egyik alapértelmezett optimalizálója.</p>
+    </div>
+
+    <div class="quiz" data-level="4"></div>
+  </div>
+</section>
+
+<!-- ================= 5. SZINT ================= -->
+<section class="level" id="szint-5" data-level="5">
+  <div class="lvl-head"><span class="lvl-num">5</span><h2>Osztályozás: valószínűség és keresztentrópia</h2></div>
+  <p class="lvl-goal">Cél: megérteni, milyen veszteséggel tanul egy osztályozó, és miért a magabiztos tévedés a legdrágább.</p>
+  <div class="lvl-lock">Ez a szint zárolva van. Teljesítsd az előző szint kvízét.</div>
+  <div class="lvl-body">
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-pane="5a">Intuíció</button>
+      <button role="tab" aria-selected="false" data-pane="5b">Matematika</button>
+      <button role="tab" aria-selected="false" data-pane="5c">Kutatói szint</button>
+    </div>
+
+    <div class="pane" id="p-5a" role="tabpanel">
+      <p>Eddig számot jósoltunk (átmérőt, megnyúlást). Sok feladatban viszont kategóriát kell választani. Egy varratfotó alapján a modellnek azt kell eldöntenie, hogy a varrat <b>jó</b>, <b>porózus</b> vagy <b>repedt</b>. Itt nincs értelme „0,3 mm-t tévedni”. Ehelyett a modell valószínűségeket ad: például 20% jó, 70% porozitás, 10% repedés.</p>
+      <p>A háló belül először nyers pontszámokat számol, egyet minden osztályra. Ezek a <b>logitok</b>, és bármilyen valós számok lehetnek. A <b>softmax</b> nevű lépés alakítja őket valószínűségekké: mindegyik 0 és 1 közé kerül, és az összegük 1 lesz. A nagyobb pontszám nagyobb valószínűséget kap.</p>
+      <h3>A veszteség: mennyire lepődik meg a modell</h3>
+      <p>Ha a varrat valójában porózus, a veszteség csak attól függ, mekkora valószínűséget adott a modell a porozitásra. A <b>keresztentrópia</b> ezt így számolja: a helyes osztály valószínűségének negatív logaritmusa. A képlet mögötti érzés egyszerű:</p>
+      <div class="tw"><table>
+        <thead><tr><th>A helyes osztály valószínűsége</th><th>Veszteség</th><th>Értelmezés</th></tr></thead>
+        <tbody>
+          <tr><td>0,99</td><td>0,01</td><td>biztos és igaza van: szinte nincs mit tanulni</td></tr>
+          <tr><td>0,5</td><td>0,69</td><td>bizonytalan volt</td></tr>
+          <tr><td>0,1</td><td>2,30</td><td>rossz felé hajlott</td></tr>
+          <tr><td>0,01</td><td>4,61</td><td>magabiztosan tévedett: nagyon drága</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="demo" id="d5">
+        <p class="demo-title">Kísérlet: varrat-osztályozó</p>
+        <p class="demo-hint">Állítsd a három logitot, válaszd ki, melyik a valódi osztály, és figyeld a veszteséget. Próbáld ki, mi történik, ha a modell nagyon biztos a rossz válaszban.</p>
+        <div class="radio-row" role="radiogroup" aria-label="Valódi osztály">
+          <span style="font-weight:600">Valódi osztály:</span>
+          <label><input type="radio" name="d5c" value="0"> jó varrat</label>
+          <label><input type="radio" name="d5c" value="1" checked> porozitás</label>
+          <label><input type="radio" name="d5c" value="2"> repedés</label>
+        </div>
+        <div class="ctrl"><label for="d5z0">Logit: jó varrat</label><div><output id="d5z0v"></output><input type="range" id="d5z0" min="-4" max="4" step="0.1" value="1"></div></div>
+        <div class="ctrl"><label for="d5z1">Logit: porozitás</label><div><output id="d5z1v"></output><input type="range" id="d5z1" min="-4" max="4" step="0.1" value="2"></div></div>
+        <div class="ctrl"><label for="d5z2">Logit: repedés</label><div><output id="d5z2v"></output><input type="range" id="d5z2" min="-4" max="4" step="0.1" value="-1"></div></div>
+        <div class="bars" id="d5bars"></div>
+        <div class="readout" id="d5r"></div>
+        <svg class="plot" id="d5svg" aria-label="A keresztentrópia a helyes osztály valószínűségének függvényében"></svg>
+        <p class="plotcap">A veszteség (−ln p) a helyes osztály valószínűségének függvényében. Balra, a nullánál a görbe az égbe szökik.</p>
+      </div>
+
+      <h3>Miért nem a találati arányon tanítunk?</h3>
+      <p>A találati arány (hány százalékot talált el) a számunkra fontos mérce, de ugyanaz a baj vele, mint a tűrésmező-veszteséggel. Egy kis változtatás a súlyokon általában egyetlen döntést sem fordít meg, így a meredeksége szinte mindenhol nulla. A keresztentrópia viszont a valószínűség minden apró változására reagál, így mindig van iránya. A találati arányt a tanítás után mérjük, a keresztentrópián tanítunk.</p>
+      <div class="key"><b class="lbl">Kulcsgondolat</b><p>A keresztentrópia nem csak azt bünteti, ha a modell téved, hanem azt is, <em>mennyire volt biztos</em> a tévedésében. Ettől tanul meg a modell őszinte valószínűségeket adni, nem csak tippelni.</p></div>
+    </div>
+
+    <div class="pane" id="p-5b" role="tabpanel" hidden>
+      <h3>Softmax</h3>
+      <p>A logitok <span class="m">z<sub>1</sub>, …, z<sub>K</sub></span>, ahol <span class="m">K</span> az osztályok száma. A <span class="m">k</span>-adik osztály valószínűsége:</p>
+      <div class="eq"><span class="m">p<sub>k</sub> = <span class="frac"><span>e<sup>z<sub>k</sub></sup></span><span><span class="symb">Σ</span><sub>j</sub> e<sup>z<sub>j</sub></sup></span></span></span></div>
+      <p>Az <span class="m">e</span> ≈ 2,718 alapú hatványozás minden számot pozitívvá tesz, az összeggel való osztás pedig gondoskodik róla, hogy a valószínűségek összege 1 legyen. Ha minden logithoz ugyanazt a számot adod, az eredmény nem változik. Ezt a kódban a numerikus stabilitásra használjuk ki.</p>
+      <h3>Keresztentrópia</h3>
+      <p>A valódi osztályt egy „one-hot” vektorral írjuk le: a helyes osztálynál 1, máshol 0. Porozitásnál <span class="m">y</span> = (0, 1, 0). A keresztentrópia:</p>
+      <div class="eq"><span class="m">CE = − <span class="symb">Σ</span><sub>k</sub> y<sub>k</sub> ln p<sub>k</sub> = − ln p<sub>helyes</sub></span></div>
+      <p>Az <span class="m">ln</span> a természetes alapú logaritmus. Két tulajdonsága kell ide: <span class="m">ln 1 = 0</span> (ha a modell teljesen biztos és igaza van, nincs veszteség), és ha <span class="m">p</span> a nullához tart, <span class="m">ln p</span> a mínusz végtelenhez tart (a magabiztos tévedés végtelenül drága lehet).</p>
+      <h3>A legszebb eredmény: a gradiens</h3>
+      <p>Ha a keresztentrópiát a logitok szerint deriváljuk, meglepően egyszerű eredményt kapunk:</p>
+      <div class="eq"><span class="m"><span class="frac"><span>∂ CE</span><span>∂ z<sub>k</sub></span></span> = p<sub>k</sub> − y<sub>k</sub></span></div>
+      <p>Szavakban: a tanulási jel minden osztálynál „amit a modell mondott, mínusz ami igaz”. A demóban ezt az értéket is kiírjuk. A helyes osztálynál negatív (a logitját növelni kell), a többinél pozitív (azokat csökkenteni). A softmax és a keresztentrópia azért tartozik össze, mert együtt ilyen tiszta gradienst adnak.</p>
+      <pre class="py">z = np.array([1.0, 2.0, -1.0])     # logitok: jó, porozitás, repedés
+helyes = 1                         # a valódi osztály indexe (porozitás)
+
+def softmax(z):
+    z = z - z.max()                # stabilitás: a legnagyobbat levonjuk, az eredmény nem változik
+    ez = np.exp(z)
+    return ez / ez.sum()           # osztás az összeggel: a valószínűségek összege 1
+
+p = softmax(z)                     # kb. [0.260, 0.705, 0.035]
+ce = -np.log(p[helyes])            # keresztentrópia erre az egy példára
+y = np.eye(3)[helyes]              # one-hot vektor: [0, 1, 0]
+grad_z = p - y                     # a veszteség gradiense a logitok szerint</pre>
+    </div>
+
+    <div class="pane" id="p-5c" role="tabpanel" hidden>
+      <h3>Információelméleti háttér</h3>
+      <p>Shannon információelméletében egy <span class="m">p</span> valószínűségű esemény <b>információtartalma</b> (meglepetése) <span class="m">−log p</span> <a class="ref" href="#ref-13">[13]</a>. A keresztentrópia tehát a helyes válaszon mért átlagos meglepetés, természetes logaritmussal számolva „nat” egységben. A 6. szinten kiderül, hogy a keresztentrópia minimalizálása azonos a maximum likelihood becsléssel.</p>
+      <h3>Nagy nyelvi modellek</h3>
+      <p>Egy nyelvi modell előtanítása pontosan ez: minden pozícióban a következő tokent kell megjósolni, sok tízezer osztály (a szótár) közül, és a veszteség a keresztentrópia. A gyakran közölt <b>perplexitás</b> ennek exponenciálisa, <span class="m">e<sup>CE</sup></span>: úgy értelmezhető, hogy a modell átlagosan hány egyformán valószínű lehetőség között „ingadozik”. Kaplan és munkatársai azt mutatták, hogy ez a veszteség a modellméret, az adatmennyiség és a számítás függvényében jó közelítéssel hatványfüggvény szerint csökken <a class="ref" href="#ref-38">[38]</a>.</p>
+      <h3>Módosított keresztentrópiák</h3>
+      <ul class="plain">
+        <li><b>Címkesimítás</b> (<em>label smoothing</em>): a one-hot célt kissé „elkenik”, például 0,9 a helyesre, a maradék egyenletesen elosztva. Ez visszafogja a túlzott magabiztosságot <a class="ref" href="#ref-14">[14]</a>. Müller és munkatársai kimutatták, hogy javíthatja a kalibrációt, de ronthatja a modell alkalmazhatóságát tanítómodellként <a class="ref" href="#ref-15">[15]</a>.</li>
+        <li><b>Fókuszveszteség</b> (<em>focal loss</em>): a már jól osztályozott, könnyű példák súlyát lecsökkenti, így a tanulás a nehéz, ritka esetekre koncentrál <a class="ref" href="#ref-16">[16]</a>. Hibadetektálásnál ez közvetlenül releváns, mert a hibás darab ritka, a jó darab tömeges.</li>
+        <li><b>Osztálysúlyozás</b>: a ritka osztály hibáit egyszerűen nagyobb súllyal számolják. Egy kihagyott repedés sokkal drágább, mint egy fölöslegesen átvizsgált jó varrat, és ezt a veszteségnek tudnia kell.</li>
+      </ul>
+    </div>
+
+    <div class="quiz" data-level="5"></div>
+  </div>
+</section>
+
+<!-- ================= 6. SZINT ================= -->
+<section class="level" id="szint-6" data-level="6">
+  <div class="lvl-head"><span class="lvl-num">6</span><h2>Honnan jönnek a veszteségek?</h2></div>
+  <p class="lvl-goal">Cél: látni, hogy a veszteségek nem ötletszerűek, hanem mindegyik mögött egy feltevés áll arról, hogyan zajos a világ.</p>
+  <div class="lvl-lock">Ez a szint zárolva van. Teljesítsd az előző szint kvízét.</div>
+  <div class="lvl-body">
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-pane="6a">Intuíció</button>
+      <button role="tab" aria-selected="false" data-pane="6b">Matematika</button>
+      <button role="tab" aria-selected="false" data-pane="6c">Kutatói szint</button>
+    </div>
+
+    <div class="pane" id="p-6a" role="tabpanel">
+      <p>Eddig úgy tűnhetett, hogy az MSE, az MAE és a keresztentrópia három külön ötlet. Valójában egyetlen elvből következnek. Az elv neve <b>maximum likelihood</b>: válaszd azt a modellt, amelyik mellett a ténylegesen megfigyelt adat a <em>legvalószínűbb</em>.</p>
+      <p>Ehhez el kell döntened, hogyan képzeled a mérési zajt. Ha úgy gondolod, hogy a hibák többnyire kicsik, a nagy hibák pedig nagyon ritkák (a jól ismert haranggörbe, a <b>Gauss-eloszlás</b>), abból az MSE következik. Ha úgy gondolod, hogy a nagy kiugrások gyakoribbak ennél (csúcsosabb eloszlás vastagabb szélekkel, a <b>Laplace-eloszlás</b>), abból az MAE. A kategóriák valószínűségeiből pedig a keresztentrópia.</p>
+
+      <div class="demo" id="d6">
+        <p class="demo-title">Kísérlet: zajfeltevésből veszteség</p>
+        <p class="demo-hint">Felül a két zajeloszlás, alul a negatív logaritmusuk. Figyeld meg az alsó ábrán: a Gauss-ból parabola lesz (négyzetes veszteség), a Laplace-ból V alak (abszolút veszteség).</p>
+        <div class="ctrl"><label for="d6s">Zaj szélessége (σ, b)</label><div><output id="d6sv"></output><input type="range" id="d6s" min="0.5" max="2" step="0.05" value="1"></div></div>
+        <div class="plots">
+          <div class="plotbox"><svg class="plot" id="d6pdf"></svg><p class="plotcap">Zajeloszlás: mennyire valószínű egy e hiba</p></div>
+          <div class="plotbox"><svg class="plot" id="d6nll"></svg><p class="plotcap">−ln(valószínűség): ez lesz a veszteség</p></div>
+        </div>
+        <div class="legend"><span><i class="sw" style="background:var(--contour)"></i>Gauss → négyzetes veszteség</span><span><i class="sw" style="background:var(--blue)"></i>Laplace → abszolút veszteség</span></div>
+      </div>
+
+      <p>Ez a felismerés megfordítja a kérdést. Ha tudod, milyen a folyamatod zaja, abból levezetheted a hozzá illő veszteséget. Egy tapintós mérőgép zaja közel Gauss-eloszlású, egy kézi mérésnél elcsúszó tolómérőé nem feltétlenül. A 2. szinten ösztönösen érzett kérdésre („a kiugró érték valódi-e”) itt kapsz elvi választ: a veszteség választása egy feltevés a világról.</p>
+      <div class="key"><b class="lbl">Kulcsgondolat</b><p>Minden veszteség mögött egy kimondatlan feltevés áll arról, milyen hibákat tart a modell gyakorinak és ritkának. Az MSE választásával azt is mondod, hogy a zaj haranggörbe alakú, akár tudod ezt, akár nem.</p></div>
+    </div>
+
+    <div class="pane" id="p-6b" role="tabpanel" hidden>
+      <h3>Likelihood és negatív log-likelihood</h3>
+      <p>Tegyük fel, hogy a mérési hiba <span class="m">σ</span> szórású Gauss-eloszlású. Egy <span class="m">e</span> hiba valószínűségsűrűsége:</p>
+      <div class="eq"><span class="m">p(e) = <span class="frac"><span>1</span><span>σ√(2π)</span></span> · exp(−<span class="frac"><span>e²</span><span>2σ²</span></span>)</span></div>
+      <p>Független méréseknél az együttes valószínűség a szorzat. Szorzatot nehéz kezelni, ezért logaritmust veszünk, ami szorzatból összeget csinál, és mínusz jellel minimalizálandó mennyiséget kapunk. Ez a <b>negatív log-likelihood</b> (NLL):</p>
+      <div class="eq"><span class="m">−ln p(e) = <span class="frac"><span>e²</span><span>2σ²</span></span> + ln(σ√(2π))</span></div>
+      <p>A második tag állandó: nem függ a modell paramétereitől, így a minimum helyét sem befolyásolja. Az első tag a négyzetes hiba, egy pozitív számmal osztva. A Gauss-zaj melletti maximum likelihood tehát pontosan az MSE minimalizálása. Laplace-zajnál ugyanez a lépéssor:</p>
+      <div class="eq"><span class="m">p(e) = <span class="frac"><span>1</span><span>2b</span></span> exp(−<span class="frac"><span>|e|</span><span>b</span></span>) &nbsp; ⇒ &nbsp; −ln p(e) = <span class="frac"><span>|e|</span><span>b</span></span> + ln(2b)</span></div>
+      <p>Ez pedig az abszolút hiba, vagyis az MAE.</p>
+      <h3>Keresztentrópia és KL-divergencia</h3>
+      <p>Két valószínűségeloszlás, a valódi <span class="m">p</span> és a modellé, <span class="m">q</span> között a keresztentrópia két részre bomlik:</p>
+      <div class="eq"><span class="m">H(p, q) = H(p) + D<sub>KL</sub>(p ‖ q)</span></div>
+      <p>A <span class="m">H(p)</span> az adatok saját entrópiája, a modelltől független. A <span class="m">D<sub>KL</sub></span> a <b>Kullback–Leibler-divergencia</b>, amely azt méri, mennyire tér el a modell eloszlása a valóságostól. Nulla, ha egyeznek, egyébként pozitív. A keresztentrópia minimalizálása tehát a modell eloszlásának a valóságos felé húzása. Ugyanaz a szerkezet, mint a 2. szinten az <span class="m">MSE = (ȳ − c)² + s²</span>: egy csökkenthető és egy nem csökkenthető rész.</p>
+      <pre class="py">sigma = 0.02                               # feltételezett mérési zaj [mm]
+e = y - c                                  # hibák egy c becslésre
+nll = np.mean(e**2 / (2 * sigma**2) + np.log(sigma * np.sqrt(2 * np.pi)))
+# = mse(c) / (2 sigma²) + állandó, tehát ugyanott van a minimuma, mint az MSE-nek</pre>
+    </div>
+
+    <div class="pane" id="p-6c" role="tabpanel" hidden>
+      <h3>Fisher és a maximum likelihood</h3>
+      <p>A maximum likelihood elvét Fisher fogalmazta meg rendszerezett formában 1922-ben <a class="ref" href="#ref-17">[17]</a>. A KL-divergenciát Kullback és Leibler vezette be 1951-ben <a class="ref" href="#ref-18">[18]</a>. Fontos tulajdonsága, hogy nem szimmetrikus: <span class="m">D<sub>KL</sub>(p‖q) ≠ D<sub>KL</sub>(q‖p)</span>. Az előre irányú változat (amit a keresztentrópiával minimalizálunk) „lefedő” viselkedést ad: a modell ott is valószínűséget próbál adni, ahol a valóságban van. A fordított irány „módusz-kereső”: a modell inkább egy csúcsra koncentrál. Ez a különbség a generatív modelleknél és a 8. szint KL-büntetésénél is számít.</p>
+      <h3>Tudásdesztilláció</h3>
+      <p>Egy kis modell tanítható úgy is, hogy nem a one-hot címkéket, hanem egy nagy modell teljes valószínűségeloszlását kell utánoznia, keresztentrópiával vagy KL-divergenciával. A „puha” célok több információt hordoznak: azt is elárulják, hogy egy porózus varrat a nagy modell szerint inkább a repedésre hasonlít-e, vagy a jó varratra <a class="ref" href="#ref-19">[19]</a>.</p>
+      <h3>Tanult bizonytalanság</h3>
+      <p>Ha a <span class="m">σ</span> zajszintet nem rögzítjük, hanem a modell maga jósolja meg minden bemenetre, a Gauss-NLL-ből olyan veszteség lesz, amelyben a modell „megengedheti magának” a nagyobb hibát ott, ahol nagyobb bizonytalanságot vall be, de ezért a <span class="m">ln σ</span> tag bünteti. Kendall és Gal így modellezte a zajból eredő (<em>aleatorikus</em>) bizonytalanságot <a class="ref" href="#ref-20">[20]</a>.</p>
+      <h3>A táj görbülete és a Fisher-információ</h3>
+      <p>A negatív log-likelihood várható görbülete a paraméterek szerint (a második deriváltak mátrixa) a <b>Fisher-információ</b>. Szavakban: a veszteségtáj görbülete a minimum környékén azt méri, mennyi információt hordoznak az adatok a paraméterekről. Egy meredek falú völgy pontosan meghatározott paramétert jelent, egy lapos völgy bizonytalant. Amari természetes gradiens módszere ezt a görbületet használja a paramétertér metrikájaként, vagyis a lépést a táj „valódi” geometriájához igazítja <a class="ref" href="#ref-21">[21]</a>.</p>
+    </div>
+
+    <div class="quiz" data-level="6"></div>
+  </div>
+</section>
+
+<!-- ================= 7. SZINT ================= -->
+<section class="level" id="szint-7" data-level="7">
+  <div class="lvl-head"><span class="lvl-num">7</span><h2>A mérce testre szabása</h2></div>
+  <p class="lvl-goal">Cél: megtanulni a veszteséget a valódi költségekhez igazítani, és felismerni, mikor tanul a modell túl jól.</p>
+  <div class="lvl-lock">Ez a szint zárolva van. Teljesítsd az előző szint kvízét.</div>
+  <div class="lvl-body">
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-pane="7a">Intuíció</button>
+      <button role="tab" aria-selected="false" data-pane="7b">Matematika</button>
+      <button role="tab" aria-selected="false" data-pane="7c">Kutatói szint</button>
+    </div>
+
+    <div class="pane" id="p-7a" role="tabpanel">
+      <h3>Aszimmetrikus költség</h3>
+      <p>Egy tengelyt esztergálsz. Ha túlméretes lesz, még egy fogással utómunkázható. Ha alulméretes, selejt, mert az anyagot nem lehet visszatenni. A tapasztalt esztergályos ezért ösztönösen kicsit a felső tűrés felé dolgozik. Az MSE és az MAE ezt nem tudja, mert szimmetrikusak: nekik a +0,02 és a −0,02 mm ugyanannyit ér.</p>
+      <p>A megoldás egy aszimmetrikus veszteség: az alulméretet <span class="m">k</span>-szor drágábbnak számoljuk. Ezt <b>kvantilis</b> vagy <b>pinball-veszteségnek</b> hívják. A matematika egy nagyon gyakorlatias szabályt ad: az optimális beállításnál a darabok <span class="m">1/(k+1)</span> része lesz alulméretes. Ha a selejt kilencszer drágább, a darabok 10%-a essen a névleges alá, és ebből kiszámolható, mennyivel kell feljebb állni.</p>
+
+      <div class="demo" id="d7">
+        <p class="demo-title">Kísérlet: hova állítsd a gépet?</p>
+        <p class="demo-hint">A gép szórása adott. Állítsd be, hányszor drágább az alulméret, és nézd meg, hová kerül az optimális beállítás.</p>
+        <div class="ctrl"><label for="d7k">Alulméret / túlméret ára (k)</label><div><output id="d7kv"></output><input type="range" id="d7k" min="1" max="20" step="1" value="9"></div></div>
+        <div class="ctrl"><label for="d7s">A gép szórása (σ)</label><div><output id="d7sv"></output> µm<input type="range" id="d7s" min="5" max="30" step="1" value="10"></div></div>
+        <div class="readout" id="d7r"></div>
+        <div class="plots">
+          <div class="plotbox"><svg class="plot" id="d7loss"></svg><p class="plotcap">Várható veszteség darabonként a beállítás függvényében [µm-egység]</p></div>
+          <div class="plotbox"><svg class="plot" id="d7dist"></svg><p class="plotcap">Gyártott méretek eloszlása az optimális beállításnál; piros: alulméretes</p></div>
+        </div>
+      </div>
+
+      <h3>Túl jó tanulás: a túlillesztés</h3>
+      <p>Ha a modell elég nagy, a tanítóadaton a veszteséget szinte nullára is le tudja vinni. Ez gyanús, mert a mérések zajosak, és a 2. szinten láttuk, hogy a zajt nem lehet megmagyarázni. Ilyenkor a modell a zajt is bemagolta, és új darabokon rosszabbul teljesít. Olyan ez, mint a diák, aki a tavalyi feladatsor megoldásait tanulta meg, nem a módszert.</p>
+      <p>Ezért az adatok egy részét félretesszük, és csak ellenőrzésre használjuk: ez a <b>validációs halmaz</b>. A tanítás közben mindkét veszteséget figyeljük.</p>
+      <div class="demo" id="d7b">
+        <p class="demo-title">Tanítási és validációs veszteség</p>
+        <p class="demo-hint">Sematikus ábra. A tanítási veszteség folyamatosan csökken, a validációs egy ponton megfordul: ott érdemes megállni.</p>
+        <svg class="plot" id="d7ofit"></svg>
+        <div class="legend"><span><i class="sw" style="background:var(--contour)"></i>tanítási veszteség</span><span><i class="sw" style="background:var(--err)"></i>validációs veszteség</span><span><i class="sw" style="background:var(--min)"></i>korai leállítás</span></div>
+      </div>
+      <h3>Büntetőtagok: regularizáció</h3>
+      <p>A túlillesztés ellen a veszteséghez egy második tagot adhatunk, amely a túl bonyolult modellt bünteti, például a nagy súlyokat. A modell így két dolog között egyensúlyoz: illeszkedjen az adatokhoz, de maradjon egyszerű. Ugyanígy a veszteségbe tudás is beépíthető. A fizikával informált neurális hálóknál (PINN) egy tag azt bünteti, ha a modell megsérti a fizikai egyenletet, például a hővezetés egyenletét, még ott is, ahol nincs mérés.</p>
+      <div class="key"><b class="lbl">Kulcsgondolat</b><p>A veszteségfüggvénybe mindent beleírhatsz, ami számodra fontos: a valódi költségarányokat, az egyszerűség iránti igényt, a fizikai törvényeket. A modell mindezt figyelembe veszi, de csak azt, ami benne van.</p></div>
+    </div>
+
+    <div class="pane" id="p-7b" role="tabpanel" hidden>
+      <h3>A pinball-veszteség és az optimum</h3>
+      <p>Legyen <span class="m">e</span> a gyártott méret eltérése a névlegestől. Túlméretnél egységnyi, alulméretnél <span class="m">k</span>-szoros árat számolunk:</p>
+      <div class="eq"><span class="m">L(e) = e</span>, ha <span class="m">e ≥ 0</span>; &nbsp;&nbsp; <span class="m">L(e) = −k·e</span>, ha <span class="m">e &lt; 0</span></div>
+      <p>A gépet egy <span class="m">s</span> értékre állítjuk, a gyártott méret pedig e körül szór. Ha <span class="m">s</span>-t egy hajszálnyival feljebb visszük, minden túlméretes darab egy kicsit drágább lesz (+1 egységnyi arányban), minden alulméretes egy kicsit olcsóbb (−<span class="m">k</span> egységnyi arányban). Az egyensúly ott van, ahol a kettő kiegyenlíti egymást:</p>
+      <div class="eq"><span class="m">P(túlméret) · 1 = P(alulméret) · k &nbsp; ⇒ &nbsp; P(alulméret) = <span class="frac"><span>1</span><span>k + 1</span></span></span></div>
+      <p>Ez ugyanaz az érvelés, amellyel a 2. szinten a mediánt kaptuk. Ott <span class="m">k</span> = 1 volt, vagyis a darabok fele esik alá: a medián a 0,5-ös kvantilis. Normális eloszlású szórásnál az optimális eltolás <span class="m">σ · z</span>, ahol <span class="m">z</span> a standard normális eloszlás <span class="m">k/(k+1)</span> kvantilise. Például <span class="m">k</span> = 9 és <span class="m">σ</span> = 10 µm mellett <span class="m">z</span> ≈ 1,28, tehát körülbelül 13 µm-rel kell a névleges fölé állni.</p>
+      <h3>Túlillesztés és regularizáció</h3>
+      <p>A <b>tanítási veszteség</b> a tanítóadaton mért átlagos veszteség, a <b>validációs veszteség</b> ugyanez a félretett adatokon. Túlillesztésre utal, ha az első tovább csökken, miközben a második nő. Az L2-regularizált célfüggvény:</p>
+      <div class="eq"><span class="m">J(θ) = <span class="frac"><span>1</span><span>n</span></span> <span class="symb">Σ</span><sub>i</sub> L(f<sub>θ</sub>(x<sub>i</sub>), y<sub>i</sub>) + λ <span class="symb">Σ</span><sub>j</sub> θ<sub>j</sub>²</span></div>
+      <p>A <span class="m">λ</span> szabályozza, mennyire erős a büntetés. A 6. szint nyelvén ez annak felel meg, hogy a paraméterekről is van egy előzetes feltevésünk: valószínűleg kicsik, Gauss-eloszlás szerint a nulla körül. Az adat és ez a feltevés együtt adja a célfüggvényt.</p>
+      <pre class="py">def pinball(e, k):                       # e = gyártott - névleges [mm]
+    return np.where(e &gt;= 0, e, -k * e)   # az alulméret k-szor drágább
+
+def cel_fuggveny(w, X, y, lam):
+    adat = np.mean((X @ w - y) ** 2)     # illeszkedés az adatokhoz (MSE)
+    bunteto = lam * np.sum(w ** 2)       # L2: a nagy súlyok büntetése
+    return adat + bunteto                # a kettő egyensúlya
+
+# PINN-szerű összetett veszteség vázlata:
+# teljes = adat_veszteseg + lam_fiz * np.mean(egyenlet_reziduum ** 2)</pre>
+    </div>
+
+    <div class="pane" id="p-7c" role="tabpanel" hidden>
+      <h3>Kvantilis-regresszió</h3>
+      <p>A pinball-veszteséget Koenker és Bassett tette a kvantilis-regresszió alapjává <a class="ref" href="#ref-22">[22]</a>: nem az átlagot, hanem egy tetszőleges kvantilist (például a 90%-os felső határt) lehet vele modellezni. Előrejelzéseknél így egyszerre több kvantilis tanulható, és ebből előrejelzési sáv adódik, nem csak egy pont.</p>
+      <h3>Súlycsökkentés</h3>
+      <p>Az L2-büntetés gradiens-módszerrel minden lépésben egy kicsit csökkenti a súlyokat, innen a neve: <b>súlycsökkentés</b> (<em>weight decay</em>) <a class="ref" href="#ref-23">[23]</a>. Adaptív optimalizálóknál (például Adam) a kettő már nem azonos. Loshchilov és Hutter megmutatta, hogy a súlycsökkentést érdemes a gradiens-lépéstől leválasztva alkalmazni. Ez az AdamW, ma a legelterjedtebb változat <a class="ref" href="#ref-24">[24]</a>.</p>
+      <h3>A klasszikus U-görbe nem a teljes történet</h3>
+      <p>A torzítás–variancia kompromisszum szerint a modell bonyolultságának növelésével a tesztveszteség előbb csökken, majd nő. Belkin és munkatársai kimutatták, hogy a nagyon túlparaméterezett modelleknél, ahol a modell már tökéletesen illeszkedik a tanítóadatra, a tesztveszteség egy csúcs után újra csökkenhet. Ez a <b>kettős süllyedés</b> (<em>double descent</em>) <a class="ref" href="#ref-25">[25]</a>. A sematikus ábra tehát a klasszikus tartományt mutatja, a mai nagy modellek viselkedése árnyaltabb.</p>
+      <h3>Összetett veszteségek súlyozása</h3>
+      <p>A PINN-ek veszteségében a mérési adattag mellett a differenciálegyenlet reziduuma és a peremfeltételek is szerepelnek <a class="ref" href="#ref-26">[26]</a>. A tagok gradiensei nagyságrendekkel eltérhetnek, és ilyenkor a tanítás az egyiket elhanyagolja. Wang, Teng és Perdikaris ezt a hibamódot elemezte, és a súlyok gradiens-statisztikák alapján történő automatikus kiegyensúlyozását javasolta <a class="ref" href="#ref-27">[27]</a>. Általános tanulság: ha egy veszteség több tagból áll, a <span class="m">λ</span> súlyok is a mérce részei, és ugyanannyit számítanak, mint a tagok maguk.</p>
+    </div>
+
+    <div class="quiz" data-level="7"></div>
+  </div>
+</section>
+
+<!-- ================= 8. SZINT ================= -->
+<section class="level" id="szint-8" data-level="8">
+  <div class="lvl-head"><span class="lvl-num">8</span><h2>Amikor a mérce elcsúszik a céltól</h2></div>
+  <p class="lvl-goal">Cél: megérteni, miért veszélyes egy mércét túl erősen optimalizálni, és hogyan kezelik ezt a mai nyelvi modelleknél.</p>
+  <div class="lvl-lock">Ez a szint zárolva van. Teljesítsd az előző szint kvízét.</div>
+  <div class="lvl-body">
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-pane="8a">Intuíció</button>
+      <button role="tab" aria-selected="false" data-pane="8b">Matematika</button>
+      <button role="tab" aria-selected="false" data-pane="8c">Kutatói szint</button>
+    </div>
+
+    <div class="pane" id="p-8a" role="tabpanel">
+      <p>Minden veszteségfüggvény <b>helyettesítő</b>: egy mérhető szám, amely remélhetőleg együtt mozog azzal, amit igazán akarunk. Amíg gyengén optimalizálunk, a kettő együtt javul. Ha viszont nagyon erősen nyomjuk a mércét, a rendszer megtalálja azokat a réseket, ahol a mérce javítható a valódi cél nélkül, vagy annak rovására.</p>
+      <p>Ezt a jelenséget egy közgazdászról, Goodhartról nevezték el. A ma ismert megfogalmazás Strathern antropológustól származik: ha egy mérőszámból cél lesz, megszűnik jó mérőszám lenni <a class="ref" href="#ref-28">[28]</a>. Minden műhely ismeri: ha a teljesítményt csak darabszámban mérik, a darabszám nő, a minőség nem feltétlenül.</p>
+
+      <div class="demo" id="d8">
+        <p class="demo-title">Kísérlet: a helyettesítő mérce és a valódi cél</p>
+        <p class="demo-hint">Sematikus modell. Növeld az optimalizálás erejét, és figyeld, meddig mozog együtt a két görbe.</p>
+        <div class="ctrl"><label for="d8p">Optimalizálás ereje</label><div><output id="d8pv"></output><input type="range" id="d8p" min="0" max="10" step="0.1" value="3"></div></div>
+        <p class="msg" id="d8msg"></p>
+        <svg class="plot" id="d8svg"></svg>
+        <div class="legend"><span><i class="sw" style="background:var(--blue)"></i>helyettesítő mérce (amit optimalizálunk)</span><span><i class="sw" style="background:var(--contour)"></i>valódi cél (amit akarunk)</span></div>
+      </div>
+
+      <h3>A gépek is játszmáznak</h3>
+      <p>A gépi tanulásban ezt <b>specifikációs játszmázásnak</b> vagy <b>jutalom-hackelésnek</b> (<em>reward hacking</em>) hívják. Klasszikus példa egy hajóversenyes játék, amelyben a pontszámot maximalizáló ágens nem ért célba: rájött, hogy többet kap, ha egy kis lagúnában körbe-körbe fut, és újra meg újra felveszi ugyanazokat a bónuszokat <a class="ref" href="#ref-32">[32]</a>. Az ágens nem hibázott: pontosan azt tette, amit a mérce jutalmazott <a class="ref" href="#ref-33">[33]</a>.</p>
+      <h3>A nagy nyelvi modellek esete</h3>
+      <p>Egy nyelvi modell finomhangolásánál a „jó válasz” mércéjét nem lehet képletbe írni. Ezért <b>megtanulják</b>: emberek sok válaszpárt összehasonlítanak, és ezekből egy külön modell, a <b>jutalommodell</b>, megtanulja megjósolni, melyik válasz tetszene jobban. Ezután a nyelvi modellt úgy tanítják, hogy ezt a jutalmat maximalizálja. Ez az RLHF, a megerősítéses tanulás emberi visszajelzésből <a class="ref" href="#ref-34">[34]</a>.</p>
+      <p>A jutalommodell viszont maga is helyettesítő, és ha túl erősen optimalizálnak rá, a nyelvi modell megtanulja kihasználni a gyengeségeit. Ezért kap egy fékezőt: egy büntetést azért, ha túl messzire távolodik az eredeti modelltől. Ez a büntetés a 6. szinten megismert KL-divergencia.</p>
+      <div class="key"><b class="lbl">Kulcsgondolat</b><p>A veszteségfüggvény az, amit a rendszer „akar”. Ha a mérce és a valódi cél eltér, egy elég erős optimalizáló megtalálja a különbséget, és azt fogja kihasználni. Ezért egy rendszer tervezésekor a legnehezebb kérdés sokszor nem az, hogyan optimalizáljunk, hanem az, hogy mit.</p></div>
+      <h3>Kitekintés</h3>
+      <p>A veszteségfüggvény gondolata messze túlnyúlik a gépi tanuláson. Friston szabadenergia-elve szerint az agy is egy mennyiséget minimalizál: a predikciós hibájához kötődő variációs szabadenergiát <a class="ref" href="#ref-36">[36]</a>. Vanchurin spekulatív modelljében pedig a fizikai világ egy tanuló hálózatként írható le, amelyben a veszteség szerepét egy termodinamikai mennyiség tölti be <a class="ref" href="#ref-37">[37]</a>. Mindkettő ugyanazt a kérdést veti fel, amelyből ez az anyag kiindult: mit minimalizál a rendszer, és ki vagy mi határozta meg ezt?</p>
+    </div>
+
+    <div class="pane" id="p-8b" role="tabpanel" hidden>
+      <h3>A helyettesítés formálisan</h3>
+      <p>Legyen <span class="m">J(θ)</span> a valódi cél, amelyet nem tudunk közvetlenül mérni, és <span class="m">R(θ)</span> a helyettesítő, amelyet optimalizálunk. Kezdetben a két gradiens nagyjából egy irányba mutat, így az <span class="m">R</span>-en tett lépés <span class="m">J</span>-t is javítja. A Goodhart-hatás akkor lép fel, amikor az optimalizálás olyan tartományba ér, ahol a két gradiens iránya eltér: <span class="m">R</span> tovább nő, <span class="m">J</span> csökken. A demó görbéi: <span class="m">R(d) = d</span> és <span class="m">J(d) = d − 0,08 d²</span>, ahol <span class="m">d</span> az optimalizálás ereje. A valódi cél maximuma <span class="m">d</span> = 6,25-nél van.</p>
+      <h3>Az RLHF célfüggvénye</h3>
+      <p>A finomhangolt modell (<span class="m">π<sub>θ</sub></span>, „policy”) egy <span class="m">x</span> promptra <span class="m">y</span> választ ad. A maximalizálandó cél:</p>
+      <div class="eq"><span class="m">max<sub>θ</sub> &nbsp; E[ r<sub>φ</sub>(x, y) ] − β · D<sub>KL</sub>(π<sub>θ</sub> ‖ π<sub>ref</sub>)</span></div>
+      <p>Az <span class="m">r<sub>φ</sub></span> a tanult jutalommodell pontszáma, a <span class="m">π<sub>ref</sub></span> a finomhangolás előtti modell, a <span class="m">β</span> pedig azt szabályozza, milyen erős a fék. A veszteség ennek a mínusz egyszerese. Ha <span class="m">β</span> túl kicsi, a modell kihasználja a jutalommodell hibáit. Ha túl nagy, alig változik.</p>
+      <pre class="py"># vázlat: a jel, amelyet a finomhangolás egy válaszra kap
+jutalom = r_phi(prompt, valasz)              # a tanult jutalommodell pontszáma
+kl = logp_uj(valasz) - logp_ref(valasz)      # mennyire tért el az eredeti modelltől
+cel = jutalom - beta * kl                    # ezt maximalizáljuk
+veszteseg = -cel                             # a veszteség ennek a mínusz egyszerese</pre>
+    </div>
+
+    <div class="pane" id="p-8c" role="tabpanel" hidden>
+      <h3>A Goodhart-törvény változatai</h3>
+      <p>Goodhart eredetileg monetáris politikai megfigyelést tett: egy statisztikai szabályszerűség összeomlik, amint szabályozási célra kezdik használni <a class="ref" href="#ref-29">[29]</a>. Manheim és Garrabrant négy mechanizmust különít el <a class="ref" href="#ref-30">[30]</a>. A <em>regressziós</em> változatban a mérce zajos, és a szélsőértékek kiválasztása a zajt is kiválasztja. Az <em>extremális</em> változatban a szélsőséges tartományban a mérce és a cél kapcsolata megváltozik. Az <em>ok-okozati</em> változatban a mérce befolyásolása nem hat a célra. Az <em>adverzális</em> változatban egy ágens tudatosan kihasználja a mércét.</p>
+      <h3>A túloptimalizálás skálatörvényei</h3>
+      <p>Gao, Schulman és Hilton kontrollált kísérletben mérték ezt: egy nagy „arany” jutalommodell helyettesítette az embert, és egy kisebb, belőle tanított jutalommodellre optimalizáltak <a class="ref" href="#ref-35">[35]</a>. A helyettesítő jutalom monoton nőtt, az arany jutalom viszont egy pont után csökkenni kezdett. Best-of-n mintavételre a görbét az eredeti modelltől mért KL-távolság gyökének másodfokú függvényével illesztették, ez ugyanaz a forma, mint a demó sematikus görbéje. A hatás nagyobb jutalommodellel gyengült, de nem tűnt el.</p>
+      <h3>Biztonsági keretezés</h3>
+      <p>Amodei és munkatársai a rosszul specifikált célfüggvényt a gyakorlati MI-biztonság egyik alapproblémájaként írták le, a nem kívánt mellékhatásokkal és a jutalom-hackeléssel együtt <a class="ref" href="#ref-31">[31]</a>. Krakovna és munkatársai hosszú listát gyűjtöttek valós specifikációs játszmázási esetekből <a class="ref" href="#ref-33">[33]</a>. A közös tanulság: a veszteség megtervezése nem technikai részlet, hanem a rendszer céljainak megfogalmazása, és ennek hibái az optimalizálás erejével együtt nőnek.</p>
+      <h3>Nyitott kérdés</h3>
+      <p>A mai rendszerek veszteségét kívülről adják meg, még az RLHF-nél is, ahol a mércét tanulják, emberek ítéletei alapján. Az ember viszont élete során részben a saját céljait is átírja. Hogy egy mesterséges rendszer képes-e saját, jól viselkedő célfüggvényt kialakítani, és ha igen, mi alapján, ma nyitott kutatási kérdés.</p>
+    </div>
+
+    <div class="quiz" data-level="8"></div>
+  </div>
+</section>
+
+<!-- ================= EXTRAS ================= -->
+<section class="extra" id="osszefoglalo">
+  <h2>Összefoglaló táblázat</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Veszteség</th><th>Feladat</th><th>Mögötte álló feltevés</th><th>Mikor válaszd</th></tr></thead>
+    <tbody>
+      <tr><td>MSE (négyzetes)</td><td>szám jóslása</td><td>Gauss-zaj</td><td>a nagy hibák valódiak és drágák</td></tr>
+      <tr><td>MAE (abszolút)</td><td>szám jóslása</td><td>Laplace-zaj</td><td>kiugró mérési hibák várhatók</td></tr>
+      <tr><td>Huber</td><td>szám jóslása</td><td>többnyire Gauss, néha kiugrás</td><td>robusztusság kell, de sima gradiens is</td></tr>
+      <tr><td>Pinball (kvantilis)</td><td>szám jóslása</td><td>aszimmetrikus költség</td><td>az alul- és a túllövés ára eltér</td></tr>
+      <tr><td>Keresztentrópia</td><td>osztályozás, nyelvi modell</td><td>kategorikus eloszlás</td><td>valószínűséget kell jósolni</td></tr>
+      <tr><td>Fókusz / súlyozott CE</td><td>ritka osztályok</td><td>kiegyensúlyozatlan adatok</td><td>a ritka hiba a fontos</td></tr>
+      <tr><td>+ L2 büntetés</td><td>bármelyik mellé</td><td>kis súlyok (Gauss-prior)</td><td>túlillesztés ellen</td></tr>
+      <tr><td>+ fizikai reziduum</td><td>PINN</td><td>ismert egyenlet</td><td>kevés adat, ismert fizika</td></tr>
+      <tr><td>Jutalom − β·KL</td><td>RLHF</td><td>tanult emberi preferencia</td><td>a „jó” nem írható képletbe</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="extra" id="glosszarium">
+  <h2>Glosszárium</h2>
+  <dl class="gloss">
+    <dt>Veszteségfüggvény <span>(loss function)</span></dt><dd>Szabály, amely egy jóslatból és a helyes értékből egy számot képez: annál nagyobbat, minél rosszabb a jóslat.</dd>
+    <dt>Célfüggvény, költségfüggvény <span>(objective, cost)</span></dt><dd>Amit ténylegesen optimalizálunk: a veszteségek átlaga, esetleg büntetőtagokkal kiegészítve.</dd>
+    <dt>Reziduum <span>(residual)</span></dt><dd>A jóslat és a mért érték különbsége, <span class="m">ŷ − y</span>.</dd>
+    <dt>MSE, RMSE <span>(mean squared error)</span></dt><dd>Az eltérések négyzetének átlaga, illetve annak gyöke. Az átlagnál minimális.</dd>
+    <dt>MAE <span>(mean absolute error)</span></dt><dd>Az eltérések abszolút értékének átlaga. A mediánnál minimális, kiugró értékekre kevésbé érzékeny.</dd>
+    <dt>Huber-veszteség</dt><dd>Kis hibánál négyzetes, nagynál lineáris veszteség. Robusztus, és a gradiense mindenhol értelmes.</dd>
+    <dt>Irreducibilis hiba</dt><dd>A veszteségnek az a része, amelyet a zaj okoz, és semmilyen modell nem tud eltüntetni.</dd>
+    <dt>Veszteségtáj <span>(loss landscape)</span></dt><dd>A veszteség értéke a modell paramétereinek függvényében. A tanulás ennek legmélyebb pontját keresi.</dd>
+    <dt>Konvex</dt><dd>Olyan tál alakú függvény, amelynek minden lokális minimuma globális.</dd>
+    <dt>Nyeregpont</dt><dd>Olyan pont, ahol a lejtő nulla, de egyes irányokban lefelé, másokban felfelé görbül a táj.</dd>
+    <dt>Gradiens</dt><dd>A veszteség meredekségeinek vektora az egyes paraméterek szerint. A legmeredekebb emelkedés irányába mutat.</dd>
+    <dt>Gradiens-módszer <span>(gradient descent)</span></dt><dd>Iteratív eljárás: minden lépésben a gradienssel ellentétes irányba mozdítja a paramétereket.</dd>
+    <dt>Tanulási ráta <span>(learning rate, η)</span></dt><dd>A lépésköz a gradiens-módszerben. Túl kicsi: lassú. Túl nagy: oszcillál vagy szétszáll.</dd>
+    <dt>SGD, minibatch</dt><dd>Sztochasztikus gradiens-módszer: minden lépésben csak az adatok egy kis véletlen részhalmazán számolt gradienst használ.</dd>
+    <dt>Visszaterjesztés <span>(backpropagation)</span></dt><dd>A gradiens hatékony kiszámítása a láncszabállyal, a kimenettől a bemenet felé haladva.</dd>
+    <dt>Logit</dt><dd>Osztályonkénti nyers pontszám a softmax előtt. Tetszőleges valós szám lehet.</dd>
+    <dt>Softmax</dt><dd>Függvény, amely a logitokból 0 és 1 közötti, összesen 1-et adó valószínűségeket képez.</dd>
+    <dt>Keresztentrópia <span>(cross-entropy)</span></dt><dd>A helyes osztály valószínűségének negatív logaritmusa, átlagolva. Az osztályozók és a nyelvi modellek alapvesztesége.</dd>
+    <dt>Perplexitás</dt><dd>A keresztentrópia exponenciálisa. Nyelvi modelleknél elterjedt mérőszám.</dd>
+    <dt>Likelihood, maximum likelihood</dt><dd>Annak valószínűsége, hogy adott modell mellett a látott adatot kapjuk. A maximum likelihood ezt maximalizáló paramétert választ.</dd>
+    <dt>Negatív log-likelihood <span>(NLL)</span></dt><dd>A likelihood negatív logaritmusa. A legtöbb veszteségfüggvény ilyen alakú.</dd>
+    <dt>KL-divergencia</dt><dd>Két valószínűségeloszlás eltérésének mértéke. Nem szimmetrikus.</dd>
+    <dt>Fisher-információ</dt><dd>A negatív log-likelihood várható görbülete. Azt méri, mennyi információt hordoz az adat a paraméterekről.</dd>
+    <dt>Pinball- vagy kvantilis veszteség</dt><dd>Aszimmetrikus lineáris veszteség. Minimuma egy kvantilisnél van, nem az átlagnál.</dd>
+    <dt>Túlillesztés <span>(overfitting)</span></dt><dd>A modell a tanítóadat zaját is megtanulja, és új adaton rosszabbul teljesít.</dd>
+    <dt>Validációs halmaz</dt><dd>Tanításra nem használt adatok, amelyeken a modell általánosító képességét mérjük.</dd>
+    <dt>Regularizáció</dt><dd>A célfüggvényhez adott büntetőtag, amely az egyszerűbb modellt részesíti előnyben.</dd>
+    <dt>Goodhart-törvény</dt><dd>Ha egy mérőszámból cél lesz, megszűnik jó mérőszám lenni.</dd>
+    <dt>Jutalom-hackelés, specifikációs játszmázás</dt><dd>A rendszer a mércét javítja a valódi cél helyett vagy annak rovására.</dd>
+    <dt>Jutalommodell <span>(reward model)</span></dt><dd>Emberi preferenciákból tanított modell, amely a „jó válasz” mércéjét adja az RLHF-ben.</dd>
+  </dl>
+</section>
+
+<section class="extra" id="irodalom">
+  <h2>Irodalom</h2>
+  <ol class="refs">
+    <li id="ref-1">Taguchi, G. (1986). <em>Introduction to Quality Engineering: Designing Quality into Products and Processes.</em> Asian Productivity Organization. <span class="used">1. szint</span></li>
+    <li id="ref-2">Wald, A. (1950). <em>Statistical Decision Functions.</em> Wiley. <span class="used">1. szint</span></li>
+    <li id="ref-3">Legendre, A.-M. (1805). <em>Nouvelles méthodes pour la détermination des orbites des comètes.</em> Paris: Firmin Didot. <span class="used">2. szint</span></li>
+    <li id="ref-4">Gauss, C. F. (1809). <em>Theoria motus corporum coelestium in sectionibus conicis solem ambientium.</em> Hamburg: Perthes &amp; Besser. <span class="used">2. szint</span></li>
+    <li id="ref-5">Huber, P. J. (1964). Robust Estimation of a Location Parameter. <em>The Annals of Mathematical Statistics</em>, 35(1), 73–101. <span class="used">2. szint</span></li>
+    <li id="ref-6">Goodfellow, I., Bengio, Y., Courville, A. (2016). <em>Deep Learning.</em> MIT Press. <a href="https://www.deeplearningbook.org/">deeplearningbook.org</a> <span class="used">1–3. szint</span></li>
+    <li id="ref-7">Dauphin, Y. N. et al. (2014). Identifying and attacking the saddle point problem in high-dimensional non-convex optimization. <em>NeurIPS.</em> <a href="https://arxiv.org/abs/1406.2572">arXiv:1406.2572</a> <span class="used">3. szint</span></li>
+    <li id="ref-8">Li, H., Xu, Z., Taylor, G., Studer, C., Goldstein, T. (2018). Visualizing the Loss Landscape of Neural Nets. <em>NeurIPS.</em> <a href="https://arxiv.org/abs/1712.09913">arXiv:1712.09913</a> <span class="used">3. szint</span></li>
+    <li id="ref-9">Keskar, N. S. et al. (2017). On Large-Batch Training for Deep Learning: Generalization Gap and Sharp Minima. <em>ICLR.</em> <a href="https://arxiv.org/abs/1609.04836">arXiv:1609.04836</a> <span class="used">3. szint</span></li>
+    <li id="ref-10">Robbins, H., Monro, S. (1951). A Stochastic Approximation Method. <em>The Annals of Mathematical Statistics</em>, 22(3), 400–407. <span class="used">4. szint</span></li>
+    <li id="ref-11">Rumelhart, D. E., Hinton, G. E., Williams, R. J. (1986). Learning representations by back-propagating errors. <em>Nature</em>, 323, 533–536. <span class="used">4. szint</span></li>
+    <li id="ref-12">Kingma, D. P., Ba, J. (2015). Adam: A Method for Stochastic Optimization. <em>ICLR.</em> <a href="https://arxiv.org/abs/1412.6980">arXiv:1412.6980</a> <span class="used">4. szint</span></li>
+    <li id="ref-13">Shannon, C. E. (1948). A Mathematical Theory of Communication. <em>Bell System Technical Journal</em>, 27, 379–423, 623–656. <span class="used">5. szint</span></li>
+    <li id="ref-14">Szegedy, C. et al. (2016). Rethinking the Inception Architecture for Computer Vision. <em>CVPR.</em> <a href="https://arxiv.org/abs/1512.00567">arXiv:1512.00567</a> <span class="used">5. szint</span></li>
+    <li id="ref-15">Müller, R., Kornblith, S., Hinton, G. (2019). When Does Label Smoothing Help? <em>NeurIPS.</em> <a href="https://arxiv.org/abs/1906.02629">arXiv:1906.02629</a> <span class="used">5. szint</span></li>
+    <li id="ref-16">Lin, T.-Y., Goyal, P., Girshick, R., He, K., Dollár, P. (2017). Focal Loss for Dense Object Detection. <em>ICCV.</em> <a href="https://arxiv.org/abs/1708.02002">arXiv:1708.02002</a> <span class="used">5. szint</span></li>
+    <li id="ref-17">Fisher, R. A. (1922). On the Mathematical Foundations of Theoretical Statistics. <em>Philosophical Transactions of the Royal Society A</em>, 222, 309–368. <span class="used">6. szint</span></li>
+    <li id="ref-18">Kullback, S., Leibler, R. A. (1951). On Information and Sufficiency. <em>The Annals of Mathematical Statistics</em>, 22(1), 79–86. <span class="used">6. szint</span></li>
+    <li id="ref-19">Hinton, G., Vinyals, O., Dean, J. (2015). Distilling the Knowledge in a Neural Network. <a href="https://arxiv.org/abs/1503.02531">arXiv:1503.02531</a> <span class="used">6. szint</span></li>
+    <li id="ref-20">Kendall, A., Gal, Y. (2017). What Uncertainties Do We Need in Bayesian Deep Learning for Computer Vision? <em>NeurIPS.</em> <a href="https://arxiv.org/abs/1703.04977">arXiv:1703.04977</a> <span class="used">6. szint</span></li>
+    <li id="ref-21">Amari, S. (1998). Natural Gradient Works Efficiently in Learning. <em>Neural Computation</em>, 10(2), 251–276. <span class="used">6. szint</span></li>
+    <li id="ref-22">Koenker, R., Bassett, G. (1978). Regression Quantiles. <em>Econometrica</em>, 46(1), 33–50. <span class="used">7. szint</span></li>
+    <li id="ref-23">Krogh, A., Hertz, J. A. (1992). A Simple Weight Decay Can Improve Generalization. <em>NeurIPS</em> 4. <span class="used">7. szint</span></li>
+    <li id="ref-24">Loshchilov, I., Hutter, F. (2019). Decoupled Weight Decay Regularization. <em>ICLR.</em> <a href="https://arxiv.org/abs/1711.05101">arXiv:1711.05101</a> <span class="used">7. szint</span></li>
+    <li id="ref-25">Belkin, M., Hsu, D., Ma, S., Mandal, S. (2019). Reconciling modern machine-learning practice and the classical bias–variance trade-off. <em>PNAS</em>, 116(32), 15849–15854. <span class="used">7. szint</span></li>
+    <li id="ref-26">Raissi, M., Perdikaris, P., Karniadakis, G. E. (2019). Physics-informed neural networks: A deep learning framework for solving forward and inverse problems involving nonlinear partial differential equations. <em>Journal of Computational Physics</em>, 378, 686–707. <span class="used">7. szint</span></li>
+    <li id="ref-27">Wang, S., Teng, Y., Perdikaris, P. (2021). Understanding and mitigating gradient flow pathologies in physics-informed neural networks. <em>SIAM Journal on Scientific Computing</em>, 43(5), A3055–A3081. <span class="used">7. szint</span></li>
+    <li id="ref-28">Strathern, M. (1997). ‘Improving ratings’: audit in the British University system. <em>European Review</em>, 5(3), 305–321. <span class="used">8. szint</span></li>
+    <li id="ref-29">Goodhart, C. A. E. (1975). Problems of Monetary Management: The U.K. Experience. In <em>Papers in Monetary Economics</em>, Vol. I. Reserve Bank of Australia. <span class="used">8. szint</span></li>
+    <li id="ref-30">Manheim, D., Garrabrant, S. (2018). Categorizing Variants of Goodhart's Law. <a href="https://arxiv.org/abs/1803.04585">arXiv:1803.04585</a> <span class="used">8. szint</span></li>
+    <li id="ref-31">Amodei, D. et al. (2016). Concrete Problems in AI Safety. <a href="https://arxiv.org/abs/1606.06565">arXiv:1606.06565</a> <span class="used">8. szint</span></li>
+    <li id="ref-32">Clark, J., Amodei, D. (2016). Faulty Reward Functions in the Wild. OpenAI blog. <span class="used">8. szint</span></li>
+    <li id="ref-33">Krakovna, V. et al. (2020). Specification gaming: the flip side of AI ingenuity. DeepMind blog. <span class="used">8. szint</span></li>
+    <li id="ref-34">Ouyang, L. et al. (2022). Training language models to follow instructions with human feedback. <em>NeurIPS.</em> <a href="https://arxiv.org/abs/2203.02155">arXiv:2203.02155</a> <span class="used">8. szint</span></li>
+    <li id="ref-35">Gao, L., Schulman, J., Hilton, J. (2023). Scaling Laws for Reward Model Overoptimization. <em>ICML.</em> <a href="https://arxiv.org/abs/2210.10760">arXiv:2210.10760</a> <span class="used">8. szint</span></li>
+    <li id="ref-36">Friston, K. (2010). The free-energy principle: a unified brain theory? <em>Nature Reviews Neuroscience</em>, 11, 127–138. <span class="used">8. szint</span></li>
+    <li id="ref-37">Vanchurin, V. (2020). The World as a Neural Network. <em>Entropy</em>, 22(11), 1210. <span class="used">8. szint</span></li>
+    <li id="ref-38">Kaplan, J. et al. (2020). Scaling Laws for Neural Language Models. <a href="https://arxiv.org/abs/2001.08361">arXiv:2001.08361</a> <span class="used">5. szint</span></li>
+  </ol>
+</section>
+
+<footer>
+  A veszteségfüggvény: oktatóanyag. A haladás csak ebben a böngészőben tárolódik. A demók sematikus és szintetikus adatokkal dolgoznak.
+</footer>
+</div>
+</main>
+</div>
+<script>
+(function(){
+'use strict';
+/* ---------------- helpers ---------------- */
+const $ = (id)=>document.getElementById(id);
+const hu = (x,d)=>{ if(!isFinite(x)) return '∞'; let s=Math.abs(x).toFixed(d).replace('.',','); if(x<0 && Number(Math.abs(x).toFixed(d))!==0) s='−'+s; return s; };
+const huS = (x,d)=>{ const s=hu(x,d); return (x>0 && Number(x.toFixed(d))!==0)?'+'+s:s; };
+const art = (n)=> (n===1||n===5)?'az':'a';
+const NS='http://www.w3.org/2000/svg';
+function mk(tag, attrs, parent){ const e=document.createElementNS(NS,tag); for(const k in attrs) e.setAttribute(k, attrs[k]); if(parent) parent.appendChild(e); return e; }
+function niceTicks(min,max,n){ n=n||4; const span=max-min; if(span<=0) return [min]; const raw=span/n; const p=Math.pow(10,Math.floor(Math.log10(raw))); const m=raw/p; const step=(m<1.5?1:m<3?2:m<7?5:10)*p; const out=[]; for(let v=Math.ceil(min/step-1e-9)*step; v<=max+1e-9; v+=step) out.push(Math.round(v/step)*step); return out; }
+function decFor(ticks){ let d=0; ticks.forEach(v=>{ let k=0; while(k<4 && Math.abs(v-Number(v.toFixed(k)))>1e-9) k++; d=Math.max(d,k); }); return d; }
+let clipN=0;
+function Plot(svg, o){
+  const narrow=(window.innerWidth||800)<600 && (o.W||560)>=500; const W=narrow?360:(o.W||560), H=narrow?Math.max(230,Math.round((o.H||300)*0.9)):(o.H||300), p=Object.assign({l:52,r:14,t:14,b:42}, o.pad||{});
+  svg.setAttribute('viewBox','0 0 '+W+' '+H); svg.innerHTML='';
+  const S={W:W,H:H,p:p,o:o};
+  S.sx=x=>p.l+(x-o.xmin)/(o.xmax-o.xmin)*(W-p.l-p.r);
+  S.sy=y=>H-p.b-(y-o.ymin)/(o.ymax-o.ymin)*(H-p.t-p.b);
+  const id='vfclip'+(++clipN);
+  const defs=mk('defs',{},svg); const cp=mk('clipPath',{id:id},defs);
+  mk('rect',{x:p.l,y:p.t-2,width:W-p.l-p.r,height:H-p.t-p.b+4},cp);
+  const gA=mk('g',{},svg);
+  const yf=o.yfmt||(v=>hu(v,decFor(o.yticks||[])));
+  const xf=o.xfmt||(v=>hu(v,decFor(o.xticks||[])));
+  (o.yticks||[]).forEach(v=>{ const y=S.sy(v); mk('line',{x1:p.l,x2:W-p.r,y1:y,y2:y,class:'grid'},gA); const t=mk('text',{x:p.l-7,y:y+4,'text-anchor':'end',class:'tick'},gA); t.textContent=yf(v); });
+  (o.xticks||[]).forEach(v=>{ const x=S.sx(v); mk('line',{x1:x,x2:x,y1:H-p.b,y2:H-p.b+5,class:'axis'},gA); const t=mk('text',{x:x,y:H-p.b+19,'text-anchor':'middle',class:'tick'},gA); t.textContent=xf(v); });
+  mk('line',{x1:p.l,x2:W-p.r,y1:H-p.b,y2:H-p.b,class:'axis'},gA);
+  if(!o.noY) mk('line',{x1:p.l,x2:p.l,y1:p.t,y2:H-p.b,class:'axis'},gA);
+  if(o.xlabel){ const t=mk('text',{x:(p.l+W-p.r)/2,y:H-6,'text-anchor':'middle',class:'alabel'},gA); t.textContent=o.xlabel; }
+  if(o.ylabel){ const cy=(p.t+H-p.b)/2; const t=mk('text',{x:13,y:cy,'text-anchor':'middle',class:'alabel',transform:'rotate(-90 13 '+cy+')'},gA); t.textContent=o.ylabel; }
+  S.gS=mk('g',{'clip-path':'url(#'+id+')'},svg);
+  S.gD=mk('g',{'clip-path':'url(#'+id+')'},svg);
+  S.gT=mk('g',{},svg);
+  S.clear=()=>{ S.gD.innerHTML=''; S.gT.innerHTML=''; };
+  const yr=o.ymax-o.ymin;
+  const cl=y=>Math.max(o.ymin-yr, Math.min(o.ymax+yr, y));
+  S.curve=(f,x0,x1,cls,g,N)=>{ N=N||260; let d=''; for(let i=0;i<=N;i++){ const x=x0+(x1-x0)*i/N; const y=f(x); if(!isFinite(y)) continue; d+=(d?'L':'M')+S.sx(x).toFixed(2)+' '+S.sy(cl(y)).toFixed(2); } return mk('path',{d:d,class:cls},g||S.gS); };
+  S.poly=(pts,cls,g)=>{ let d=''; pts.forEach((q,i)=>{ d+=(i?'L':'M')+S.sx(q[0]).toFixed(2)+' '+S.sy(cl(q[1])).toFixed(2); }); return mk('path',{d:d,class:cls},g||S.gD); };
+  S.area=(f,x0,x1,cls,g,N)=>{ N=N||160; let d='M'+S.sx(x0).toFixed(2)+' '+S.sy(Math.max(o.ymin,0)).toFixed(2); for(let i=0;i<=N;i++){ const x=x0+(x1-x0)*i/N; d+='L'+S.sx(x).toFixed(2)+' '+S.sy(cl(f(x))).toFixed(2); } d+='L'+S.sx(x1).toFixed(2)+' '+S.sy(Math.max(o.ymin,0)).toFixed(2)+'Z'; return mk('path',{d:d,class:cls},g||S.gS); };
+  S.dot=(x,y,r,cls,g)=>mk('circle',{cx:S.sx(x),cy:S.sy(cl(y)),r:r,class:cls},g||S.gD);
+  S.vline=(x,cls,g)=>mk('line',{x1:S.sx(x),x2:S.sx(x),y1:p.t,y2:H-p.b,class:cls},g||S.gD);
+  S.seg=(x1,y1,x2,y2,cls,g)=>mk('line',{x1:S.sx(x1),y1:S.sy(cl(y1)),x2:S.sx(x2),y2:S.sy(cl(y2)),class:cls},g||S.gD);
+  S.text=(x,y,s,cls,anchor,g)=>{ const t=mk('text',{x:S.sx(x),y:S.sy(y),class:'lbl '+(cls||''),'text-anchor':anchor||'start'},g||S.gT); t.textContent=s; return t; };
+  S.band=(x0,x1,cls,g)=>mk('rect',{x:S.sx(x0),y:p.t,width:Math.max(0,S.sx(x1)-S.sx(x0)),height:H-p.t-p.b,class:cls},g||S.gS);
+  return S;
+}
+function outSet(id, txt){ const e=$(id); if(e) e.textContent=txt; }
+function span(label, val){ return '<span>'+label+' <b>'+val+'</b></span>'; }
+
+/* ---------------- progress & locks ---------------- */
+const LS='vf_progress_v1', LS_T='vf_theme_v1';
+let state={passed:[], unlocked:false};
+try{ const raw=localStorage.getItem(LS); if(raw){ const o=JSON.parse(raw); if(o && Array.isArray(o.passed)) state={passed:o.passed.filter(n=>Number.isInteger(n)&&n>=1&&n<=8), unlocked:!!o.unlocked}; } }catch(e){}
+function save(){ try{ localStorage.setItem(LS, JSON.stringify(state)); }catch(e){} }
+const isOpen=n=> n===1 || state.unlocked || state.passed.indexOf(n-1)>=0;
+function applyLocks(){
+  for(let n=1;n<=8;n++){
+    const sec=document.querySelector('.level[data-level="'+n+'"]');
+    const li=document.querySelector('#nav li[data-level="'+n+'"]');
+    const open=isOpen(n), done=state.passed.indexOf(n)>=0;
+    if(sec){ sec.classList.toggle('locked', !open); const lk=sec.querySelector('.lvl-lock'); if(lk) lk.textContent='Ez a szint zárolva van. Teljesítsd '+art(n-1)+' '+(n-1)+'. szint kvízét (3-ból legalább 2 jó válasz).'; }
+    if(li){ li.classList.toggle('is-locked', !open); li.classList.toggle('is-done', done); li.querySelector('.st').textContent= done?'✓':(open?'':'zárva'); }
+  }
+  const k=state.passed.length, pct=(k/8*100)+'%';
+  $('rulerFill').style.width=pct; $('miniFill').style.width=pct;
+  $('rulerLabel').textContent=k+' / 8 szint teljesítve'+(state.unlocked?' · minden szint feloldva':'');
+}
+
+/* ---------------- theme ---------------- */
+const root=document.documentElement;
+try{ const t=localStorage.getItem(LS_T); if(t==='dark'||t==='light') root.setAttribute('data-theme',t); }catch(e){}
+$('themeBtn').addEventListener('click',()=>{
+  const cur=root.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+  const nx=cur==='dark'?'light':'dark'; root.setAttribute('data-theme',nx);
+  try{ localStorage.setItem(LS_T,nx); }catch(e){}
+});
+
+/* ---------------- side menu (mobile) ---------------- */
+const side=$('side'), menuBtn=$('menuBtn');
+function setMenu(open){ side.classList.toggle('open',open); menuBtn.setAttribute('aria-expanded', open?'true':'false'); }
+menuBtn.addEventListener('click',(ev)=>{ ev.stopPropagation(); setMenu(!side.classList.contains('open')); });
+side.addEventListener('click',(ev)=>{ if(ev.target.closest('a')) setMenu(false); });
+document.addEventListener('click',(ev)=>{ if(side.classList.contains('open') && !side.contains(ev.target) && ev.target!==menuBtn) setMenu(false); });
+document.addEventListener('keydown',(ev)=>{ if(ev.key==='Escape') setMenu(false); });
+
+$('unlockAll').addEventListener('click',()=>{ state.unlocked=true; save(); applyLocks(); });
+let resetArm=0;
+$('resetBtn').addEventListener('click',(ev)=>{
+  const b=ev.currentTarget; const now=Date.now();
+  if(now-resetArm<4000){ state={passed:[],unlocked:false}; save(); applyLocks(); document.querySelectorAll('.quiz').forEach(renderQuiz); b.textContent='Haladás törölve'; resetArm=0; setTimeout(()=>{ b.textContent='Haladás törlése'; },2000); }
+  else { resetArm=now; b.textContent='Biztosan? Kattints újra'; setTimeout(()=>{ if(Date.now()-resetArm>=3900){ b.textContent='Haladás törlése'; } },4000); }
+});
+
+/* ---------------- tabs ---------------- */
+document.querySelectorAll('.tabs').forEach(tl=>{
+  const btns=[...tl.querySelectorAll('button')];
+  btns.forEach(b=>b.addEventListener('click',()=>{
+    btns.forEach(x=>{ const on=x===b; x.setAttribute('aria-selected',on?'true':'false'); const pane=$('p-'+x.dataset.pane); if(pane) pane.hidden=!on; });
+  }));
+});
+
+/* ---------------- code highlight ---------------- */
+const KW=/\b(def|return|for|in|import|from|as|if|else|elif|while|lambda|with|True|False|None|and|or|not)\b/;
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function hlLine(line){
+  let q=null, ci=-1;
+  for(let i=0;i<line.length;i++){ const ch=line[i]; if(q){ if(ch===q) q=null; } else if(ch==='"'||ch==="'"){ q=ch; } else if(ch==='#'){ ci=i; break; } }
+  const code=ci>=0?line.slice(0,ci):line, com=ci>=0?line.slice(ci):'';
+  const re=/("[^"]*"|'[^']*')|\b(def|return|for|in|import|from|as|if|else|elif|while|lambda|with|True|False|None|and|or|not)\b|(\b\d+(?:\.\d+)?(?:e-?\d+)?\b)/g;
+  let out='', last=0, m;
+  while((m=re.exec(code))){ out+=esc(code.slice(last,m.index)); if(m[1]) out+='<span class="s">'+esc(m[1])+'</span>'; else if(m[2]) out+='<span class="k">'+m[2]+'</span>'; else out+='<span class="n">'+m[3]+'</span>'; last=re.lastIndex; }
+  out+=esc(code.slice(last));
+  if(com) out+='<span class="c">'+esc(com)+'</span>';
+  return out;
+}
+document.querySelectorAll('pre.py').forEach(pre=>{ pre.innerHTML=pre.textContent.split('\n').map(hlLine).join('\n'); });
+
+/* ---------------- quizzes ---------------- */
+const QUIZ={
+ 1:[
+  {q:'Miért nem használjuk az előjeles eltérést közvetlenül veszteségként?', o:['Mert túl nagy számokat ad.','Mert a pozitív és negatív hibák átlagolásnál kioltják egymást.','Mert mm-ben van, nem mm²-ben.'], a:1, x:'A +0,03 és a −0,03 mm átlaga 0, mintha mindkét darab tökéletes lenne. Ezért vesszük az abszolút értéket vagy a négyzetet.'},
+  {q:'Egy darab eltérése 3 tűrésegység. Mekkora a négyzetes veszteség tűrésegységben?', o:['3','6','9'], a:2, x:'3² = 9. A négyzetes veszteség a nagy hibákat aránytalanul felnagyítja: háromszoros hiba, kilencszeres büntetés.'},
+  {q:'Miben tér el Taguchi minőségi veszteségfüggvénye a tűrésmező-szemlélettől?', o:['Semmiben, csak más a neve.','A tűrésen belüli eltérést is veszteségnek tekinti, és ez négyzetesen nő.','Csak a tűrésen kívüli darabokat bünteti, de azokat erősebben.'], a:1, x:'A tűrésmező-szemléletben a tűrésen belül minden darab egyformán jó. Taguchi szerint már a névlegestől való kis eltérés is veszteség, amely az eltérés négyzetével nő.'}
+ ],
+ 2:[
+  {q:'Melyik becslés (c) minimalizálja az MSE-t?', o:['A mérések átlaga.','A mérések mediánja.','A legnagyobb mérés.'], a:0, x:'Az MSE(c) = (ȳ − c)² + s² felbontásból látszik: az első tag c = ȳ-nál nulla, a második nem függ c-től.'},
+  {q:'Egy darabot tévesen 50,40 mm-nek mértek. Melyik becslés mozdul el jobban?', o:['Az átlag (az MSE optimuma).','A medián (az MAE optimuma).','Egyik sem mozdul.'], a:0, x:'Az MSE-ben a nagy eltérés négyzete dominál, ezért az átlag a kiugró érték felé húzódik. A mediánnak csak az számít, melyik oldalon van a mérés, az nem, hogy milyen messze.'},
+  {q:'Mi következik az MSE(c) = (ȳ − c)² + s² felbontásból?', o:['Az MSE megfelelő c-vel nullára csökkenthető.','A legkisebb elérhető MSE a mérések szórásnégyzete.','Az MSE nem függ c-től.'], a:1, x:'A második tag, s², a mérések saját szórása. Ezt semmilyen állandó becslés nem tudja eltüntetni: ez az irreducibilis hiba.'}
+ ],
+ 3:[
+  {q:'Mi a veszteségtáj?', o:['A tanítóadatok eloszlása.','A veszteség értéke a modell paramétereinek függvényében.','A modell kimenete a bemenet függvényében.'], a:1, x:'Minden paraméter-beállításhoz tartozik egy veszteség. Ezek összessége a táj, a tanulás ennek a legmélyebb pontját keresi.'},
+  {q:'Milyen a lineáris modell MSE-vel kapott veszteségtája egy paraméter esetén?', o:['Felfelé nyíló parabola, egyetlen minimummal.','Sok völggyel tarkított, hullámos görbe.','Vízszintes egyenes.'], a:0, x:'Kibontva L(w) = x̄²·w² − 2·x̄y·w + ȳ², ami másodfokú w-ben, tehát parabola. A csúcsa zárt képlettel kiszámolható.'},
+  {q:'Mi határozza meg a veszteségtáj alakját?', o:['Csak a modell.','Csak a veszteségfüggvény.','A modell és a veszteségfüggvény együtt.'], a:2, x:'A modell adja, milyen jóslatok lehetségesek, a veszteség pedig azt, mennyire rossz egy-egy jóslat. Bármelyiket cseréled, más tájat kapsz.'}
+ ],
+ 4:[
+  {q:'Merre lép a gradiens-módszer?', o:['A gradiens irányába, felfelé.','A gradienssel ellentétes irányba, lefelé.','Véletlen irányba.'], a:1, x:'A gradiens a legmeredekebb emelkedés irányába mutat, ezért a lépés w − η·L′(w): a lejtővel szemben.'},
+  {q:'A demó tájának görbülete L″ = 204. Mi történik η = 0,011 tanulási rátával?', o:['Egyenletesen közelít a minimumhoz.','Oszcillálva konvergál.','Szétszáll, mert η nagyobb, mint 2/L″ ≈ 0,0098.'], a:2, x:'A távolság lépésenként a q = 1 − η·L″ ≈ −1,24 szorzóval szorzódik. Mivel |q| > 1, a távolság minden lépéssel nő.'},
+  {q:'Miért nem lehet közvetlenül a „tűrésen belül vagy kívül” (0/1) veszteségen tanítani gradiens-módszerrel?', o:['Mert túl lassú kiszámolni.','Mert szinte mindenhol vízszintes, így a meredeksége nem mutat irányt.','Mert negatív értékeket is felvehet.'], a:1, x:'Egy kis paraméterváltozás a 0/1 veszteséget általában nem mozdítja, így a gradiens szinte mindenhol nulla. Ezért tanítunk sima helyettesítő veszteségen.'}
+ ],
+ 5:[
+  {q:'A helyes osztályra adott valószínűség 0,01. Mekkora nagyjából a keresztentrópia?', o:['0,01','0,99','4,6'], a:2, x:'−ln(0,01) ≈ 4,61. A magabiztos tévedés nagyon drága.'},
+  {q:'Mi a softmax feladata?', o:['A logitokból 0 és 1 közötti, összesen 1-et adó valószínűségeket képez.','Kiválasztja a legnagyobb logitot, a többit nullázza.','Négyzetre emeli a hibákat.'], a:0, x:'Az exponenciális minden logitot pozitívvá tesz, az összeggel való osztás pedig 1-re normál.'},
+  {q:'Mennyi a keresztentrópia gradiense a k-adik logit szerint?', o:['y_k / p_k','p_k − y_k','−ln p_k'], a:1, x:'„Amit a modell mondott, mínusz ami igaz.” A helyes osztálynál negatív, ezért annak logitja nő, a többié csökken.'}
+ ],
+ 6:[
+  {q:'Milyen zajfeltevésből következik az MSE?', o:['Gauss-eloszlású zajból.','Laplace-eloszlású zajból.','Egyenletes eloszlású zajból.'], a:0, x:'A Gauss-sűrűség negatív logaritmusa e²/(2σ²) + állandó, ami a négyzetes hiba.'},
+  {q:'Mit csinál a maximum likelihood elv?', o:['A legegyszerűbb modellt választja.','Azt a paramétert választja, amely mellett a megfigyelt adat a legvalószínűbb.','A legkisebb szórású mérést tartja meg.'], a:1, x:'A likelihood a látott adat valószínűsége a modell mellett. Ennek maximuma ugyanott van, ahol a negatív logaritmusának minimuma.'},
+  {q:'Miért hagyható el a −ln p(e) képletéből az ln(σ√(2π)) tag a tanításnál?', o:['Mert mindig nulla.','Mert nem függ a modell paramétereitől, így a minimum helyét nem változtatja.','Mert negatív.'], a:1, x:'Egy állandó hozzáadása a táj egészét feljebb vagy lejjebb tolja, de a legmélyebb pont helye ugyanott marad.'}
+ ],
+ 7:[
+  {q:'Az alulméret 9-szer drágább, mint a túlméret (k = 9). A darabok hányad része legyen optimálisan alulméretes?', o:['10%','50%','0%'], a:0, x:'P(alulméret) = 1/(k + 1) = 1/10. Nulla százalékot csak végtelen eltolással érhetnél el, amit a túlméretes darabokon fizetnél meg.'},
+  {q:'Mi a túlillesztés tipikus jele?', o:['Mindkét veszteség együtt csökken.','A tanítási veszteség tovább csökken, a validációs nőni kezd.','A tanítási veszteség nő.'], a:1, x:'A modell ilyenkor már a tanítóadat zaját tanulja, ami új adaton nem segít, sőt árt.'},
+  {q:'Mit tesz az L2-regularizáció a célfüggvénnyel?', o:['Büntetőtagot ad a nagy súlyokért, így egyszerűbb modellt részesít előnyben.','Eltávolítja a kiugró méréseket.','Növeli a tanulási rátát.'], a:0, x:'J = adatveszteség + λ·Σθ². A λ szabályozza, mennyire erős az egyszerűség iránti igény.'}
+ ],
+ 8:[
+  {q:'Mit mond a Goodhart-törvény Strathern megfogalmazásában?', o:['Minden mérőszám idővel pontosabb lesz.','Ha egy mérőszámból cél lesz, megszűnik jó mérőszám lenni.','A mérőszámot mindig maximalizálni kell.'], a:1, x:'Amint erősen optimalizálunk egy mércére, a rendszer megtalálja azokat a módokat, amelyekkel a mérce a valódi cél nélkül is javítható.'},
+  {q:'Mire való a KL-büntetés az RLHF célfüggvényében?', o:['Gyorsítja a tanítást.','Visszafogja, hogy a modell túlságosan eltávolodjon az eredetitől és kihasználja a jutalommodell hibáit.','Kiszámolja a jutalmat.'], a:1, x:'A jutalommodell maga is helyettesítő mérce. A KL-tag fékként működik: minél messzebb megy a modell, annál többe kerül.'},
+  {q:'A demó sematikus modelljében mi történik d = 6,25 fölött?', o:['Mindkét görbe csökken.','A helyettesítő mérce tovább nő, a valódi cél csökken.','A két görbe egybeesik.'], a:1, x:'J(d) = d − 0,08d² maximuma d = 6,25-nél van. Onnan a mérce további növelése a valódi cél rovására megy.'}
+ ]
+};
+function renderQuiz(box){
+  const n=+box.dataset.level, qs=QUIZ[n]; if(!qs) return;
+  const done=state.passed.indexOf(n)>=0;
+  let h='<h3>Szintzáró kvíz</h3><p class="qintro">'+(done?'Ezt a szintet már teljesítetted. A kvízt bármikor újra kitöltheted.':'Három kérdés. Legalább kettő jó válasz kell a következő szinthez.')+'</p>';
+  qs.forEach((q,i)=>{
+    h+='<fieldset class="q"><legend>'+(i+1)+'. '+q.q+'</legend>';
+    q.o.forEach((opt,j)=>{ h+='<label class="opt"><input type="radio" name="q'+n+'_'+i+'" value="'+j+'"><span>'+opt+'</span></label>'; });
+    h+='<p class="expl" hidden>'+q.x+'</p></fieldset>';
+  });
+  h+='<div class="row"><button class="btn primary" data-act="check">Kvíz ellenőrzése</button></div><p class="qres" aria-live="polite"></p>';
+  box.innerHTML=h;
+  box.querySelector('[data-act="check"]').addEventListener('click',()=>checkQuiz(box));
+}
+function checkQuiz(box){
+  const n=+box.dataset.level, qs=QUIZ[n], res=box.querySelector('.qres');
+  const ans=qs.map((q,i)=>{ const c=box.querySelector('input[name="q'+n+'_'+i+'"]:checked'); return c?+c.value:-1; });
+  if(ans.indexOf(-1)>=0){ res.className='qres fail'; res.textContent='Válaszolj mindhárom kérdésre.'; return; }
+  let score=0;
+  qs.forEach((q,i)=>{
+    const fs=box.querySelectorAll('fieldset.q')[i];
+    fs.querySelectorAll('.opt').forEach((lab,j)=>{ lab.classList.remove('ok','wrong'); if(j===q.a) lab.classList.add('ok'); else if(j===ans[i]) lab.classList.add('wrong'); lab.querySelector('input').disabled=true; });
+    fs.querySelector('.expl').hidden=false;
+    if(ans[i]===q.a) score++;
+  });
+  const row=box.querySelector('.row'); row.innerHTML='';
+  if(score>=2){
+    if(state.passed.indexOf(n)<0){ state.passed.push(n); state.passed.sort((a,b)=>a-b); save(); }
+    applyLocks();
+    res.className='qres pass';
+    res.textContent= n<8 ? ('Teljesítve: '+score+'/3. '+(art(n+1)==='az'?'Az':'A')+' '+(n+1)+'. szint megnyílt.') : ('Teljesítve: '+score+'/3. Végigértél mind a nyolc szinten.');
+    if(n<8){ const a=document.createElement('a'); a.className='btn primary'; a.style.textDecoration='none'; a.href='#szint-'+(n+1); a.textContent='Tovább '+art(n+1)+' '+(n+1)+'. szintre'; row.appendChild(a); }
+  } else {
+    res.className='qres fail'; res.textContent='Eredmény: '+score+'/3. Legalább 2 jó válasz kell. Nézd át a magyarázatokat, és próbáld újra.';
+  }
+  const again=document.createElement('button'); again.className='btn'; again.textContent='Újrakezdés'; again.addEventListener('click',()=>renderQuiz(box)); row.appendChild(again);
+}
+document.querySelectorAll('.quiz').forEach(renderQuiz);
+applyLocks();
+
+/* ---------------- D1 ---------------- */
+(function(){
+  const s=$('d1x'); if(!s) return;
+  const P=Plot($('d1svg'),{W:560,H:296,pad:{b:48},xmin:-2,xmax:2,ymin:0,ymax:4.2,xticks:[-2,-1,0,1,2],yticks:[0,1,2,3,4],xlabel:'eltérés tűrésegységben (1 = 0,05 mm)',ylabel:'veszteség'});
+  P.band(-1,1,'band');
+  P.curve(t=>Math.abs(t),-2,2,'c-blue');
+  P.curve(t=>t*t,-2,2,'c-contour');
+  P.poly([[-2,1.5],[-1,1.5],[-1,0],[1,0],[1,1.5],[2,1.5]],'c-err dash',P.gS);
+  P.text(0,3.85,'tűrésmező','','middle',P.gS).setAttribute('fill','var(--contour)');
+  function upd(){
+    const x=+s.value, e=x-50, t=e/0.05, st=Math.abs(t)<=1+1e-9?0:1.5;
+    outSet('d1xv', hu(x,3));
+    $('d1r').innerHTML=span('eltérés:', huS(e,3)+' mm = '+huS(t,2)+' egység')+span('|e|:',hu(Math.abs(t),2))+span('e²:',hu(t*t,2))+span('tűrésmező:', st===0?'0 (jó darab)':'1,5 (selejt)');
+    P.clear(); P.vline(t,'c-min dash');
+    P.dot(t,Math.abs(t),5,'f-blue'); P.dot(t,t*t,5,'f-contour'); P.dot(t,st,5,'f-err');
+  }
+  s.addEventListener('input',upd); upd();
+})();
+
+/* ---------------- D2 ---------------- */
+(function(){
+  const s=$('d2c'); if(!s) return;
+  const base=[50.02,49.98,50.01,50.03,49.99,50.00,50.02];
+  const cb=$('d2out');
+  const X0=49.95, X1=50.45;
+  let data, mean, med, Ps, Pm, Pa;
+  const mse=c=>data.reduce((a,y)=>a+(y-c)*(y-c),0)/data.length;
+  const mae=c=>data.reduce((a,y)=>a+Math.abs(y-c),0)/data.length;
+  function build(){
+    data=base.slice(); if(cb.checked) data[6]=50.40;
+    mean=data.reduce((a,b)=>a+b,0)/data.length;
+    const so=data.slice().sort((a,b)=>a-b); med=so[Math.floor(so.length/2)];
+    const xt=[49.95,50.05,50.15,50.25,50.35,50.45];
+    Ps=Plot($('d2strip'),{W:560,H:108,pad:{l:20,r:20,t:8,b:46},xmin:X0,xmax:X1,ymin:0,ymax:1,xticks:[50,50.1,50.2,50.3,50.4],xfmt:v=>hu(v,2),xlabel:'átmérő [mm]',noY:true});
+    const cnt={};
+    data.forEach(y=>{ const k=y.toFixed(3); cnt[k]=(cnt[k]||0)+1; Ps.dot(y,0.3+0.3*(cnt[k]-1),4.5,(cb.checked&&y===50.40)?'f-err':'f-ink',Ps.gS); });
+    let mMax=Math.max(mse(X0),mse(X1)), aMax=Math.max(mae(X0),mae(X1));
+    const mt=niceTicks(0,mMax*1.05,3), at=niceTicks(0,aMax*1.05,3);
+    Pm=Plot($('d2mse'),{W:300,H:230,pad:{l:52,r:10,t:10,b:34},xmin:X0,xmax:X1,ymin:0,ymax:mt[mt.length-1]>=mMax?mt[mt.length-1]:mMax*1.05,xticks:[50,50.2,50.4],xfmt:v=>hu(v,1),yticks:mt});
+    Pm.curve(mse,X0,X1,'c-contour'); Pm.dot(mean,mse(mean),4.5,'f-blue',Pm.gS);
+    Pa=Plot($('d2mae'),{W:300,H:230,pad:{l:52,r:10,t:10,b:34},xmin:X0,xmax:X1,ymin:0,ymax:at[at.length-1]>=aMax?at[at.length-1]:aMax*1.05,xticks:[50,50.2,50.4],xfmt:v=>hu(v,1),yticks:at});
+    Pa.curve(mae,X0,X1,'c-contour',null,500); Pa.dot(med,mae(med),4.5,'f-contour',Pa.gS);
+    upd();
+  }
+  function upd(){
+    const c=+s.value; outSet('d2cv',hu(c,3));
+    $('d2r').innerHTML=span('átlag:',hu(mean,4))+span('medián:',hu(med,3))+span('MSE(c):',hu(mse(c),5)+' mm²')+span('RMSE(c):',hu(Math.sqrt(mse(c)),4)+' mm')+span('MAE(c):',hu(mae(c),4)+' mm');
+    Ps.clear(); Ps.vline(c,'c-min'); Ps.seg(mean,0.02,mean,0.12,'c-blue'); Ps.seg(med,0.02,med,0.12,'c-contour');
+    Ps.text(mean,0.02,'▲','f-blue','middle'); Ps.text(med,0.02,'▲','f-contour','middle');
+    Pm.clear(); Pm.vline(c,'c-min dash'); Pm.dot(c,mse(c),5,'f-min');
+    Pa.clear(); Pa.vline(c,'c-min dash'); Pa.dot(c,mae(c),5,'f-min');
+  }
+  s.addEventListener('input',upd); cb.addEventListener('change',build);
+  $('d2mean').addEventListener('click',()=>{ s.value=mean; upd(); });
+  $('d2med').addEventListener('click',()=>{ s.value=med; upd(); });
+  build();
+})();
+
+/* ---------------- shared data for D3/D4 ---------------- */
+const F=[2,4,6,8,10,12,14,16], DL=[0.27,0.44,0.77,0.94,1.26,1.39,1.70,1.89];
+const Lw=w=>F.reduce((a,x,i)=>a+(w*x-DL[i])*(w*x-DL[i]),0)/F.length;
+const dLw=w=>2*F.reduce((a,x,i)=>a+x*(w*x-DL[i]),0)/F.length;
+const WOPT=F.reduce((a,x,i)=>a+x*DL[i],0)/F.reduce((a,x)=>a+x*x,0);
+const L2=2*F.reduce((a,x)=>a+x*x,0)/F.length; // 204
+
+/* ---------------- D3 ---------------- */
+(function(){
+  const s=$('d3w'); if(!s) return;
+  const Pf=Plot($('d3fit'),{W:300,H:250,pad:{l:44,r:10,t:10,b:34},xmin:0,xmax:17,ymin:0,ymax:2.2,xticks:[0,4,8,12,16],yticks:[0,0.5,1,1.5,2],yfmt:v=>hu(v,1)});
+  const Pl=Plot($('d3land'),{W:300,H:250,pad:{l:44,r:10,t:10,b:34},xmin:0,xmax:0.24,ymin:0,ymax:1.6,xticks:[0,0.06,0.12,0.18,0.24],yticks:[0,0.4,0.8,1.2,1.6]});
+  Pl.curve(Lw,0,0.24,'c-contour'); Pl.dot(WOPT,Lw(WOPT),4.5,'f-min',Pl.gS);
+  function upd(){
+    const w=+s.value; outSet('d3wv',hu(w,3));
+    Pf.clear(); Pf.seg(0,0,17,17*w,'c-blue');
+    F.forEach((x,i)=>{ Pf.seg(x,DL[i],x,w*x,'c-err'); });
+    F.forEach((x,i)=>{ Pf.dot(x,DL[i],4,'f-ink'); });
+    Pl.clear(); Pl.vline(w,'c-min dash'); Pl.dot(w,Lw(w),5.5,'f-blue');
+    $('d3r').innerHTML=span('MSE(w):',hu(Lw(w),4)+' mm²')+span('legjobb w*:',hu(WOPT,4)+' mm/kN')+span('MSE(w*):',hu(Lw(WOPT),4)+' mm²');
+  }
+  s.addEventListener('input',upd); upd();
+})();
+
+/* ---------------- D4 ---------------- */
+(function(){
+  const s=$('d4eta'); if(!s) return;
+  const P=Plot($('d4land'),{W:300,H:250,pad:{l:44,r:10,t:10,b:34},xmin:-0.05,xmax:0.29,ymin:0,ymax:2,xticks:[0,0.1,0.2],yticks:[0,0.5,1,1.5,2],yfmt:v=>hu(v,1)});
+  P.curve(Lw,-0.05,0.29,'c-contour'); P.dot(WOPT,Lw(WOPT),4.5,'f-min',P.gS);
+  let path=[0];
+  function regime(eta){ if(eta<1/L2) return 'η < 1/L″ ≈ '+hu(1/L2,4)+': egyenletes közeledés.'; if(eta<2/L2) return '1/L″ < η < 2/L″: oszcillálva konvergál.'; return 'η > 2/L″ ≈ '+hu(2/L2,4)+': szétszáll.'; }
+  function draw(){
+    const eta=+s.value; outSet('d4etav',hu(eta,4));
+    P.clear();
+    const pts=path.filter(w=>Math.abs(w)<10).map(w=>[w,Lw(w)]);
+    if(pts.length>1) P.poly(pts,'c-err');
+    pts.forEach((q,i)=>P.dot(q[0],q[1],i===pts.length-1?5.5:3,'f-err'));
+    const w=path[path.length-1], k=path.length-1;
+    const msg=$('d4msg');
+    if(!isFinite(w)||Math.abs(w)>0.29||w<-0.05){ msg.className='msg bad'; msg.textContent=k+'. lépés: w kiesett az ábráról ('+(isFinite(w)?hu(w,3):'∞')+'). '+regime(eta); }
+    else if(Math.abs(w-WOPT)<5e-4){ msg.className='msg good'; msg.textContent=k+'. lépés: megérkezett a völgy aljára. '+regime(eta); }
+    else { msg.className='msg'; msg.textContent=k+'. lépés. '+regime(eta); }
+    let h='<thead><tr><th>lépés</th><th>w</th><th>L(w)</th><th>L′(w)</th></tr></thead><tbody>';
+    const from=Math.max(0,path.length-7);
+    for(let i=from;i<path.length;i++){ const x=path[i]; const big=Math.abs(x)>1e4; h+='<tr><td>'+i+'</td><td>'+(big?'túl nagy':hu(x,4))+'</td><td>'+(big?'—':hu(Lw(x),4))+'</td><td>'+(big?'—':hu(dLw(x),3))+'</td></tr>'; }
+    $('d4tbl').innerHTML=h+'</tbody>';
+  }
+  function step(n){ const eta=+s.value; for(let i=0;i<n;i++){ const w=path[path.length-1]; if(!isFinite(w)||Math.abs(w)>1e6) break; path.push(w-eta*dLw(w)); } draw(); }
+  $('d4step').addEventListener('click',()=>step(1));
+  $('d4step10').addEventListener('click',()=>step(10));
+  $('d4reset').addEventListener('click',()=>{ path=[0]; draw(); });
+  s.addEventListener('input',()=>{ path=[0]; draw(); });
+  draw();
+})();
+
+/* ---------------- D5 ---------------- */
+(function(){
+  if(!$('d5z0')) return;
+  const names=['jó varrat','porozitás','repedés'];
+  const P=Plot($('d5svg'),{W:560,H:260,pad:{b:48},xmin:0,xmax:1,ymin:0,ymax:5,xticks:[0,0.25,0.5,0.75,1],yticks:[0,1,2,3,4,5],yfmt:v=>hu(v,0),xlabel:'a helyes osztály valószínűsége (p)',ylabel:'−ln p'});
+  P.curve(p=>-Math.log(p),0.004,1,'c-contour',null,400);
+  const bars=$('d5bars');
+  bars.innerHTML=names.map((n,i)=>'<div class="bar" id="d5b'+i+'"><span class="bar-name">'+n+'</span><div class="bar-track"><div class="bar-fill"></div></div><span class="bar-val"></span></div>').join('');
+  function upd(){
+    const z=[0,1,2].map(i=>+$('d5z'+i).value);
+    z.forEach((v,i)=>outSet('d5z'+i+'v',hu(v,1)));
+    const c=+document.querySelector('input[name="d5c"]:checked').value;
+    const mx=Math.max.apply(null,z), ex=z.map(v=>Math.exp(v-mx)), sm=ex.reduce((a,b)=>a+b,0), p=ex.map(v=>v/sm);
+    p.forEach((v,i)=>{ const b=$('d5b'+i); b.classList.toggle('correct',i===c); b.querySelector('.bar-fill').style.width=(v*100)+'%'; b.querySelector('.bar-val').textContent=hu(v*100,1)+'%'; });
+    const ce=-Math.log(p[c]);
+    $('d5r').innerHTML=span('keresztentrópia:',hu(ce,3))+span('gradiens (p − y):', p.map((v,i)=>huS(v-(i===c?1:0),2)).join(' / '));
+    P.clear(); P.vline(p[c],'c-min dash'); P.dot(p[c],Math.min(ce,5),6,'f-min');
+    if(ce>5) P.text(p[c],4.7,'  '+hu(ce,1)+' (a skálán kívül)','f-err');
+  }
+  ['d5z0','d5z1','d5z2'].forEach(id=>$(id).addEventListener('input',upd));
+  document.querySelectorAll('input[name="d5c"]').forEach(r=>r.addEventListener('change',upd));
+  upd();
+})();
+
+/* ---------------- D6 ---------------- */
+(function(){
+  const s=$('d6s'); if(!s) return;
+  const Pp=Plot($('d6pdf'),{W:300,H:230,pad:{l:44,r:10,t:10,b:34},xmin:-4,xmax:4,ymin:0,ymax:1.05,xticks:[-4,-2,0,2,4],yticks:[0,0.25,0.5,0.75,1]});
+  const Pn=Plot($('d6nll'),{W:300,H:230,pad:{l:44,r:10,t:10,b:34},xmin:-4,xmax:4,ymin:0,ymax:6,xticks:[-4,-2,0,2,4],yticks:[0,2,4,6],yfmt:v=>hu(v,0)});
+  function upd(){
+    const sc=+s.value; outSet('d6sv',hu(sc,2));
+    const g=e=>Math.exp(-e*e/(2*sc*sc))/(sc*Math.sqrt(2*Math.PI));
+    const l=e=>Math.exp(-Math.abs(e)/sc)/(2*sc);
+    Pp.clear(); Pp.curve(g,-4,4,'c-contour',Pp.gD); Pp.curve(l,-4,4,'c-blue',Pp.gD,400);
+    Pn.clear(); Pn.curve(e=>-Math.log(g(e)),-4,4,'c-contour',Pn.gD); Pn.curve(e=>-Math.log(l(e)),-4,4,'c-blue',Pn.gD,400);
+  }
+  s.addEventListener('input',upd); upd();
+})();
+
+/* ---------------- D7 ---------------- */
+function erf(x){ const sg=x<0?-1:1; x=Math.abs(x); const t=1/(1+0.3275911*x); const y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x); return sg*y; }
+const Phi=z=>0.5*(1+erf(z/Math.SQRT2)), phi=z=>Math.exp(-z*z/2)/Math.sqrt(2*Math.PI);
+(function(){
+  const ks=$('d7k'), ss=$('d7s'); if(!ks) return;
+  const EL=(o,s,k)=>{ const a=o/s; return (o*Phi(a)+s*phi(a)) + k*(-o*Phi(-a)+s*phi(a)); };
+  function zq(q){ let lo=-6, hi=6; for(let i=0;i<80;i++){ const m=(lo+hi)/2; if(Phi(m)<q) lo=m; else hi=m; } return (lo+hi)/2; }
+  function upd(){
+    const k=+ks.value, s=+ss.value; outSet('d7kv',String(k)); outSet('d7sv',String(s));
+    const oo=s*zq(k/(k+1)), X0=-10, X1=70;
+    let ymax=0; for(let i=0;i<=80;i++){ ymax=Math.max(ymax,EL(X0+i,s,k)); } ymax=Math.min(ymax, EL(0,s,k)*2.2);
+    const yt=niceTicks(0,ymax,4);
+    const P=Plot($('d7loss'),{W:300,H:240,pad:{l:46,r:10,t:10,b:46},xmin:X0,xmax:X1,ymin:0,ymax:Math.max(yt[yt.length-1],ymax),xticks:[0,20,40,60],yticks:yt,xfmt:v=>hu(v,0),yfmt:v=>hu(v,0),xlabel:'eltolás a névlegeshez képest [µm]'});
+    P.curve(o=>EL(o,s,k),X0,X1,'c-contour');
+    P.vline(0,'c-ink dash',P.gS); P.vline(oo,'c-min dash'); P.dot(oo,EL(oo,s,k),5.5,'f-min'); P.dot(0,EL(0,s,k),4.5,'f-ink');
+    const d0=Math.min(-4*s,oo-4*s), d1=oo+4*s, xt=niceTicks(d0,d1,4);
+    const pdf=d=>phi((d-oo)/s)/s, pk=pdf(oo);
+    const Q=Plot($('d7dist'),{W:300,H:240,pad:{l:20,r:10,t:10,b:46},xmin:d0,xmax:d1,ymin:0,ymax:pk*1.12,xticks:xt,xfmt:v=>hu(v,0),xlabel:'eltérés a névlegestől [µm]',noY:true});
+    Q.area(pdf,d0,Math.min(0,d1),'band-err');
+    Q.curve(pdf,d0,d1,'c-contour');
+    Q.vline(0,'c-err',Q.gS); Q.vline(oo,'c-min dash',Q.gS);
+    Q.text(0,pk*1.02,'névleges ','f-err','end');
+    const save=1-EL(oo,s,k)/EL(0,s,k);
+    $('d7r').innerHTML=span('optimális eltolás:',huS(oo,1)+' µm')+span('alulméretes arány:',hu(100/(k+1),1)+'%')+span('várható veszteség:',hu(EL(oo,s,k),1)+' (névlegesre állítva '+hu(EL(0,s,k),1)+', '+hu(save*100,0)+'% megtakarítás)');
+  }
+  ks.addEventListener('input',upd); ss.addEventListener('input',upd); upd();
+})();
+
+/* ---------------- overfit chart ---------------- */
+(function(){
+  const svg=$('d7ofit'); if(!svg) return;
+  const tr=e=>0.9*Math.exp(-e/18)+0.05, va=e=>0.9*Math.exp(-e/18)+0.12+0.00008*e*e;
+  let best=0,bv=9; for(let e=0;e<=100;e+=0.25){ const v=va(e); if(v<bv){bv=v;best=e;} }
+  const P=Plot(svg,{W:560,H:260,pad:{b:48},xmin:0,xmax:100,ymin:0,ymax:1.1,xticks:[0,20,40,60,80,100],yticks:[0,0.25,0.5,0.75,1],xfmt:v=>hu(v,0),xlabel:'tanítási lépések (epoch)',ylabel:'veszteség'});
+  P.curve(tr,0,100,'c-contour'); P.curve(va,0,100,'c-err');
+  P.vline(best,'c-min dash',P.gS); P.text(best,1.0,'  korai leállítás','f-min','start',P.gS);
+  P.text(92,tr(92)+0.06,'tanítási','f-contour','end',P.gS); P.text(92,va(92)+0.07,'validációs','f-err','end',P.gS);
+})();
+
+/* ---------------- D8 ---------------- */
+(function(){
+  const s=$('d8p'); if(!s) return;
+  const R=d=>d, J=d=>d-0.08*d*d;
+  const P=Plot($('d8svg'),{W:560,H:270,pad:{b:48},xmin:0,xmax:10,ymin:0,ymax:10,xticks:[0,2,4,6,8,10],yticks:[0,2.5,5,7.5,10],xfmt:v=>hu(v,0),xlabel:'az optimalizálás ereje (d)',ylabel:'érték'});
+  P.curve(R,0,10,'c-blue'); P.curve(J,0,10,'c-contour'); P.vline(6.25,'c-ink dash',P.gS);
+  P.text(6.25,9.3,' a valódi cél csúcsa','','start',P.gS).setAttribute('fill','var(--muted)');
+  function upd(){
+    const d=+s.value; outSet('d8pv',hu(d,1));
+    P.clear(); P.vline(d,'c-min'); P.dot(d,R(d),5.5,'f-blue'); P.dot(d,J(d),5.5,'f-contour');
+    const m=$('d8msg');
+    if(d<5){ m.className='msg good'; m.textContent='Együtt javulnak: a mérce jól követi a célt.'; }
+    else if(d<6.25){ m.className='msg'; m.textContent='A valódi cél javulása lassul, a mérce ugyanolyan ütemben nő.'; }
+    else { m.className='msg bad'; m.textContent='A mérce tovább nő, a valódi cél már romlik: ez a Goodhart-hatás.'; }
+  }
+  s.addEventListener('input',upd); upd();
+})();
+
+/* ---------------- hero map ---------------- */
+(function(){
+  const svg=$('heroMap'); if(!svg) return;
+  const cx=214, cy=206, ang=-32, sc=178, A=1, B=6;
+  const g=mk('g',{transform:'rotate('+ang+' '+cx+' '+cy+')'},svg);
+  const lv=[0.012,0.04,0.085,0.15,0.23,0.33,0.45,0.6,0.78,1.0];
+  lv.forEach((c,i)=>mk('ellipse',{cx:cx,cy:cy,rx:(sc*Math.sqrt(c/A)).toFixed(1),ry:(sc*Math.sqrt(c/B)).toFixed(1),class:'cl'+(i%3===2?' major':'')},g));
+  // gradient descent in rotated coords
+  let u=0.82, v=0.3; const eta=0.142, pts=[[u,v]];
+  for(let i=0;i<22;i++){ u=u-eta*2*A*u; v=v-eta*2*B*v; pts.push([u,v]); }
+  const d=pts.map((q,i)=>(i?'L':'M')+(cx+sc*q[0]).toFixed(1)+' '+(cy+sc*q[1]).toFixed(1)).join(' ');
+  const path=mk('path',{d:d,class:'gd'},g);
+  pts.forEach((q,i)=>{ if(i<14) mk('circle',{cx:(cx+sc*q[0]).toFixed(1),cy:(cy+sc*q[1]).toFixed(1),r:i===0?5:2.6,class:'gdpt'},g); });
+  const mn=mk('circle',{cx:cx,cy:cy,r:6,class:'minpt'},g);
+  const t1=mk('text',{x:392,y:392,'text-anchor':'end',class:'ax'},svg); t1.textContent='w₁';
+  const t2=mk('text',{x:10,y:22,class:'ax'},svg); t2.textContent='w₂';
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!reduce && path.getTotalLength){
+    const L=path.getTotalLength();
+    path.style.strokeDasharray=L; path.style.strokeDashoffset=L; mn.style.opacity=0;
+    g.querySelectorAll('.gdpt').forEach(c=>{ c.style.opacity=0; });
+    requestAnimationFrame(()=>{ requestAnimationFrame(()=>{
+      path.style.transition='stroke-dashoffset 2.4s cubic-bezier(.3,.1,.2,1)'; path.style.strokeDashoffset=0;
+      g.querySelectorAll('.gdpt').forEach((c,i)=>{ c.style.transition='opacity .3s '+(0.1+i*0.15)+'s'; c.style.opacity=1; });
+      mn.style.transition='opacity .5s 2.3s'; mn.style.opacity=1;
+    }); });
+  }
+})();
+
+})();
+</script>
+</body>
+</html>

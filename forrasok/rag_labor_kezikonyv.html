@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Építsünk egyet — RAG-labor</title>
+<style>
+:root {
+  color-scheme: light;
+  --surface-1: #fcfcfb;
+  --page: #f9f9f7;
+  --ink-1: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-muted: #898781;
+  --grid: #e1e0d9;
+  --baseline: #c3c2b7;
+  --border: rgba(11,11,11,0.10);
+  --s1: #2a78d6;  /* kék */
+  --s2: #008300;  /* zöld */
+  --s3: #e87ba4;  /* magenta */
+  --s4: #eda100;  /* sárga */
+  --s5: #1baf7a;  /* aqua */
+  --s6: #eb6834;  /* narancs */
+  --s7: #4a3aa7;  /* lila */
+  --s8: #e34948;  /* piros */
+  --wash-blue: rgba(42,120,214,0.08);
+  --wash-violet: rgba(74,58,167,0.08);
+  --wash-green: rgba(0,131,0,0.07);
+  --wash-orange: rgba(235,104,52,0.08);
+  --code-bg: #f1f0ec;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface-1: #1a1a19;
+  --page: #0d0d0d;
+  --ink-1: #ffffff;
+  --ink-2: #c3c2b7;
+  --ink-muted: #898781;
+  --grid: #2c2c2a;
+  --baseline: #383835;
+  --border: rgba(255,255,255,0.10);
+  --s1: #3987e5;
+  --s2: #2fa32f;
+  --s3: #d55181;
+  --s4: #c98500;
+  --s5: #199e70;
+  --s6: #d95926;
+  --s7: #9085e9;
+  --s8: #e66767;
+  --wash-blue: rgba(57,135,229,0.12);
+  --wash-violet: rgba(144,133,233,0.12);
+  --wash-green: rgba(47,163,47,0.10);
+  --wash-orange: rgba(217,89,38,0.12);
+  --code-bg: #242423;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--page);
+  color: var(--ink-1);
+  line-height: 1.65;
+  font-size: 16px;
+}
+.layout { display: flex; max-width: 1280px; margin: 0 auto; }
+nav#toc {
+  width: 270px; flex-shrink: 0;
+  position: sticky; top: 0; align-self: flex-start;
+  height: 100vh; overflow-y: auto;
+  padding: 24px 8px 40px 20px;
+  border-right: 1px solid var(--border);
+  font-size: 13.5px;
+}
+nav#toc .toc-title { font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted); margin: 14px 0 8px; }
+nav#toc a {
+  display: block; color: var(--ink-2); text-decoration: none;
+  padding: 4px 10px; border-radius: 6px; border-left: 2px solid transparent;
+}
+nav#toc a:hover { background: var(--wash-blue); color: var(--ink-1); }
+nav#toc a.active { color: var(--s1); border-left-color: var(--s1); background: var(--wash-blue); font-weight: 600; }
+nav#toc a.sub { padding-left: 24px; font-size: 12.5px; }
+main {
+  flex: 1; min-width: 0;
+  padding: 0 48px 120px;
+  background: var(--surface-1);
+}
+@media (max-width: 900px) {
+  nav#toc { display: none; }
+  main { padding: 0 20px 80px; }
+}
+header.hero {
+  padding: 64px 0 36px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 40px;
+}
+header.hero h1 { font-size: 34px; line-height: 1.2; margin: 0 0 14px; letter-spacing: -0.01em; }
+header.hero .subtitle { font-size: 17px; color: var(--ink-2); max-width: 680px; }
+.meta-line { font-size: 13px; color: var(--ink-muted); margin-top: 18px; }
+h2 {
+  font-size: 26px; margin: 72px 0 8px; padding-top: 24px;
+  border-top: 1px solid var(--border);
+  letter-spacing: -0.01em; scroll-margin-top: 20px;
+}
+h3 { font-size: 19.5px; margin: 40px 0 6px; scroll-margin-top: 20px; }
+h4 { font-size: 16px; margin: 28px 0 4px; }
+p { margin: 12px 0; max-width: 74ch; }
+li { margin: 5px 0; max-width: 70ch; }
+.chapter-kicker { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--s1); margin: 72px 0 -66px; padding-top: 24px; }
+strong { font-weight: 650; }
+a { color: var(--s1); }
+code, .tok {
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+  font-size: 0.88em;
+  background: var(--code-bg);
+  padding: 1.5px 5px; border-radius: 4px;
+}
+pre {
+  background: var(--code-bg); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 18px; overflow-x: auto;
+  font-size: 13px; line-height: 1.55; max-width: 100%;
+}
+pre code { background: none; padding: 0; font-size: inherit; }
+/* Matematika */
+.math {
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic; font-size: 1.02em; white-space: nowrap;
+}
+.math b { font-style: normal; font-weight: 700; }
+.math .rm { font-style: normal; }
+.eq {
+  display: block; text-align: center; margin: 18px auto; padding: 14px 10px;
+  font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 1.13em;
+  background: var(--wash-blue); border-radius: 10px; max-width: 640px;
+  overflow-x: auto; white-space: nowrap;
+}
+.eq .rm { font-style: normal; }
+.eq b, .math-b { font-style: normal; font-weight: 700; }
+sub, sup { font-size: 0.72em; }
+.frac { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 3px; }
+.frac > span { display: block; padding: 0 4px; }
+.frac > span:first-child { border-bottom: 1px solid currentColor; }
+/* Mélységi szintek */
+details.level {
+  margin: 20px 0; border-radius: 12px; border: 1px solid var(--border);
+  overflow: hidden;
+}
+details.level > summary {
+  cursor: pointer; padding: 12px 18px; font-weight: 650; font-size: 14.5px;
+  list-style: none; display: flex; align-items: center; gap: 10px;
+  user-select: none;
+}
+details.level > summary::-webkit-details-marker { display: none; }
+details.level > summary::before { content: "▸"; font-size: 12px; transition: transform 0.15s; }
+details.level[open] > summary::before { transform: rotate(90deg); }
+details.level > .body { padding: 4px 22px 18px; border-top: 1px solid var(--border); }
+details.l2 { background: var(--wash-blue); }
+details.l2 > summary { color: var(--s1); }
+details.l3 { background: var(--wash-violet); }
+details.l3 > summary { color: var(--s7); }
+.badge {
+  display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; padding: 2px 8px; border-radius: 20px;
+}
+.badge.b2 { background: var(--s1); color: #fff; }
+.badge.b3 { background: var(--s7); color: #fff; }
+/* Dobozok */
+.note, .example, .warn {
+  border-radius: 12px; padding: 14px 20px; margin: 20px 0;
+  border: 1px solid var(--border); font-size: 15px;
+}
+.note { background: var(--wash-green); }
+.note .label { color: var(--s2); }
+.example { background: var(--wash-orange); }
+.example .label { color: var(--s6); }
+.warn { background: var(--wash-blue); }
+.warn .label { color: var(--s1); }
+.note .label, .example .label, .warn .label {
+  display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+/* Ábrák */
+figure.diagram {
+  margin: 30px 0; padding: 20px 12px 10px;
+  border: 1px solid var(--border); border-radius: 14px;
+  background: var(--surface-1); text-align: center;
+}
+figure.diagram svg { max-width: 100%; height: auto; }
+figcaption {
+  font-size: 13px; color: var(--ink-2); text-align: left;
+  padding: 10px 12px 4px; border-top: 1px solid var(--grid); margin-top: 12px;
+  line-height: 1.5;
+}
+figcaption .fig-num { font-weight: 700; color: var(--ink-1); }
+/* Táblázatok */
+table { border-collapse: collapse; margin: 18px 0; font-size: 14px; width: 100%; max-width: 760px; }
+th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); font-weight: 700; }
+th, td { padding: 8px 12px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+td { color: var(--ink-2); }
+td:first-child { color: var(--ink-1); }
+tr:last-child td { border-bottom: 1px solid var(--baseline); }
+/* Glosszárium */
+dl.gloss dt { font-weight: 650; margin-top: 14px; }
+dl.gloss dd { margin: 2px 0 0 0; color: var(--ink-2); font-size: 15px; max-width: 72ch; }
+/* Irodalom */
+ol.refs li { margin: 10px 0; font-size: 14.5px; color: var(--ink-2); }
+ol.refs li b { color: var(--ink-1); font-weight: 600; }
+/* Téma-kapcsoló */
+#themeToggle {
+  position: fixed; top: 14px; right: 16px; z-index: 50;
+  background: var(--surface-1); border: 1px solid var(--border); color: var(--ink-2);
+  border-radius: 20px; padding: 6px 14px; font-size: 12.5px; cursor: pointer;
+  font-family: inherit;
+}
+#themeToggle:hover { color: var(--ink-1); }
+/* Interaktív demó */
+.demo {
+  border: 1px solid var(--border); border-radius: 14px; padding: 20px 24px; margin: 26px 0;
+  background: var(--surface-1);
+}
+.demo .demo-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--s6); margin-bottom: 10px; }
+.demo label { font-size: 13.5px; color: var(--ink-2); }
+.demo input[type=range] { width: 220px; vertical-align: middle; accent-color: var(--s1); }
+.bars { display: flex; align-items: flex-end; gap: 10px; height: 150px; margin-top: 16px; }
+.bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; height: 100%; justify-content: flex-end; }
+.bar { width: 100%; max-width: 54px; background: var(--s1); border-radius: 4px 4px 0 0; transition: height 0.2s; min-height: 2px; }
+.bar-lbl { font-family: ui-monospace, monospace; font-size: 12px; color: var(--ink-2); }
+.bar-val { font-size: 11px; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+/* SVG közös szövegstílus */
+svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+svg .svg-mono { font-family: ui-monospace, "SF Mono", Consolas, monospace; }
+.svg-ink { fill: var(--ink-1); }
+.svg-ink2 { fill: var(--ink-2); }
+.svg-muted { fill: var(--ink-muted); }
+.svg-line { stroke: var(--baseline); }
+.svg-grid { stroke: var(--grid); }
+.svg-box { fill: var(--surface-1); stroke: var(--baseline); }
+.tag { display:inline-block; font-size:11px; font-weight:700; border-radius: 4px; padding: 1px 7px; margin-right:6px; }
+</style>
+<style>
+.step { border-left: 3px solid var(--s1); padding: 2px 0 2px 18px; margin: 26px 0 18px; }
+.step .n { display:block; font-size: 11px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color: var(--s1); }
+.step h3 { margin: 4px 0 0 !important; }
+.run { background: #10151c; color: #cfe3d8; font-family: ui-monospace, monospace; font-size: 12.5px; border-radius: 8px; padding: 12px 15px; overflow-x:auto; white-space: pre; line-height:1.5; }
+.run .c { color:#7fb3ff; }
+table.mini td, table.mini th { font-size: 13.5px; padding: 6px 10px; }
+.pyterm { border:1px solid var(--border); border-radius:10px; padding: 2px 16px 12px; background: var(--surface-1); margin: 18px 0; }
+.pyterm h4 { margin: 14px 0 6px; font-size: 14.5px; }
+.cards { display:grid; grid-template-columns: repeat(auto-fit, minmax(230px,1fr)); gap:14px; margin:22px 0; max-width:860px; }
+.card { border:1px solid var(--border); border-radius:12px; padding:14px 16px; background: var(--surface-1); }
+.card h4 { margin:0 0 6px; font-size:15px; }
+.card p { margin:0; font-size:14px; color: var(--ink-2); }
+.card .k { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color: var(--ink-muted); display:block; margin-bottom:6px; }
+blockquote { margin:20px 0; padding:4px 0 4px 18px; border-left:3px solid var(--baseline); color: var(--ink-2); font-size:15.5px; max-width:72ch; }
+.task { border:1px solid var(--s5); border-radius:10px; padding:12px 18px; margin:20px 0; background: var(--wash-blue); }
+.task .label { display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color: var(--s5); margin-bottom:4px; }
+</style>
+</head>
+<body>
+<button id="themeToggle" aria-label="Téma váltása">◐ Sötét mód</button>
+<div class="layout">
+<nav id="toc" aria-label="Tartalomjegyzék">
+  <div class="toc-title">Tartalom</div>
+  <a href="#bevezeto">0 · Mit építünk</a>
+  <a href="#elokeszulet">1 · Előkészület</a>
+  <a class="sub" href="#pythonalap">1.3 · Python-alapozó</a>
+  <a href="#korpusz">2 · A korpusz</a>
+  <a href="#darabolas">3 · Darabolás</a>
+  <a href="#embedding">4 · Embedding</a>
+  <a class="sub" href="#kapcsolo">4.3 · A kapcsoló</a>
+  <a href="#index">5 · Index építése</a>
+  <a href="#kereses">6 · Keresés</a>
+  <a class="sub" href="#bm25">6.2 · BM25</a>
+  <a class="sub" href="#fuzio">6.3 · Rangfúzió</a>
+  <a href="#valasz">7 · Válasz forrásjelöléssel</a>
+  <a href="#meres">8 · Mérés — a fő lépés</a>
+  <a class="sub" href="#kiserlet">8.3 · A nagy kísérlet</a>
+  <a href="#eszkoz">9 · Eszközhívás</a>
+  <a href="#innen">10 · Innen hová</a>
+  <a href="#hibakereso">11 · Hibakereső</a>
+</nav>
+<main>
+<header class="hero">
+  <h1>Építsünk egyet</h1>
+  <div class="subtitle">Karbantartási dokumentumasszisztens nulláról, működő kóddal: darabolás, embedding, hibrid keresés, forrásjelölt válasz, kiértékelés és eszközhívás. Minden sor magyarázva, minden lépés futtatható — API-kulcs nélkül is.</div>
+  <div class="meta-line">
+    Az „<em>Hogyan működnek a nagy nyelvi modellek?</em>" és a „<em>Mire használjuk az AI-t?</em>" gyakorlati folytatása.
+    Készült: 2026. augusztus. Melléklet: <code>labor/</code> projektmappa.
+  </div>
+</header>
+
+<section id="bevezeto">
+<div class="chapter-kicker">0. lépés</div>
+<h2>Mit építünk, és miért pont ezt</h2>
+
+<p>A végén ez lesz a kezedben: egy rendszer, amely hat karbantartási dokumentumból (gépkönyvek, utasítás, munkavédelmi előírás, hibajegy-kivonat, beszerzési szabályzat) meg tud válaszolni műszakos kérdéseket — <strong>forrásmegjelöléssel</strong>, <strong>mérhető pontossággal</strong>, és ott, ahol számolni kell, <strong>eszközhívással</strong>.</p>
+
+<p>Miért éppen ez a feladat? Mert ez a legkisebb rendszer, amiben az összes valódi nehézség benne van. Nem játék: ha a végén kicseréled a hat dokumentumot a saját anyagodra, működni fog. És mert három olyan dolgot tanít, amit olvasásból nem lehet megérteni:</p>
+
+<div class="cards">
+  <div class="card"><span class="k">1</span><h4>A darabolás dönt</h4><p>Meg fogod látni a saját méréseiden, hogy a rendszer minőségét nem a modell, hanem a bemenő adat előkészítése határozza meg.</p></div>
+  <div class="card"><span class="k">2</span><h4>Mérés nélkül vakrepülés</h4><p>Építünk egy kiértékelő készletet, és minden változtatást megmérünk. Ez az a készség, amit a legtöbben kihagynak.</p></div>
+  <div class="card"><span class="k">3</span><h4>Az eszköz a határ</h4><p>Kiderül, hol ér véget a keresés hatóköre, és hol kell a modellnek kezet adni — ez az agentikus rendszerek kiindulópontja.</p></div>
+</div>
+
+<div class="note">
+<span class="label">Fontos ígéret</span>
+Az egész labor <strong>futtatható API-kulcs nélkül és internet nélkül</strong>. Az alapértelmezett üzemmód egy szándékosan primitív, beépített embedding — épp elég ahhoz, hogy minden mechanizmus működjön, és épp elég rossz ahhoz, hogy a 8. lépésben látványos legyen a különbség, amikor igazi modellre váltasz. Ez nem kényszermegoldás: ez a labor didaktikai gerince.
+</div>
+</section>
+
+<section id="elokeszulet">
+<div class="chapter-kicker">1. lépés</div>
+<h2>Előkészület</h2>
+
+<h3>1.1 · Amire szükséged van</h3>
+
+<p>Python 3.10 vagy újabb, és egyetlen csomag. Nyiss egy terminált (Windowson PowerShell), és ellenőrizd:</p>
+
+<div class="run">$ python3 --version
+Python 3.12.3
+
+$ pip install numpy</div>
+
+<p>Ha a <code>python3</code> nem működik, próbáld <code>python</code>-ként. Windowson a <code>py -3</code> is jó. Ha egyik sem, a python.org-ról telepíts — a telepítőben pipáld ki az „Add Python to PATH" opciót.</p>
+
+<h3>1.2 · A projektmappa</h3>
+
+<p>Csomagold ki a <code>labor</code> mappát valahová, ahol megtalálod, és lépj bele:</p>
+
+<div class="run">$ cd labor
+$ ls
+kozos.py  keszits_korpuszt.py  l1_darabolas.py  l2_index.py
+l3_kereses.py  l4_valasz.py  l5_eval.py  l6_eszkoz.py
+kerdesek.json  OLVASSEL.md</div>
+
+<p>A fájlnevek szándékosan sorszámozottak: a <code>l1</code>-től <code>l6</code>-ig haladva épül fel a rendszer, és minden lépés a korábbi kimenetére támaszkodik.</p>
+
+<h3 id="pythonalap">1.3 · Python-alapozó — a hat dolog, ami az egész kódhoz elég</h3>
+
+<p>Ha a Python még bizonytalan, ez a szakasz pótolja, ami kell. Nem többet: pontosan azt a hatot, ami a labor kódjában előfordul. Nyugodtan gépeld be őket egy <code>python3</code> parancsértelmezőbe, és nézd meg, mi történik.</p>
+
+<div class="pyterm">
+<h4>1 · Változó és típus</h4>
+<pre><code>nev = "P-402"        # szöveg (string)
+darab = 26           # egész szám (int)
+pontszam = 0.87      # tizedes (float)
+aktiv = True         # logikai (bool)</code></pre>
+<p style="font-size:14px">Az <code>=</code> nem egyenlőség, hanem <em>értékadás</em>: „ettől kezdve a <code>nev</code> ezt jelenti". Az összehasonlítás jele <code>==</code>.</p>
+
+<h4>2 · Lista — sorrendezett gyűjtemény</h4>
+<pre><code>gepek = ["P-402", "P-405", "P-410"]
+gepek[0]              # "P-402"  — a számozás NULLÁVAL kezdődik
+gepek[-1]             # "P-410"  — hátulról
+gepek.append("P-420") # a végére tesz egyet
+len(gepek)            # 4 — hány elem van benne</code></pre>
+
+<h4>3 · Szótár (dict) — kulcs-érték párok</h4>
+<pre><code>darab = {"gep": "P-402", "verzio": "3.1"}
+darab["gep"]                 # "P-402"
+darab.get("szin", "nincs")   # "nincs" — nem hibázik, ha nincs ilyen kulcs
+darab["uj_kulcs"] = 5        # új pár felvétele</code></pre>
+<p style="font-size:14px">A <code>.get()</code> és a <code>[]</code> különbsége fontos: a szögletes zárójel hibát dob hiányzó kulcsnál, a <code>.get()</code> nem. Valós adatnál mindig van hiányzó mező, ezért használunk sokszor <code>.get()</code>-et.</p>
+
+<h4>4 · Ciklus — csináld meg mindegyikre</h4>
+<pre><code>for gep in gepek:
+    print(gep)
+
+for sorszam, gep in enumerate(gepek):
+    print(sorszam, gep)      # 0 P-402 / 1 P-405 / ...</code></pre>
+<p style="font-size:14px">A behúzás (négy szóköz) <strong>a szintaxis része</strong> Pythonban, nem díszítés: az mondja meg, mi tartozik a cikluson belülre.</p>
+
+<h4>5 · Függvény — névvel ellátott munkadarab</h4>
+<pre><code>def hasonlosag(a, b):
+    """Ez a docstring: mit csinál a függvény."""
+    return a * b          # a return adja vissza az eredményt
+
+ertek = hasonlosag(3, 4)  # 12</code></pre>
+
+<h4>6 · Import — mások kódjának behozatala</h4>
+<pre><code>import numpy as np        # az egész csomag, "np" néven
+from pathlib import Path  # csak egy dolog belőle
+import kozos              # a SAJÁT kozos.py fájlunk</code></pre>
+<p style="font-size:14px">Az utolsó sor a lényeg: a saját fájljaid is modulok. Ezért tudja az <code>l3_kereses.py</code> használni azt, amit a <code>kozos.py</code>-ban megírtunk.</p>
+</div>
+
+<div class="note">
+<span class="label">Tanulási mód</span>
+Ne olvasd végig a kódot, mielőtt futtatnád. Futtasd le, nézd meg a kimenetet, aztán olvasd el azt a részt, ami előállította. Ez a sorrend háromszor gyorsabb — mert a kimenet ad kapaszkodót a kódhoz.
+</div>
+</section>
+
+<section id="korpusz">
+<div class="chapter-kicker">2. lépés</div>
+<h2>A korpusz: amiből dolgozunk</h2>
+
+<div class="step"><span class="n">futtasd</span><h3>python3 keszits_korpuszt.py</h3></div>
+
+<div class="run">kiírva: P-402_szivattyu_gepkonyv.md (1325 karakter)
+kiírva: P-405_szivattyu_gepkonyv.md (866 karakter)
+kiírva: karbantartasi_utasitas_forgogep.md (1400 karakter)
+kiírva: munkavedelmi_eloiras_leallitas.md (945 karakter)
+kiírva: hibajegy_kivonat_2025.md (1074 karakter)
+kiírva: beszerzesi_szabalyzat_potalkatresz.md (826 karakter)
+
+Kész: 6 dokumentum a dokumentumok/ mappában.</div>
+
+<p>Nyisd meg valamelyiket. Két dolgot figyelj meg, mert mindkettő szándékos, és mindkettő vissza fog jönni:</p>
+
+<p><strong>Fejléc metaadattal.</strong> Minden dokumentum elején ott a gép, a rendszer, a dokumentumtípus, a verzió és az érvényesség kezdete. Ezekre fogunk <em>szűrni</em> — és a szűrés a gyakorlatban többet ér, mint egy jobb embedding-modell.</p>
+
+<p><strong>Szándékos csapdák.</strong> A P-405 gépkönyvében ott áll, hogy a P-402 tömítése <em>nem</em> építhető be. Ez azért van, hogy legyen olyan darab, amely tele van a másik gépre vonatkozó kulcsszavakkal, mégis rossz válasz lenne rá. A 6. lépésben pontosan ebbe fogunk beleszaladni — és ez a labor egyik legtanulságosabb pillanata.</p>
+
+<div class="task">
+<span class="label">Feladat</span>
+Nézd át a hat dokumentumot, és írj fel öt kérdést, amit egy műszakos tényleg feltenne. Tedd félre őket — a 8. lépésben be fogjuk tenni a kiértékelő készletbe. Fontos, hogy <em>most</em> írd meg, mielőtt látod, mit tud a rendszer: a rendszer ismeretében írt kérdések öncsalók.
+</div>
+</section>
+
+<section id="darabolas">
+<div class="chapter-kicker">3. lépés</div>
+<h2>Darabolás: a legalulértékeltebb lépés</h2>
+
+<div class="step"><span class="n">futtasd</span><h3>python3 l1_darabolas.py</h3></div>
+
+<div class="run">P-402_szivattyu_gepkonyv.md                   ->  5 darab
+P-405_szivattyu_gepkonyv.md                   ->  4 darab
+beszerzesi_szabalyzat_potalkatresz.md         ->  4 darab
+hibajegy_kivonat_2025.md                      ->  5 darab
+karbantartasi_utasitas_forgogep.md            ->  4 darab
+munkavedelmi_eloiras_leallitas.md             ->  4 darab
+
+Összesen 26 darab -> darabok.json
+
+darabhossz: legrovidebb 137, atlag 256, leghosszabb 506 karakter</div>
+
+<h3>3.1 · Miért nem karakterszám szerint vágunk</h3>
+
+<p>A legelterjedtebb kezdő megoldás: „vágjuk 500 karakterenként, 50 karakter átfedéssel". Ez működik, és rossz. Az 500. karakter ott vág el, ahol éppen tart — egy táblázat közepén, egy mondat felénél, egy felsorolás harmadik pontjánál. A darab fele értelmetlen lesz, a másik fele hiányos.</p>
+
+<p>Mi a szerkezetet követjük: minden <code>##</code> fejezetcím egy darab. Ez a kód lelke:</p>
+
+<pre><code>reszek = re.split(r"^## (.+)$", szoveg, flags=re.MULTILINE)</code></pre>
+
+<p>Soronként, mit csinál ez:</p>
+<ul>
+<li><code>re</code> — a reguláris kifejezések (mintakeresés szövegben) modulja.</li>
+<li><code>^## (.+)$</code> — a minta: sor eleje (<code>^</code>), két kettőskereszt és szóköz, majd bármi (<code>.+</code>) a sor végéig (<code>$</code>).</li>
+<li>A <strong>zárójel</strong> a <code>(.+)</code> körül a trükk: attól, hogy csoportba tettük, a <code>split()</code> nem eldobja a fejezetcímet, hanem beleteszi az eredménylistába. Így egyszerre kapjuk meg a címeket és a tartalmakat.</li>
+<li><code>flags=re.MULTILINE</code> — enélkül a <code>^</code> csak a teljes szöveg elejére illeszkedne, nem minden sor elejére.</li>
+</ul>
+
+<h3>3.2 · A kulcslépés: a darab viszi magával a kontextusát</h3>
+
+<pre><code>beagyazando = f"{cim} — {fejezet_cim}\n\n{tartalom}"</code></pre>
+
+<p>Az <code>f"..."</code> az f-string: a kapcsos zárójelbe tett változók értéke behelyettesítődik a szövegbe. De a fontos rész nem a szintaxis, hanem <em>miért</em> csináljuk.</p>
+
+<p>Vedd a P-402 gépkönyvének 5. fejezetét. A puszta tartalom így kezdődik: <em>„Maximális szívóoldali nyomás: 6 bar."</em> Ha ezt a mondatot önmagában indexeled, semmit nem ér: melyik gépről van szó? A cím hozzáfűzésével a darab így kezdődik: <em>„P-402 centrifugálszivattyú — gépkönyv — 5. Üzemi határértékek"</em>, és ettől kezdve a keresés is megtalálja a „P-402 nyomáshatár" kérdésre, és a modell is tudja, mit olvas.</p>
+
+<blockquote>Ha egy darabot kiragadva olvasva nem tudod megmondani, miről szól, akkor a kereső sem fogja.</blockquote>
+
+<details class="level l2">
+<summary><span class="badge b2">2. szint</span> Amit valós dokumentumoknál kell megoldani</summary>
+<div class="body">
+<p>A mi korpuszunk tiszta markdown. A valóság PDF, Word, szkennelt papír. Amit ott meg kell oldani, sorrendben:</p>
+<ul>
+<li><strong>Szövegkinyerés:</strong> PDF-hez a <code>pymupdf</code> a legjobb ár-érték arányú (<code>pip install pymupdf</code>). Ha a PDF szkennelt kép, OCR kell — de előbb ellenőrizd: sok „szkenneltnek" hitt PDF valójában tartalmaz szövegréteget.</li>
+<li><strong>Szerkezet felismerése:</strong> ha nincsenek markdown-fejezetcímek, a betűméret és a félkövérség alapján lehet címeket detektálni. A <code>pymupdf</code> ezt megadja blokkonként.</li>
+<li><strong>Táblázatok:</strong> a naiv szövegkinyerés a táblázat sorait összefolyatja, és a végeredmény félrevezető lesz — nem hiányos, hanem <em>hamis</em>. Ezért érdemes a táblázatokat külön kezelni (<code>camelot</code>, <code>pdfplumber</code>), vagy vizuális modellel strukturált formába konvertálni indexelés előtt.</li>
+<li><strong>Verziókezelés:</strong> ha egy szabályzat frissül, a régi darabokat <em>törölni</em> kell az indexből. Enélkül a rendszer magabiztosan idéz elavult előírást — és ez a legveszélyesebb hibatípus, mert nem hallucinációnak látszik, hanem hiteles válasznak.</li>
+</ul>
+<p>Ökölszabály a darabmérethez: egy darab egy megválaszolható kérdésnyi legyen. Ha egy darab öt különböző témát tartalmaz, a vektora mind az ötnek az átlaga lesz — és egyikre sem fog igazán hasonlítani.</p>
+</div>
+</details>
+</section>
+
+<section id="embedding">
+<div class="chapter-kicker">4. lépés</div>
+<h2>Embedding: szövegből vektor</h2>
+
+<div class="step"><span class="n">futtasd</span><h3>python3 kozos.py</h3></div>
+
+<div class="run">BACKEND = beepitett
+vektor hossza: 256
+normája: 1.0
+első 8 elem: [0. 0. 0. 0. 0. 0. 0. 0.]</div>
+
+<h3>4.1 · Mit csinál a beépített embedder</h3>
+
+<p>Az alapértelmezett mód szándékosan primitív, és pontosan azért, hogy át tudd látni:</p>
+
+<pre><code>vektor = np.zeros(DIMENZIO, dtype=np.float32)
+for szo in _szavakra_bont(szoveg):
+    h = hashlib.md5(szo.encode("utf-8")).hexdigest()
+    vodor = int(h, 16) % DIMENZIO
+    vektor[vodor] += 1.0</code></pre>
+
+<p>Soronként:</p>
+<ul>
+<li><code>np.zeros(256)</code> — 256 nullából álló tömb. Ez lesz a vektorunk.</li>
+<li><code>_szavakra_bont</code> — kisbetűsít és szavakra vág; a kötőjeles azonosítókat (<code>TOM-402-2K</code>) egyben tartja, mert azok azonosítók, nem három szó.</li>
+<li><code>md5(...)</code> — a szóból egy determinisztikus, hosszú hexadecimális számot csinál. A lényeg a determinizmus: ugyanaz a szó mindig ugyanazt adja.</li>
+<li><code>% DIMENZIO</code> — a maradékos osztás a nagy számot 0 és 255 közé szorítja. Ez a „vödör", ahová a szó esik.</li>
+<li><code>vektor[vodor] += 1.0</code> — megszámoljuk, hány szó esett abba a vödörbe.</li>
+</ul>
+
+<p>Két szöveg vektora akkor lesz hasonló, ha <strong>sok közös szavuk van</strong>. Ennyi. Ez nem szemantika — ez szószámlálás. A „zörög" és a „rendellenes zajkibocsátás" itt két teljesen idegen vektor.</p>
+
+<div class="warn">
+<span class="label">Miért jó ez nekünk?</span>
+Mert így a 8. lépésben <em>meg fogod mérni</em>, mennyit ér egy igazi embedding-modell. Nem elhinni fogod, hanem látni egy számot előtte és utána. Ez a labor legfontosabb egyetlen élménye — és ez az a fajta bizonyíték, ami interjún is meggyőző.
+</div>
+
+<h3>4.2 · A normalizálás és a skalárszorzat</h3>
+
+<pre><code>def normalizal(vektor):
+    hossz = np.linalg.norm(vektor)
+    if hossz == 0:
+        return vektor
+    return vektor / hossz</code></pre>
+
+<p>A <code>np.linalg.norm</code> a vektor hossza (a jó öreg Pitagorasz, csak 256 dimenzióban). Ha ezzel elosztjuk, a vektor egységhosszú lesz: csak irányt hordoz, nagyságot nem. Ennek egyetlen, de nagyon praktikus következménye van:</p>
+
+<p style="text-align:center" class="math">koszinusz-hasonlóság(<b>a</b>, <b>b</b>) = <b>a</b> · <b>b</b> &nbsp;&nbsp;(ha |<b>a</b>| = |<b>b</b>| = 1)</p>
+
+<p>Vagyis a hasonlóság kiszámítása egyetlen skalárszorzat — a leggyorsabb művelet, ami létezik. Ezért normalizál minden vektorkereső rendszer.</p>
+
+<p>A <code>if hossz == 0</code> ág nem elmélet: ha egy darab csupa olyan szót tartalmaz, ami kiesik a tokenizálásból (például csak számokat egy furcsa formátumban), nulla vektort kapsz, és a nullával osztás megállítaná a programot. A valós adat tele van ilyennel.</p>
+
+<h3 id="kapcsolo">4.3 · A kapcsoló</h3>
+
+<pre><code>def embedding(szoveg):
+    if BACKEND == "beepitett":
+        nyers = _beepitett_embedding(szoveg)
+    else:
+        nyers = _lokalis_embedding(szoveg)
+    return normalizal(nyers)</code></pre>
+
+<p>Ez a hét sor az, amiért az egész labor cserélhető motorral fut. <strong>A rendszer többi része soha nem tudja meg, melyik embedder dolgozik.</strong> Ez a mintázat — a változó rész egyetlen függvény mögé zárva — az, amitől egy AI-rendszer túléli a modellváltásokat. Éles fejlesztésnél ugyanezt csinálod a modellhívással is: egy vékony réteg, ami mögött cserélhető a szolgáltató.</p>
+
+<details class="level l2">
+<summary><span class="badge b2">2. szint</span> Amikor igazi embeddingre váltasz</summary>
+<div class="body">
+<p>A <code>lokalis</code> mód egy többnyelvű mondat-embedding modellt tölt le és futtat a gépeden:</p>
+<pre><code>pip install sentence-transformers</code></pre>
+<p>Az első futásnál letölti a modellt (néhány száz MB), utána offline is megy. A magyar szöveg működik vele, de <strong>a minőség nyelvenként és szakterületenként erősen szór</strong> — ezért kell a saját anyagodon mérni, nem a benchmarkokban bízni.</p>
+<p>Amit érdemes tudni a váltásról:</p>
+<ul>
+<li><strong>Újra kell indexelni.</strong> A vektorok nem hordozhatók át modellek között — a régi és az új tér semmilyen viszonyban nincs egymással. Futtasd újra a <code>l2_index.py</code>-t.</li>
+<li><strong>Aszimmetrikus modellek.</strong> Sok embedding-modell külön előtagot vár a kérdéshez és a dokumentumhoz (<code>query: …</code> / <code>passage: …</code>). Ha ezt elrontod, mérhetően romlik a találati arány, és nagyon nehéz észrevenni, mert minden „működik". A modell dokumentációjában nézd meg.</li>
+<li><strong>Lassabb lesz.</strong> A beépített embedder pillanatok alatt végez 26 darabbal; egy igazi modell CPU-n pár másodperc. Tízezer darabnál ez már percek — ilyenkor érdemes kötegelve (batch) embeddelni, amit a <code>sentence-transformers</code> alapból tud, ha listát adsz neki egy szöveg helyett.</li>
+</ul>
+</div>
+</details>
+</section>
+
+<section id="index">
+<div class="chapter-kicker">5. lépés</div>
+<h2>Index: hol laknak a vektorok</h2>
+
+<div class="step"><span class="n">futtasd</span><h3>python3 l2_index.py</h3></div>
+
+<div class="run">26 darab betöltve. BACKEND = beepitett
+Vektormátrix alakja: (26, 256)  (26 darab x 256 dimenzió)
+Memóriaigény: 26.0 kB
+Idő: 0.01 mp  (3226 darab/mp)
+
+Kiírva: index.sqlite, vektorok.npy
+
+Számold ki: 1 millió darabnál ez a mátrix 1.0 GB lenne float32-ben.
+Ezért kell egy ponton kvantálás és közelítő keresés.</div>
+
+<h3>5.1 · Miért nincs vektoradatbázis</h3>
+
+<p>Mert nem kell. Két közönséges dolgot használunk:</p>
+
+<table class="mini">
+<tr><th>Hol</th><th>Mi</th><th>Miért ott</th></tr>
+<tr><td><code>index.sqlite</code></td><td>a darabok szövege és metaadata</td><td>szűrni és visszakeresni kell rá; az SQLite a Python része, nem kell telepíteni</td></tr>
+<tr><td><code>vektorok.npy</code></td><td>a 26×256-os mátrix</td><td>a numpy egyetlen művelettel szoroz vele; ez a gyors út</td></tr>
+</table>
+
+<p>A kettő közti kapocs egyetlen szám: a <code>sor</code> oszlop az adatbázisban ugyanaz, mint a sorindex a mátrixban. Az egész index ezen a párhuzamon áll — és ha valaha összekevered a kettőt (például rendezés nélkül olvasod ki a sorokat), a rendszer csendben rossz találatokat fog adni. Ezért van az olvasásban az <code>ORDER BY sor</code>.</p>
+
+<h3>5.2 · A paraméterezett lekérdezés</h3>
+
+<pre><code>kapcsolat.execute("INSERT INTO darabok VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                  (sor, azonosito, forras_fajl, ...))</code></pre>
+
+<p>A <code>?</code> helyőrző nem kényelmi kérdés. Ha a szöveget közvetlenül a lekérdezésbe fűznéd (<code>"... VALUES ('" + szoveg + "')"</code>), akkor egy dokumentum, amiben véletlenül van egy aposztróf, eltörné a lekérdezést — rosszabb esetben pedig egy rosszindulatú tartalom parancsot csempészhetne be. Ez az SQL-injektálás, és a helyőrző az ellenszere. Szokd meg így, mindig.</p>
+
+<div class="task">
+<span class="label">Feladat</span>
+Nyisd meg az adatbázist és nézz bele. Nem kell hozzá program:
+<pre><code>python3 -c "import sqlite3; print(sqlite3.connect('index.sqlite').execute('SELECT sor, gep, fejezet FROM darabok LIMIT 8').fetchall())"</code></pre>
+Ez a fajta „nézzünk bele" mozdulat a hibakeresés fő eszköze lesz. Amíg nem látod az adatot, találgatsz.
+</div>
+</section>
+<section id="kereses">
+<div class="chapter-kicker">6. lépés</div>
+<h2>Keresés: három módszer egymás mellett</h2>
+
+<div class="step"><span class="n">futtasd</span><h3>python3 l3_kereses.py</h3></div>
+
+<h3>6.1 · Vektoros keresés</h3>
+
+<pre><code>kv = kozos.embedding(kerdes)
+pontszamok = matrix @ kv
+legjobbak = np.argsort(pontszamok)[::-1][:k]</code></pre>
+
+<p>Három sor, és ez a teljes vektorkeresés. Soronként:</p>
+<ul>
+<li><code>matrix @ kv</code> — a <code>@</code> a mátrixszorzás jele. A 26×256-os mátrixot szorozzuk a 256 hosszú kérdésvektorral, és 26 pontszámot kapunk: minden darabra egyet, egyetlen művelettel. Ezért használunk numpyt: ciklussal ugyanez tízszer-százszor lassabb lenne.</li>
+<li><code>np.argsort(...)</code> — nem az értékeket rendezi, hanem az <em>indexeket</em> adja vissza növekvő sorrendben. Nekünk az index kell, mert azzal találjuk meg a darabot.</li>
+<li><code>[::-1]</code> — megfordítja a sorrendet (csökkenő lesz), <code>[:k]</code> pedig az első <em>k</em>-t veszi.</li>
+</ul>
+
+<p><strong>És a metaadat-szűrés:</strong></p>
+
+<pre><code>if gep_szuro:
+    for i, sor in enumerate(sorok):
+        if sor["gep"] not in (gep_szuro, "altalanos", "tobb"):
+            pontszamok[i] = -np.inf</code></pre>
+
+<p>A <code>-np.inf</code> (mínusz végtelen) trükk: a kizárt darabok garantáltan a lista végére kerülnek, anélkül hogy külön listát kellene építeni. Az <code>"altalanos"</code> és <code>"tobb"</code> azért van a megengedettek közt, mert a munkavédelmi előírás és a hibajegy-kivonat minden gépre vonatkozik.</p>
+
+<h3 id="bm25">6.2 · BM25: a kulcsszavas ág</h3>
+
+<p>Nézd meg, mi történik a <code>TOM-402-2K</code> kérdésnél. A vektoros ág ezt a cikkszámot nem érti — számára ez néhány betű, ami valamelyik vödörbe esett. A BM25 viszont pontosan erre való.</p>
+
+<p>A képlet, amit a kódban látsz:</p>
+
+<p class="math" style="text-align:center">pontszám = Σ<sub>szó</sub> IDF(szó) · <span style="display:inline-block; vertical-align:middle; text-align:center">f · (k₁+1)<hr style="margin:2px 0; border:none; border-top:1px solid currentColor">f + k₁·(1 − b + b·<sup>hossz</sup>/<sub>átlaghossz</sub>)</span></p>
+
+<p>Két gondolat van benne, és mindkettő nagyon emberi:</p>
+<ul>
+<li><strong>IDF — a ritka szó sokat ér.</strong> Az „a" és a „nem" minden dokumentumban ott van, tehát semmit nem árul el. A <code>TOM-402-2K</code> egyetlen helyen, tehát ha megtalálod, szinte biztosan jó helyen jársz. A logaritmus miatt a ritkaság hozama csökkenő, nem robbanó.</li>
+<li><strong>Telítés (k₁) és hossznormálás (b).</strong> Ha egy szó ötvenszer szerepel, az nem ötvenszer olyan releváns, mint ha egyszer — a képlet telítődik. És egy hosszú dokumentumban több szó fér el, ezért az önmagában nem érdem: a <code>b</code> ezt normálja.</li>
+</ul>
+
+<h3 id="fuzio">6.3 · Összefésülés: miért nem adhatók össze a pontszámok</h3>
+
+<p>A koszinusz-hasonlóság 0 és 1 között mozog. A BM25 lehet 0,5 vagy 12,3 — nincs felső korlátja, és korpuszfüggő. Ezt a kettőt összeadni értelmetlen: az egyik mindig elnyomná a másikat.</p>
+
+<p>A megoldás a rangok használata:</p>
+
+<pre><code>pontok[index] = pontok.get(index, 0.0) + 1.0 / (konstans + rang)</code></pre>
+
+<p>Az első helyezett <sup>1</sup>⁄<sub>60</sub>-ot kap, a második <sup>1</sup>⁄<sub>61</sub>-et, és így tovább. A rang összemérhető a két lista között, a pontszám nem. Ha egy darab mindkét listán ott van, kétszer kap pontot — ez pontosan az, amit akarunk: <strong>az a találat a legjobb, amit mindkét módszer megtalált.</strong></p>
+
+<p>A 60-as konstans a szakirodalom szokásos értéke; azt szabályozza, mennyivel ér többet az 1. hely a 10.-nél. Kisebb érték élesebb különbséget tesz.</p>
+
+<h3>6.4 · A tanulságos kudarc</h3>
+
+<p>Futtasd le a <code>l4_valasz.py</code>-t a P-402 tömítéséről szóló kérdéssel, és nézd meg az átadott forrásokat:</p>
+
+<div class="run">KÉRDÉS: hogyan cseréljük a P-402 tömítését
+
+ÁTADOTT FORRÁSOK:
+  [1] <span class="c">P-405_szivattyu_gepkonyv.md — 2. Tömítés</span>      &lt;-- ROSSZ GÉP!
+  [2] P-402_szivattyu_gepkonyv.md — 1. Általános adatok
+  [3] P-402_szivattyu_gepkonyv.md — 2. Tömítés
+  [4] hibajegy_kivonat_2025.md — HJ-2025-0211 (P-402)</div>
+
+<p>Az első helyen a <strong>másik gép</strong> gépkönyve áll. Miért? Mert abban a fejezetben szerepel a „P-402", a „tömítés" és a „TOM-402-2K" is — csak épp azért, hogy figyelmeztessen: ide nem való. Minden kulcsszó stimmel, a jelentés az ellenkezője.</p>
+
+<div class="warn">
+<span class="label">Ez a RAG legveszélyesebb hibatípusa</span>
+Nem hallucináció. A rendszer valódi dokumentumból, valódi mondatot fog idézni — csak rossz gépről. Egy műszakos, aki megbízik benne, rossz tömítést rendel. És figyeld meg: <em>egyetlen prompttal sem lehet ezt megjavítani</em>, mert a hiba a keresésben keletkezett, mielőtt a modell bármit látott volna.
+</div>
+
+<p>Két megoldás van, és mindkettőt érdemes megcsinálni:</p>
+<ol>
+<li><strong>Metaadat-szűrés.</strong> Ha a kérdésből kinyered a gépazonosítót (egy regex is elég: <code>[A-Z]-\d{3}</code>), és átadod a <code>gep_szuro</code> paraméternek, a P-405 darabjai eleve kiesnek. Ez a leghatékonyabb egyetlen javítás az egész laborban.</li>
+<li><strong>Forrásjelölés a válaszban.</strong> Ha a válasz mellett ott van, hogy melyik fájl melyik fejezetéből jött, az ember egy pillantással kiszúrja a tévedést. A gép hibázni fog; a rendszer feladata, hogy a hiba <em>látható</em> legyen.</li>
+</ol>
+
+<div class="task">
+<span class="label">Feladat</span>
+Írd meg a gépazonosító-kinyerést. A <code>l4_valasz.py</code> <code>kerdez()</code> függvényében egészítsd ki így:
+<pre><code>import re
+talalat = re.search(r"[A-Z]-\d{3}", kerdes)
+gep = talalat.group(0) if talalat else None
+# és add át: vektor_kereses(kerdes, matrix, sorok, k=10, gep_szuro=gep)</code></pre>
+Aztán futtasd újra ugyanazt a kérdést, és nézd meg, eltűnt-e a P-405. Ez az első saját javításod a rendszeren — és a 8. lépésben meg is fogod tudni mérni, mennyit ért.
+</div>
+</section>
+
+<section id="valasz">
+<div class="chapter-kicker">7. lépés</div>
+<h2>Válasz: a kontextus összeállítása</h2>
+
+<div class="step"><span class="n">futtasd</span><h3>python3 l4_valasz.py "milyen tömítés van a P-402-ben"</h3></div>
+
+<p>Ha nincs API-kulcsod, a script nem hív semmit — <strong>kiírja azt a promptot, amit elküldene</strong>. Ez nem pótmegoldás: éles fejlesztésnél is ez az első dolog, amit megnézel, ha rossz a válasz. A legtöbb „a modell hülye" panasz valójában „a promptban nem az volt, amit hittem".</p>
+
+<h3>7.1 · A sorrend nem esetleges</h3>
+
+<pre><code>prompt = f"""DOKUMENTUMRÉSZLETEK:
+
+{kontextus}
+
+---
+
+KÉRDÉS: {kerdes}
+
+Válaszolj a fenti szabályok szerint, forrásjelöléssel."""</code></pre>
+
+<p>A dokumentumok <em>elöl</em>, a kérdés <em>hátul</em>. Két oka van, és mindkettő gyakorlati:</p>
+<ul>
+<li>A modell a kontextus elejét és végét kezeli a legmegbízhatóbban. A kérdés a legfontosabb elem — kerüljön a legjobb helyre, közvetlenül a generálás elé.</li>
+<li>Az állandó rész elöl <strong>cache-elhető</strong>. Ha ezer kérdést futtatsz ugyanazzal a rendszerüzenettel, a szolgáltató prompt-cache-e a közös prefixet töredékáron adja — de csak akkor, ha tényleg közös prefix, azaz a változó rész hátul van.</li>
+</ul>
+
+<h3>7.2 · A kimeneti szerződés</h3>
+
+<p>A rendszerüzenet négy dolgot köt ki, és mindegyik egy konkrét hibatípus ellen véd:</p>
+
+<table class="mini">
+<tr><th>Szabály</th><th>Mi ellen véd</th></tr>
+<tr><td>Csak a megadott részletekből dolgozz</td><td>a modell általános tudásból „kiegészíti" a hiányt — plauzibilisen és hamisan</td></tr>
+<tr><td>Minden állítás után forrásszám</td><td>ellenőrizhetetlen válasz; a forrásjelölés teszi auditálhatóvá</td></tr>
+<tr><td>Ha nincs adat, mondd ki pontosan így</td><td>találgatás; a rögzített mondat gépileg is detektálható</td></tr>
+<tr><td>Ellentmondásnál mutasd mindkettőt</td><td>a modell csendben választ egyet — épp a P-402/P-405 esetben</td></tr>
+</table>
+
+<p>Figyeld meg az utolsót: a 6.4-ben látott csapdára ez a <em>második</em> védelmi vonal. Ha a rossz darab mégis bekerül, a modellnek legalább jeleznie kell az ellentmondást, ahelyett hogy összemosná a két gépet.</p>
+
+<div class="note">
+<span class="label">Amit a szerződés nem old meg</span>
+Semmilyen prompt nem garantálja, hogy a modell be is tartja. Ezért kell a 8. lépés: <strong>meg kell mérni, hányszor tartja be.</strong> A promptírás hipotézis; az eval a kísérlet.
+</div>
+</section>
+
+<section id="meres">
+<div class="chapter-kicker">8. lépés</div>
+<h2>Mérés — innentől mérnöki munka</h2>
+
+<div class="step"><span class="n">futtasd</span><h3>python3 l5_eval.py</h3></div>
+
+<p>Eddig építettünk. Innentől azt kérdezzük: jó-e? És ami még fontosabb: ha holnap átírsz valamit, <em>jobb lett-e?</em> Enélkül minden változtatás vakrepülés — úgy érzed, javult, mert három példát megnéztél, és nem tudod, hogy közben más tíz elromlott.</p>
+
+<h3>8.1 · A golden set</h3>
+
+<p>A <code>kerdesek.json</code> tizenöt kérdést tartalmaz, mindegyikhez azt, hogy melyik dokumentum melyik fejezetében van a válasz. A rétegzés szándékos:</p>
+
+<table class="mini">
+<tr><th>Típus</th><th>Mit tesztel</th></tr>
+<tr><td><code>tipikus</code></td><td>a hétköznapi kérdések; ha ezek buknak, minden bukik</td></tr>
+<tr><td><code>szemantikus</code></td><td>ahol a kérdés és a dokumentum <em>más szavakat</em> használ — ez méri az embedding valódi értékét</td></tr>
+<tr><td><code>azonosito</code></td><td>cikkszám, pontos karakterlánc — ez méri a BM25 értékét</td></tr>
+<tr><td><code>aggregalo</code></td><td>amire számolni kell; ez fog megbukni, és a 9. lépésben derül ki, miért</td></tr>
+<tr><td><code>nincs_adat</code></td><td>amire a helyes válasz „nem tudom" — enélkül a mérés a magabiztos hazugságot jutalmazza</td></tr>
+</table>
+
+<h3>8.2 · Ami kijön (beépített embedderrel)</h3>
+
+<div class="run">k = 1:
+  csak vektor            recall@1:  4/14  ( 28.6%)
+  csak BM25              recall@1:  6/14  ( 42.9%)
+  hibrid (fúzió)         recall@1:  4/14  ( 28.6%)
+
+k = 3:
+  csak vektor            recall@3:  7/14  ( 50.0%)
+  csak BM25              recall@3:  9/14  ( 64.3%)
+  hibrid (fúzió)         recall@3:  9/14  ( 64.3%)
+
+k = 5:
+  csak vektor            recall@5:  9/14  ( 64.3%)
+  csak BM25              recall@5: 10/14  ( 71.4%)
+  hibrid (fúzió)         recall@5:  9/14  ( 64.3%)
+
+TIPUSONKÉNTI BONTÁS (hibrid, k=3):
+  aggregalo      1/1
+  azonosito      1/1
+  szemantikus    2/4
+  tipikus        5/8</div>
+
+<p>Három dolgot olvass ki ebből, mert mindhárom általánosítható tanulság:</p>
+
+<p><strong>1. A BM25 veri a vektorkeresést.</strong> Ez most nem meglepő — a beépített embedder maga is szószámláló, csak rosszabbul, mert a hash-vödrökben a szavak ütköznek, és elveszik az IDF-súlyozás. Egy jó embedding-modellel ez az arány meg fog fordulni a szemantikus kérdéseknél.</p>
+
+<p><strong>2. A hibrid nem mindig nyer.</strong> k=5-nél a fúzió (64,3%) rosszabb, mint a tiszta BM25 (71,4%). Ez fontos: a hibrid keresés nem varázsszó. Ha az egyik ág rossz, a fúzió lehúzza a jót. <em>Ezért kell mérni, és nem az ökölszabályt követni.</em></p>
+
+<p><strong>3. A típusonkénti bontás mondja meg, mit javíts.</strong> A szemantikus kérdések 2/4-e bukik — pontosan azok, ahol a kérdés más szavakat használ, mint a dokumentum („a szivattyú zörög" vs. „rendellenes zajkibocsátás", „300 ezer forintos" vs. „100 000 – 1 000 000 Ft között"). Az összesített 64,3% ezt elrejtené.</p>
+
+<h3 id="kiserlet">8.3 · A nagy kísérlet</h3>
+
+<div class="task">
+<span class="label">Ez a labor lényege — csináld meg</span>
+<ol style="margin:8px 0">
+<li>Jegyezd fel a fenti számokat.</li>
+<li><code>pip install sentence-transformers</code></li>
+<li>A <code>kozos.py</code>-ban: <code>BACKEND = "lokalis"</code></li>
+<li>Építsd újra az indexet: <code>python3 l2_index.py</code> (kötelező! a régi vektorok érvénytelenek)</li>
+<li><code>python3 l5_eval.py</code> — és hasonlítsd össze.</li>
+</ol>
+Figyeld külön a <strong>szemantikus</strong> sort. Ott kell a legnagyobb ugrásnak lennie, mert az embedding pontosan azt tudja, amit a szószámlálás nem. Ha nem ugrik, az is információ: akkor a modell magyar nyelvi képessége a szűk keresztmetszet, és másik modellt kell próbálni.
+</div>
+
+<p>Nem tudom megmondani előre, mit fogsz látni — a magyar nyelvű teljesítmény modellenként erősen szór, és ezt őszintébb megméretni, mint megjósolni. Ez maga is tanulság: <strong>a saját korpuszodon mért 50 kérdés többet ér, mint bármelyik nyilvános benchmark.</strong></p>
+
+<details class="level l2">
+<summary><span class="badge b2">2. szint</span> Amit ezen felül mérni kell éles rendszerben</summary>
+<div class="body">
+<p>A recall@k a visszakeresési réteget méri. A generálási réteghez két további metrika kell, és mindkettőt bíró-modellel szokás mérni:</p>
+<ul>
+<li><strong>Megalapozottság:</strong> a válasz minden állítása levezethető-e az átadott darabokból? A módszer: bontsd a választ állításokra, és mindegyikre kérdezd meg egy modelltől, hogy a forrás alátámasztja-e. Bináris ítélet, egy állítás egy hívás.</li>
+<li><strong>Válaszrelevancia:</strong> a válasz a feltett kérdésre válaszol-e, vagy melléje.</li>
+</ul>
+<p>A diagnózis ebből egyszerű, és ezt érdemes fejből tudni:</p>
+<table class="mini">
+<tr><th>recall</th><th>megalapozottság</th><th>hol a hiba</th></tr>
+<tr><td>jó</td><td>rossz</td><td>prompt vagy modell — a jó anyag ott volt, mégis rosszul használta</td></tr>
+<tr><td>rossz</td><td>—</td><td>darabolás, indexelés vagy keresés; a promptot hangolni időpazarlás</td></tr>
+</table>
+<p>És a bíró-modellnél: bináris vagy háromfokú ítélet, ne 1–10 skála; egy szempont egy hívás; és <strong>kalibráld emberrel</strong> — értékelj ki 50 elemet kézzel is, és nézd meg az egyezést. Ha a bíró és te 70%-ban értetek egyet, a bíró számai díszletek.</p>
+</div>
+</details>
+
+<details class="level l3">
+<summary><span class="badge b3">3. szint</span> A golden set mint intézményi emlékezet</summary>
+<div class="body">
+<p>A kiértékelő készlet hosszú távú értéke nem a mai számban van, hanem abban, hogy <em>minden éles hiba új tesztsorrá válik</em>. Ez a mintázat ismerős a mérnöki gyakorlatból: minden meghibásodásból karbantartási utasítás lesz.</p>
+<p>Néhány szabály, ami nélkül a készlet elveszti az értékét:</p>
+<ul>
+<li><strong>Tarts zárt részt.</strong> A készlet egy harmadát soha ne használd fejlesztésre — ne nézd meg, mi bukik el rajta, ne igazíts hozzá promptot. Enélkül a fejlesztés során a készlet beszivárog a rendszerbe (few-shot példaként, hibaelemzésből), és a szám egyre szebb lesz, miközben a valódi minőség nem javul.</li>
+<li><strong>Verziózd a készletet is,</strong> ne csak a kódot. Ha a kérdéssor változik, a régi és az új szám nem összehasonlítható — és ezt fél év múlva senki nem fogja emlékezetből tudni.</li>
+<li><strong>Legyen legalább egy metrikapár, ami ellentétes irányba feszít.</strong> A megalapozottság önmagában jutalmazza az óvatos, semmitmondó választ („nincs erre adat"). Ezért kell mellé a hasznosság — különben a rendszered megtanul udvariasan nem válaszolni, és a mérőszámod ezt sikernek fogja mutatni.</li>
+</ul>
+<p>Ez az utolsó pont a Goodhart-törvény konkrét megjelenése: amint egy mérőszám céllá válik, a rendszer elkezd ellene optimalizálni. Egyetlen skalár célfüggvény LLM-rendszernél mindig félrevezet.</p>
+</div>
+</details>
+</section>
+
+<section id="eszkoz">
+<div class="chapter-kicker">9. lépés</div>
+<h2>Eszközhívás: ahol a keresés véget ér</h2>
+
+<div class="step"><span class="n">futtasd</span><h3>python3 l6_eszkoz.py</h3></div>
+
+<p>Kérdés: <em>„Mennyi volt a P-402 összes állásideje 2025-ben?"</em></p>
+
+<p>Ezt keresésből <strong>nem lehet megválaszolni</strong>, akármilyen jó az embedding. A válasz nincs leírva sehol: öt hibajegyből kell összeadni. Ez nem keresési, hanem számítási feladat — és pontosan itt van a RAG határa.</p>
+
+<h3>9.1 · Az eszköz: egy közönséges függvény</h3>
+
+<pre><code>def hibajegy_statisztika(gep=None):
+    ...
+    return {
+        "gep": gep,
+        "hibajegyek_szama": len(sorok),
+        "osszes_allasido_ora": sum(orak),
+        "leghosszabb_allasido_ora": max(orak),
+        "jegyazonositok": [s[0] for s in sorok],
+    }</code></pre>
+
+<p>Az utolsó sor egy <em>listaértelmezés</em> (list comprehension): a <code>[s[0] for s in sorok]</code> ugyanaz, mintha ciklussal gyűjtenéd össze minden sor első elemét, csak rövidebb. Gyakori Python-fordulat, érdemes megszokni.</p>
+
+<p>De a fontos rész nem a szintaxis, hanem hogy <strong>mit ad vissza</strong>: aggregált, tömör adatot. Nem az öt teljes hibajegy szövegét — az bemenne a kontextusba, és tokent meg figyelmet enne. Az eszköz feladata a szűrés, nem a nyers adat átpasszolása. Ez az egyik leggyakoribb kezdő hiba az agentépítésben.</p>
+
+<h3>9.2 · A tanító hibaüzenet</h3>
+
+<pre><code>return {"hiba": f"Nincs '{gep}' nevű gép. Ismert gépek: P-402, P-405."}</code></pre>
+
+<p>Próbáld ki a <code>P-999</code>-cel. A hibaüzenet nem azt mondja, hogy „érvénytelen paraméter" — <em>megmondja, mi a helyes</em>. A modell ebből ki tudja javítani magát a következő lépésben, emberi beavatkozás nélkül. Egy „Hiba: 400" üzenettel viszont beragad, és találgatni kezd.</p>
+
+<blockquote>Az eszközök hibaüzenete a modell egyetlen tanulási csatornája futás közben. Írd őket úgy, mintha egy új kollégának magyaráznád.</blockquote>
+
+<h3>9.3 · Az agenthurok</h3>
+
+<pre><code>for lepes in range(MAX_LEPES):
+    valasz = kliens.messages.create(..., tools=[ESZKOZ_SEMA], messages=uzenetek)
+    uzenetek.append({"role": "assistant", "content": valasz.content})
+
+    hivasok = [b for b in valasz.content if b.type == "tool_use"]
+    if not hivasok:
+        return szoveg                      # kész, van válasz
+
+    for hivas in hivasok:
+        kimenet = hibajegy_statisztika(**hivas.input)
+        eredmenyek.append({...})           # az eredmény visszamegy
+    uzenetek.append({"role": "user", "content": eredmenyek})</code></pre>
+
+<p>Ez a teljes agentikus gépezet. Amit érdemes észrevenni:</p>
+<ul>
+<li><strong>A modell soha nem futtat semmit.</strong> Csak <em>kér</em>. Minden tényleges hatás a te kódodban keletkezik — ezért ott dől el minden jogosultsági és biztonsági kérdés is. Ez jó hír: a kontroll pontja pontosan definiált.</li>
+<li><strong>A <code>**hivas.input</code></strong> a szótárat kicsomagolja névvel ellátott paraméterekké: a <code>{"gep": "P-402"}</code> dictből <code>hibajegy_statisztika(gep="P-402")</code> lesz. Éles rendszerben ide validáció kell — a modell hívási kérése nem megbízható bemenet.</li>
+<li><strong>A <code>MAX_LEPES</code> nem díszlet.</strong> E nélkül egy félresiklott modell a végtelenségig próbálkozhatna. Produkcióban emellé kell token- és pénzkeret is.</li>
+<li><strong>Az előzményt te tartod karban.</strong> A modellnek nincs memóriája; a beszélgetés attól beszélgetés, hogy minden fordulóban visszaküldöd az egészet. Ezért drágul a hosszú agentfutás négyzetesen.</li>
+</ul>
+
+<div class="task">
+<span class="label">Feladat</span>
+Írj egy második eszközt: <code>gep_adatok(gep)</code>, ami a gépkönyvből visszaadja a névleges adatokat (térfogatáram, teljesítmény, rezgéshatár). Aztán tedd be mindkettőt az <code>ESZKOZ_SEMA</code> listába, és tegyél fel egy olyan kérdést, amihez <em>mindkettő</em> kell: <em>„A P-402 hányszor hibásodott meg tavaly, és mennyi a megengedett rezgésszintje?"</em> Figyeld meg, hogy a modell két külön hívást indít — ez a többlépéses agent legkisebb valódi példája.
+</div>
+</section>
+
+<section id="innen">
+<div class="chapter-kicker">10. lépés</div>
+<h2>Innen hová — a produkcióig hátralévő út</h2>
+
+<p>Ami eddig elkészült, az egy működő, mért rendszer. Ami hiányzik belőle, az nem a modell, hanem a körítés. Nagyjából ebben a sorrendben érdemes hozzáadni:</p>
+
+<table class="mini">
+<tr><th>#</th><th>Mit</th><th>Miért ez a sorrend</th></tr>
+<tr><td>1</td><td><strong>Metaadat-szűrés</strong> a kérdésből kinyert gépazonosítóra</td><td>a legnagyobb minőségjavulás a legkevesebb munkából (6.4)</td></tr>
+<tr><td>2</td><td><strong>Rerank</strong>: keress 50-et, rendezd újra keresztkódolóval, adj át 5-öt</td><td>a legjobb ár-érték arányú javítás; többet hoz, mint nagyobb generáló modell</td></tr>
+<tr><td>3</td><td><strong>Naplózás</strong>: minden kérdés, találat, prompt, válasz, költség</td><td>enélkül nincs hibakeresés; és a golden set ebből fog bővülni</td></tr>
+<tr><td>4</td><td><strong>Költség- és lépéskorlát</strong>, időtúllépés, újrapróbálkozás</td><td>az első éles nap meg fogja mutatni, miért</td></tr>
+<tr><td>5</td><td><strong>Verziókezelés az indexben</strong>: frissülő dokumentum régi darabjainak törlése</td><td>az elavult előírás magabiztos idézése a legveszélyesebb hibatípus</td></tr>
+<tr><td>6</td><td><strong>Jogosultság</strong>: a metaadat-szűrő szűrjön arra is, mit láthat a kérdező</td><td>a keresés és a jogosultság ugyanaz a mechanizmus — használd ki</td></tr>
+<tr><td>7</td><td><strong>Igazi vektoradatbázis</strong> (Qdrant, pgvector, Chroma)</td><td>csak ha már tízezres nagyságrendben vagy — előbb felesleges bonyolítás</td></tr>
+</table>
+
+<div class="note">
+<span class="label">Figyeld meg a sorrendet</span>
+A vektoradatbázis a <em>hetedik</em>. A legtöbb kezdő projekt ott kezdi — és a hatodik hónapban derül ki, hogy a rendszer azért rossz, mert a darabolás rossz volt, és senki nem mért semmit. A technológiai választás szinte mindig a legkevésbé fontos döntés.
+</div>
+
+<h3>10.2 · Ha a saját anyagodra ülteted át</h3>
+
+<ul>
+<li><strong>Kezdd 20-50 dokumentummal</strong>, ne az egész archívummal. A tanulságok ugyanazok, a ciklusidő tizede.</li>
+<li><strong>Írd meg a golden setet előbb</strong>, mint hogy megnéznéd, mit tud a rendszer. 50 valódi kérdés kollégáktól — ez a legértékesebb fél nap az egész projektben.</li>
+<li><strong>Tisztázd az adatvédelmet, mielőtt egyetlen dokumentumot feltöltenél</strong> bármilyen felhőszolgáltatásba. Ez nem formalitás: a `lokalis` mód pontosan azért van a laborban, hogy tudj úgy dolgozni, hogy semmi nem hagyja el a gépet.</li>
+<li><strong>Ne akarj chatbotot.</strong> A legjobb első verzió egy keresődoboz, ami forrásjelölt választ ad. A beszélgetés jöhet később, ha egyáltalán kell.</li>
+</ul>
+</section>
+
+<section id="hibakereso">
+<div class="chapter-kicker">11.</div>
+<h2>Hibakereső</h2>
+
+<table class="mini">
+<tr><th>Tünet</th><th>Ok</th><th>Megoldás</th></tr>
+<tr><td><code>ModuleNotFoundError: numpy</code></td><td>nincs telepítve</td><td><code>pip install numpy</code>; ha nem megy, <code>python3 -m pip install numpy</code></td></tr>
+<tr><td><code>FileNotFoundError: darabok.json</code></td><td>kimaradt egy lépés</td><td>futtasd sorban: <code>keszits_korpuszt</code> → <code>l1</code> → <code>l2</code></td></tr>
+<tr><td><code>ModuleNotFoundError: kozos</code></td><td>nem a <code>labor</code> mappából futtatod</td><td><code>cd labor</code>, és onnan indítsd</td></tr>
+<tr><td>A találatok értelmetlenek modellváltás után</td><td>régi vektorok az új embedderrel</td><td>futtasd újra a <code>l2_index.py</code>-t</td></tr>
+<tr><td>Minden pontszám 0 körüli</td><td>a kérdés szavai egyáltalán nem szerepelnek a korpuszban</td><td>beépített módban ez normális; ez maga a szemantikai vakság</td></tr>
+<tr><td>Ékezetes szavak nem találnak</td><td>kódolási hiba a fájlbeolvasásnál</td><td>mindenhol <code>encoding="utf-8"</code> — a kódban így is van, saját fájlnál figyelj rá</td></tr>
+<tr><td>Az eval mindig 100%</td><td>túl könnyű a kérdéssor</td><td>ez nem siker, hanem jelzés: írj nehezebb és peremeseti kérdéseket</td></tr>
+</table>
+
+<div class="note">
+<span class="label">Az utolsó gondolat</span>
+Ha ezt végigcsináltad, többet tudsz a RAG-rendszerekről, mint aki tíz cikket olvasott róluk — mert láttad, hol romlik el, és megmérted, mennyivel lett jobb, amikor javítottál. A következő lépés nem újabb olvasnivaló: vedd a saját dokumentumaidat, és futtasd le rajtuk ugyanezt a hét lépést.
+</div>
+</section>
+
+</main>
+</div>
+<script>
+(function(){
+  var root = document.documentElement;
+  var btn = document.getElementById('themeToggle');
+  function setTheme(t){
+    if(t === 'dark'){ root.setAttribute('data-theme','dark'); btn.textContent = '◑ Világos mód'; }
+    else { root.removeAttribute('data-theme'); btn.textContent = '◐ Sötét mód'; }
+  }
+  var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var theme = prefersDark ? 'dark' : 'light';
+  setTheme(theme);
+  btn.addEventListener('click', function(){
+    theme = (theme === 'dark') ? 'light' : 'dark';
+    setTheme(theme);
+  });
+  var links = Array.prototype.slice.call(document.querySelectorAll('#toc a'));
+  var targets = links.map(function(a){ return document.querySelector(a.getAttribute('href')); });
+  function onScroll(){
+    var pos = window.scrollY + 120, active = 0;
+    for(var i=0;i<targets.length;i++){
+      if(targets[i] && targets[i].offsetTop <= pos) active = i;
+    }
+    links.forEach(function(a,i){ a.classList.toggle('active', i===active); });
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+})();
+</script>
+</body>
+</html>

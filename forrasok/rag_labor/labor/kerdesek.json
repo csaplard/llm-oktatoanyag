@@ -1,0 +1,92 @@
+[
+  {
+    "kerdes": "Milyen tömítés van a P-402 szivattyúban?",
+    "kell_forras": "P-402_szivattyu_gepkonyv.md",
+    "kell_fejezet": "2. Tömítés",
+    "tipus": "tipikus"
+  },
+  {
+    "kerdes": "Milyen szerszám kell a P-402 tömítéscseréhez?",
+    "kell_forras": "P-402_szivattyu_gepkonyv.md",
+    "kell_fejezet": "3. Csere és szerelés",
+    "tipus": "tipikus"
+  },
+  {
+    "kerdes": "Mekkora nyomatékkal kell meghúzni a járókerék anyáját?",
+    "kell_forras": "P-402_szivattyu_gepkonyv.md",
+    "kell_fejezet": "3. Csere és szerelés",
+    "tipus": "tipikus"
+  },
+  {
+    "kerdes": "Mennyi a P-402 megengedett rezgésszintje?",
+    "kell_forras": "P-402_szivattyu_gepkonyv.md",
+    "kell_fejezet": "5. Üzemi határértékek",
+    "tipus": "tipikus"
+  },
+  {
+    "kerdes": "TOM-405-1E",
+    "kell_forras": "P-405_szivattyu_gepkonyv.md",
+    "kell_fejezet": "2. Tömítés",
+    "tipus": "azonosito"
+  },
+  {
+    "kerdes": "Milyen zsírral kell kenni a csapágyakat és milyen gyakran?",
+    "kell_forras": "P-402_szivattyu_gepkonyv.md",
+    "kell_fejezet": "4. Kenés",
+    "tipus": "tipikus"
+  },
+  {
+    "kerdes": "A szivattyú zörög, mi lehet a baja?",
+    "kell_forras": "karbantartasi_utasitas_forgogep.md",
+    "kell_fejezet": "3. Jellemző hibajelenségek",
+    "tipus": "szemantikus"
+  },
+  {
+    "kerdes": "Kopogó hang indításkor, ingadozó nyomás — mi ez?",
+    "kell_forras": "karbantartasi_utasitas_forgogep.md",
+    "kell_fejezet": "3. Jellemző hibajelenségek",
+    "tipus": "szemantikus"
+  },
+  {
+    "kerdes": "Mikor kell azonnal leállítani a gépet?",
+    "kell_forras": "karbantartasi_utasitas_forgogep.md",
+    "kell_fejezet": "4. Beavatkozási sürgősség",
+    "tipus": "szemantikus"
+  },
+  {
+    "kerdes": "Mit kell tenni a beavatkozás előtt a villamos betáplálással?",
+    "kell_forras": "munkavedelmi_eloiras_leallitas.md",
+    "kell_fejezet": "1. Kizárás-megjelölés",
+    "tipus": "szemantikus"
+  },
+  {
+    "kerdes": "Ki hagyhat jóvá egy 300 ezer forintos alkatrészigénylést?",
+    "kell_forras": "beszerzesi_szabalyzat_potalkatresz.md",
+    "kell_fejezet": "2. Értékhatárok",
+    "tipus": "tipikus"
+  },
+  {
+    "kerdes": "Milyen gyakran kell a P-405 nagyjavítása?",
+    "kell_forras": "P-405_szivattyu_gepkonyv.md",
+    "kell_fejezet": "3. Karbantartási ciklus",
+    "tipus": "tipikus"
+  },
+  {
+    "kerdes": "Mennyi volt a P-402 leghosszabb állásideje 2025-ben?",
+    "kell_forras": "hibajegy_kivonat_2025.md",
+    "kell_fejezet": "HJ-2025-0211",
+    "tipus": "aggregalo"
+  },
+  {
+    "kerdes": "Milyen színű a P-402 szivattyú festése?",
+    "kell_forras": null,
+    "kell_fejezet": null,
+    "tipus": "nincs_adat"
+  },
+  {
+    "kerdes": "Mekkora a P-402 névleges térfogatárama?",
+    "kell_forras": "P-402_szivattyu_gepkonyv.md",
+    "kell_fejezet": "1. Általános adatok",
+    "tipus": "tipikus"
+  }
+]

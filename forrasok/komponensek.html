@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tananyag-komponensek · AI-tananyagok</title><meta name="description" content="A tananyagoldalak komponensei a Tér arculatban.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Geologica:slnt,wght,CRSV,SHRP@-12..0,100..900,0..1,0..100&family=Literata:ital,opsz,wght@0,7..72,300..700;1,7..72,300..700&display=swap" rel="stylesheet">
+<script>try{var t=localStorage.getItem('ait-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<style>
+:root,[data-theme="dark"]{--bg:#0b0c0e;--bg-2:#141619;--bg-3:#1d2024;--ink:#eceae4;--ink-2:#b2b1ab;--ink-3:#8f8e89;--line:#24262a;--line-2:#666a72;--gold:#e8b44c;--gold-wash:#2a2312;--q:#86b4ff;--k:#f39a5b;--v:#62d296;--ok:#62d296;--alert:#ff8a7a;--alert-wash:#2e1716;--ok-wash:#11261a;--face-a:#1a1c20;--face-b:#2c2f35;}
+:root{--s-1:4px;--s-2:8px;--s-3:14px;--s-4:20px;--s-5:28px;--s-6:48px;--s-7:96px;--r-0:0px;--r-1:4px;--r-full:999px;--measure:64ch;--page:1280px;--pad-mobile:16px;--stream:3.5px;--font-disp:"Geologica", ui-sans-serif, system-ui, sans-serif;--font-read:"Literata", "Iowan Old Style", Georgia, serif;}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--bg:#e7e8ea;--bg-2:#f3f4f5;--bg-3:#dcdee2;--ink:#101113;--ink-2:#43454a;--ink-3:#595c61;--line:#c9cbcf;--line-2:#7e8289;--gold:#7c5700;--gold-wash:#efe0b8;--q:#1b57b8;--k:#9c4600;--v:#176b3c;--ok:#176b3c;--alert:#b3321c;--alert-wash:#f6ddd6;--ok-wash:#d9eee0;--face-a:#f7f7f8;--face-b:#d2d4d8;}}
+:root[data-theme="light"]{--bg:#e7e8ea;--bg-2:#f3f4f5;--bg-3:#dcdee2;--ink:#101113;--ink-2:#43454a;--ink-3:#595c61;--line:#c9cbcf;--line-2:#7e8289;--gold:#7c5700;--gold-wash:#efe0b8;--q:#1b57b8;--k:#9c4600;--v:#176b3c;--ok:#176b3c;--alert:#b3321c;--alert-wash:#f6ddd6;--ok-wash:#d9eee0;--face-a:#f7f7f8;--face-b:#d2d4d8;}
+
+/* ==================================================================
+   AI-tananyagok · „Tér”
+   A modell egy térbeli tárgy; az oldal a körülötte lévő csend.
+   Csak tokeneket használ: --bg, --ink, --gold, --q/--k/--v, --font-disp, --font-read …
+   ================================================================== */
+:root{color-scheme:dark;--pad:var(--pad-mobile,16px);--ease:cubic-bezier(.2,.7,.2,1)}
+[data-theme="light"]{color-scheme:light}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){color-scheme:light}}
+@media (min-width:720px){:root{--pad:var(--s-6,48px)}}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.66 var(--font-read);font-optical-sizing:auto;
+  -webkit-hyphens:auto;hyphens:auto;hyphenate-limit-chars:8 4 4;overflow-wrap:break-word;text-rendering:optimizeLegibility}
+@media (min-width:720px){body{font-size:18px}}
+h1,h2,h3,h4{margin:0;font-family:var(--font-disp);font-variation-settings:"SHRP" 45;font-weight:560;letter-spacing:-.025em;-webkit-hyphens:manual;hyphens:manual;text-wrap:balance}
+p{margin:0 0 1em;max-width:var(--measure,64ch);text-wrap:pretty}
+a{color:inherit;text-decoration-color:var(--gold);text-underline-offset:.18em}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:2px}
+.wrap{max-width:var(--page,1280px);margin:0 auto;padding:0 var(--pad)}
+.ui{font:450 15px/1.5 var(--font-disp);font-variant-numeric:tabular-nums;-webkit-hyphens:none;hyphens:none}
+.dim{color:var(--ink-3)}
+.sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- fejléc ---------- */
+.top{display:flex;align-items:center;gap:10px 26px;padding:18px var(--pad)}
+.top.fixed{position:fixed;left:0;right:0;top:0;z-index:5;background:linear-gradient(var(--bg) 45%,transparent)}
+.brand{font:600 18px/1 var(--font-disp);font-variation-settings:"SHRP" 60;text-decoration:none;margin-right:auto}
+.top nav{display:flex;gap:22px}
+.top nav a{font:450 15px/1 var(--font-disp);text-decoration:none;color:var(--ink-2)}
+.top nav a:hover{color:var(--ink)}
+.theme{width:36px;height:36px;border-radius:var(--r-full);border:1px solid var(--line-2);background:var(--bg);cursor:pointer;display:grid;place-items:center;padding:0}
+.theme svg{width:15px;height:15px}
+@media (max-width:560px){.top nav{display:none}}
+
+/* ---------- élő cím: tokenek és figyelem-ívek ---------- */
+.stage{position:relative}
+.arcs{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.arcs path{fill:none;stroke:var(--gold);stroke-linecap:round}
+.t{border-radius:.1em;cursor:default}
+.t.src{background:var(--gold-wash)}
+.t.hot{color:var(--gold)}
+.slot .t{transition:opacity .17s}
+.slot.swap .t{opacity:0}
+.say{font-size:clamp(42px,6.4vw,86px);line-height:1.02;font-weight:560;letter-spacing:-.035em;font-variation-settings:"SHRP" 55;max-width:13ch}
+.read{min-height:3em;margin:20px 0 0;font:400 15px/1.5 var(--font-disp);color:var(--ink-2);max-width:46ch}
+.ribbon{display:flex;gap:4px;margin-top:30px;max-width:560px}
+.cand{flex:var(--p) 1 0;min-width:0;border:0;background:none;padding:0;cursor:pointer;text-align:left;display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.cand .bar{height:3px;background:var(--line-2);order:-1;transition:height .15s}
+.cand[aria-checked="true"] .bar{background:var(--gold);height:5px}
+.cand .w{font:450 14px/1.2 var(--font-disp);color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cand .pr{font:400 12px/1 var(--font-disp);color:var(--ink-3);font-variant-numeric:tabular-nums}
+.cand[aria-checked="true"] .w{color:var(--ink)}
+.cand:hover .bar{background:var(--ink-2)} .cand[aria-checked="true"]:hover .bar{background:var(--gold)}
+.resample{margin-top:14px;background:none;border:0;padding:6px 0;cursor:pointer;font:500 14px/1 var(--font-disp);color:var(--ink-2);text-decoration:underline;text-decoration-color:var(--line-2);text-underline-offset:.3em}
+
+/* ---------- jelenet: ragadós 3D vászon, rajta görgő szöveg ---------- */
+.scene{position:relative}
+.viz{position:sticky;top:0;height:100vh;height:100svh;margin-bottom:-100vh;margin-bottom:-100svh;z-index:0}
+.viz canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:pan-y}
+.viz canvas:active{cursor:grabbing}
+.drag{position:absolute;right:var(--pad);bottom:22px;font:450 13px/1 var(--font-disp);color:var(--ink-3)}
+@media (max-width:899px){.drag{display:none}}
+.content{position:relative;z-index:1;pointer-events:none}
+.content a,.content button,.content .say,.content .panel,.content .ribbon{pointer-events:auto}
+.hero{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;padding-top:52vh;padding-bottom:64px}
+@media (min-width:900px){.hero{justify-content:center;padding-top:96px;padding-bottom:96px}}
+.intro{margin:26px 0 0;font-size:20px;line-height:1.55;color:var(--ink-2);max-width:36ch}
+.intro small{display:block;margin-top:10px;font:400 14px/1.4 var(--font-disp);color:var(--ink-3)}
+.lead-in{padding-top:12vh}
+.lead-in h2{font-size:clamp(30px,4vw,52px);letter-spacing:-.03em}
+.lead-in p{color:var(--ink-2);margin-top:14px;max-width:40ch}
+.steps{list-style:none;margin:0;padding:0 0 30vh}
+.step{min-height:88vh;display:flex;align-items:center}
+.panel{background:var(--bg);padding:26px 0;max-width:500px}
+@media (max-width:899px){.step{align-items:flex-end;padding-bottom:6vh}.panel{padding:22px 18px;margin:0 calc(var(--pad) * -1);width:calc(100% + 2 * var(--pad));max-width:none;border-top:1px solid var(--line)}}
+.step .n,.numeral{font:300 64px/1 var(--font-disp);font-variation-settings:"SHRP" 100;color:var(--ink-3);letter-spacing:-.04em}
+.step.on .n{color:var(--gold)}
+.panel h3{font-size:clamp(28px,3.2vw,40px);line-height:1.1;margin-top:10px}
+.panel p{margin:14px 0 0;color:var(--ink-2)}
+.panel .m{margin-top:12px;font:450 15px/1.5 var(--font-disp);color:var(--ink-3)}
+.panel a{display:inline-block;margin-top:16px;font:560 16px/1 var(--font-disp);text-decoration:none;border-bottom:2px solid var(--gold);padding-bottom:4px}
+.step.soon h3{color:var(--ink-3)}
+
+/* ---------- mutató ---------- */
+.index{position:relative;z-index:2;background:var(--bg);padding-top:var(--s-7,96px);padding-bottom:64px;border-top:1px solid var(--line)}
+.index>.wrap>h2{font-size:clamp(32px,4.4vw,52px);letter-spacing:-.03em;margin-bottom:36px}
+.grp{display:grid;gap:12px;padding:28px 0;border-top:1px solid var(--line)}
+@media (min-width:900px){.grp{grid-template-columns:240px minmax(0,1fr);gap:48px}}
+.grp h3{font-size:22px}
+.grp h3 span{display:block;font:400 15px/1.4 var(--font-disp);color:var(--ink-3);margin-top:6px;letter-spacing:0}
+.grp ul{list-style:none;margin:0;padding:0;display:grid;gap:26px}
+.grp h4{font-size:24px;line-height:1.2;letter-spacing:-.02em}
+.grp h4 a{text-decoration:none}.grp h4 a:hover{text-decoration:underline;text-decoration-color:var(--gold)}
+.grp li p{margin:6px 0 0;color:var(--ink-2);font-size:17px}
+.grp .f{margin-top:6px;font:400 14px/1.5 var(--font-disp);color:var(--ink-3)}
+.grp .f .fresh{color:var(--gold)}
+.grp li.soon h4{color:var(--ink-3)}
+.lang a,.lang span{padding:1px 5px;border-radius:var(--r-1);text-decoration:none}
+.lang [aria-current]{background:var(--ink);color:var(--bg)}
+.news,.foot{position:relative;z-index:2;background:var(--bg)}
+.news{padding-top:48px;padding-bottom:48px;border-top:1px solid var(--line)}
+.news p{font-size:21px;margin:0;max-width:44ch}
+.foot{padding-top:24px;padding-bottom:36px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font:400 14px/1.5 var(--font-disp);color:var(--ink-3)}
+
+/* ==================================================================
+   Tananyag-komponensek
+   ================================================================== */
+.lesson{max-width:760px}
+.block{margin:0 0 var(--s-6,48px)}
+
+/* szintfejléc */
+.lvl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:0 24px;align-items:start;padding:8px 0 28px;border-bottom:1px solid var(--line)}
+.lvl .numeral{font-size:clamp(84px,11vw,132px);line-height:.8;color:var(--gold);margin-top:6px}
+.lvl-meta{margin:0 0 12px;font:450 15px/1.4 var(--font-disp);color:var(--ink-3)}
+.lvl h1,.lvl h2{font-size:clamp(30px,4.4vw,48px);line-height:1.08;letter-spacing:-.03em;max-width:18ch}
+.lvl-goal{margin:18px 0 0;font-size:19px;line-height:1.55;color:var(--ink-2)}
+.lvl-goal b{font:600 16px/1 var(--font-disp);color:var(--ink);margin-right:6px}
+.lvl.locked .numeral{color:transparent;-webkit-text-stroke:1.5px var(--line-2)}
+.lvl.locked h1,.lvl.locked h2{color:var(--ink-3)}
+.lock{display:flex;gap:10px;align-items:flex-start;margin-top:16px;font:450 15px/1.5 var(--font-disp);color:var(--ink-2)}
+.lock svg{flex:none;margin-top:3px}
+@media (max-width:560px){.lvl{grid-template-columns:1fr}.lvl .numeral{margin-bottom:8px}}
+
+/* mélységi fülek */
+.depth [role="tablist"]{display:flex;gap:28px;border-bottom:1px solid var(--line);overflow-x:auto}
+.depth [role="tab"]{background:none;border:0;padding:0 0 14px;cursor:pointer;text-align:left;display:grid;gap:3px;position:relative;color:var(--ink-3);flex:none}
+.depth [role="tab"] b{font:560 17px/1.2 var(--font-disp)}
+.depth [role="tab"] span{font:400 13px/1.2 var(--font-disp)}
+.depth [role="tab"][aria-selected="true"]{color:var(--ink)}
+.depth [role="tab"][aria-selected="true"]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;background:var(--gold)}
+.depth [role="tab"]:focus-visible{outline-offset:4px}
+.depth [role="tabpanel"]{padding-top:24px}
+@media (max-width:560px){.depth [role="tablist"]{gap:18px}.depth [role="tab"] b{font-size:15px}.depth [role="tab"] span{font-size:12px}}
+.depth [role="tabpanel"] p:last-child{margin-bottom:0}
+
+/* modell-nézet: a leckében beágyazott, forgatható 3D ábra */
+.modelfig{margin:0;background:var(--bg-2)}
+.modelfig canvas{display:block;width:100%;height:clamp(300px,52vw,440px);cursor:grab;touch-action:pan-y}
+.modelfig canvas:active{cursor:grabbing}
+.modelfig .views{display:flex;flex-wrap:wrap;gap:8px;padding:0 20px 16px}
+.modelfig .views button{border:1px solid var(--line-2);background:none;border-radius:var(--r-full);padding:7px 14px;font:500 14px/1 var(--font-disp);cursor:pointer;color:var(--ink-2)}
+.modelfig .views button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.modelfig figcaption{padding:0 20px 20px;font:450 15px/1.5 var(--font-disp);color:var(--ink-2)}
+.modelfig figcaption b{color:var(--ink);font-weight:560}
+
+/* kvíz */
+.quiz{background:var(--bg-2);padding:24px 20px}
+@media (min-width:720px){.quiz{padding:32px 36px}}
+.quiz>h3{font-size:24px;margin-bottom:4px}
+.quiz>.ui{color:var(--ink-3);margin:0 0 8px}
+.quiz ol.qs{list-style:none;margin:0;padding:0;counter-reset:q}
+.q{padding:24px 0;border-bottom:1px solid var(--line);counter-increment:q}
+.q fieldset{border:0;margin:0;padding:0;min-width:0}
+.q legend{padding:0;margin-bottom:14px;font-size:19px;line-height:1.5;display:grid;grid-template-columns:36px minmax(0,1fr);gap:8px}
+.q legend::before{content:counter(q);font:300 30px/1 var(--font-disp);font-variation-settings:"SHRP" 100;color:var(--ink-3)}
+.opts{display:grid;gap:4px;margin-left:44px}
+@media (max-width:560px){.opts{margin-left:0}}
+.opt{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:12px;align-items:start;padding:10px 12px;cursor:pointer;font-size:17px;line-height:1.5}
+.opt:hover{background:var(--bg-3)}
+.opt input{appearance:none;-webkit-appearance:none;width:18px;height:18px;margin:4px 0 0;border:1.5px solid var(--line-2);border-radius:50%;display:grid;place-content:center;background:transparent}
+.opt input::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ink);transform:scale(0)}
+.opt input:checked::before{transform:scale(1)}
+.opt .mark{font:560 14px/1.9 var(--font-disp);white-space:nowrap}
+.q[data-answered] .opt{cursor:default}
+.q[data-answered] .opt:hover{background:none}
+.opt.is-right{background:var(--ok-wash)!important}.opt.is-right .mark{color:var(--ok)}
+.opt.is-wrong{background:var(--alert-wash)!important}.opt.is-wrong .mark{color:var(--alert)}
+.q[data-answered] .opt:not(.is-right):not(.is-wrong){color:var(--ink-3)}
+.fb{margin:12px 0 0 44px;font-size:16px;line-height:1.6;color:var(--ink-2);max-width:60ch}
+@media (max-width:560px){.fb{margin-left:0}}
+.fb b{color:var(--ink);font-family:var(--font-disp);font-weight:560}
+.quiz-foot{display:grid;gap:14px;padding-top:24px}
+@media (min-width:720px){.quiz-foot{grid-template-columns:minmax(0,1fr) auto;align-items:center}}
+.track{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;max-width:340px;height:6px}
+.track i{background:var(--bg-3)}
+.track i.r{background:var(--ok)}
+.track i.w{background:var(--alert)}
+.track .need{position:absolute;top:-6px;bottom:-6px;width:2px;background:var(--ink);transform:translateX(-3px)}
+.score-text{margin:10px 0 0;font:450 15px/1.5 var(--font-disp);color:var(--ink-2)}
+.score-text b{color:var(--ink);font-weight:600}
+.quiz[data-status="passed"] .score-text b{color:var(--gold)}
+.quiz[data-status="failed"] .score-text b{color:var(--alert)}
+.pill{border:1px solid var(--line-2);background:none;border-radius:var(--r-full);padding:10px 18px;font:560 15px/1 var(--font-disp);cursor:pointer;justify-self:start}
+.pill:hover{border-color:var(--ink-2)}
+
+/* haladásjelző: 12 szint = 12 réteg */
+.layers{display:grid;grid-template-columns:140px minmax(0,1fr);gap:24px;align-items:center}
+.layers svg{width:140px;height:200px;overflow:visible}
+.layers .slab .top{fill:var(--bg-3);stroke:var(--line-2);stroke-width:1}
+.layers .slab .side-l{fill:var(--face-a)}.layers .slab .side-r{fill:var(--face-b)}
+.layers .slab.done .top{fill:var(--gold-wash);stroke:var(--gold)}
+.layers .slab.done .side-l,.layers .slab.done .side-r{fill:var(--gold);opacity:.55}
+.layers .slab.now .top{stroke:var(--ink);stroke-width:1.5}
+.layers .stream{stroke:var(--gold);stroke-width:var(--stream,3.5);stroke-linecap:round;opacity:.9}
+.layers.pulse .stream{stroke-dasharray:6 10;animation:flow 1.2s var(--ease) 1}
+@keyframes flow{from{stroke-dashoffset:64}to{stroke-dashoffset:0}}
+.layers .count{font:300 56px/1 var(--font-disp);font-variation-settings:"SHRP" 100;letter-spacing:-.03em}
+.layers .count span+span{color:var(--ink-3)}
+.layers p{margin:8px 0 0;font:450 15px/1.5 var(--font-disp);color:var(--ink-2)}
+
+/* képlet */
+.formula{margin:0;padding:22px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.formula .row{display:flex;align-items:center;justify-content:space-between;gap:16px;overflow-x:auto}
+.formula math{font-size:26px;font-family:"STIX Two Math","Cambria Math","Latin Modern Math",var(--font-read);color:var(--ink)}
+@media (max-width:480px){.formula math{font-size:20px}}
+.formula .no{font:400 15px/1 var(--font-disp);color:var(--ink-3)}
+.formula figcaption{margin-top:16px;font-size:16px;line-height:1.6;color:var(--ink-2)}
+.mq{color:var(--q)}.mk{color:var(--k)}.mv{color:var(--v)}
+.formula figcaption b{font-family:var(--font-disp);font-weight:600}
+
+/* kód */
+.code{background:var(--bg-2)}
+.code-top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 20px 0;font:450 14px/1.4 var(--font-disp);color:var(--ink-3)}
+.code-top button{background:none;border:0;padding:4px 0;cursor:pointer;font:500 14px/1 var(--font-disp);color:var(--ink-2);text-decoration:underline;text-decoration-color:var(--line-2);text-underline-offset:.3em}
+.code pre{margin:0;padding:14px 0 18px;overflow-x:auto;font:400 15px/24px ui-monospace,"SF Mono","Cascadia Mono",Menlo,monospace;tab-size:4}
+@media (max-width:480px){.code pre{font-size:13.5px}}
+.code pre code{display:block;min-width:max-content}
+.code .ln{display:grid;grid-template-columns:44px max-content 36px;justify-content:start}
+.code .ln::before{content:attr(data-n);text-align:right;padding-right:16px;color:var(--ink-3);user-select:none}
+.code .ln .an{margin-left:14px}
+.an{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--gold);color:var(--gold);font:600 11px/1 var(--font-disp);user-select:none}
+.tk-kw{color:var(--ink);font-weight:600}.tk-num{color:var(--gold)}.tk-com{color:var(--ink-3);font-style:italic}.tk-fn{color:var(--ink)}
+.tk-q{color:var(--q)}.tk-k{color:var(--k)}.tk-v{color:var(--v)}
+.code-notes{list-style:none;margin:0;padding:4px 20px 22px;display:grid;gap:12px;font-size:16px;line-height:1.6;color:var(--ink-2)}
+.code-notes li{display:grid;grid-template-columns:20px minmax(0,1fr);gap:12px}
+.code-notes .an{margin-top:3px}
+.code ~ p code, p code{font:400 .86em ui-monospace,Menlo,monospace;background:var(--bg-2);padding:.1em .35em}
+
+/* táblázat */
+.tbl{overflow-x:auto}
+.tbl table{width:100%;border-collapse:collapse;font:450 15px/1.5 var(--font-disp);font-variant-numeric:tabular-nums}
+.tbl caption{caption-side:top;text-align:left;padding-bottom:12px;font:450 15px/1.5 var(--font-disp);color:var(--ink-2)}
+.tbl th,.tbl td{padding:10px 14px 10px 0;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl thead th{font-weight:450;color:var(--ink-3);border-bottom-color:var(--line-2)}
+.tbl .n{text-align:right}
+.tbl tbody th{font-weight:560}
+.tbl tr.hl th,.tbl tr.hl td{color:var(--gold)}
+.tbl tfoot td{border:0;padding-top:12px;font-size:14px;color:var(--ink-3);white-space:normal}
+.tbl .bar{display:inline-block;height:5px;background:var(--gold);vertical-align:middle}
+
+/* kiemelések: futó fejjel, nem dobozzal */
+.key{margin:0;font-size:clamp(20px,2.2vw,24px);line-height:1.5;max-width:40ch;padding-top:18px;position:relative}
+.key::before{content:"";position:absolute;left:0;top:0;width:40px;height:3px;background:var(--gold)}
+.key b{font-family:var(--font-disp);font-weight:600;color:var(--gold)}
+.warn,.try{margin:0;padding:18px 20px;font-size:17px;line-height:1.6}
+.warn{background:var(--alert-wash)}
+.warn b{font-family:var(--font-disp);font-weight:600;color:var(--alert)}
+.try{background:var(--bg-2)}
+.try b{font-family:var(--font-disp);font-weight:600;color:var(--q)}
+
+/* glosszárium */
+.gloss{margin:0}
+.gloss dt{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}
+.gloss dt b{font:560 26px/1.2 var(--font-disp);letter-spacing:-.02em}
+.gloss dt span{font:400 15px/1.2 var(--font-disp);color:var(--ink-3)}
+.gloss dd{margin:10px 0 0}
+.gloss .see{font:450 15px/1.6 var(--font-disp);color:var(--ink-3)}
+.gloss .see a{color:var(--ink-2);margin-left:8px}
+
+/* irodalom */
+.refs{list-style:none;margin:0;padding:0;display:grid;gap:18px}
+.refs li{display:grid;grid-template-columns:40px minmax(0,1fr);gap:10px}
+.refs .rn{font:400 15px/1.8 var(--font-disp);color:var(--ink-3)}
+.refs p{margin:0;font-size:17px;line-height:1.6}
+.refs cite{font-style:italic}
+.refs .id{font:450 14px/1.8 var(--font-disp);color:var(--ink-3)}
+.refs .id a{color:var(--ink-2)}
+
+/* kísérlet */
+.exp{background:var(--bg-2);display:grid}
+@media (min-width:860px){.exp{grid-template-columns:minmax(0,300px) minmax(0,1fr)}}
+.exp-ctrl,.exp-out{padding:24px 20px}
+@media (min-width:720px){.exp-ctrl,.exp-out{padding:28px}}
+.exp-ctrl{display:grid;gap:18px;align-content:start;border-bottom:1px solid var(--line)}
+@media (min-width:860px){.exp-ctrl{border-bottom:0;border-right:1px solid var(--line)}}
+.exp h3{font-size:20px}
+.exp .prompt{margin:0;font-size:20px}
+.exp .prompt em{font-style:normal;color:var(--gold)}
+.sv{display:flex;justify-content:space-between;align-items:baseline;font:450 15px/1 var(--font-disp);color:var(--ink-2)}
+.sv output{font:300 34px/1 var(--font-disp);font-variation-settings:"SHRP" 100;color:var(--gold);font-variant-numeric:tabular-nums}
+input[type="range"]{-webkit-appearance:none;appearance:none;width:100%;height:30px;background:transparent;margin:0;cursor:pointer}
+input[type="range"]::-webkit-slider-runnable-track{height:3px;background:linear-gradient(90deg,var(--gold) 0 var(--p,50%),var(--line-2) var(--p,50%))}
+input[type="range"]::-moz-range-track{height:3px;background:var(--line-2)}
+input[type="range"]::-moz-range-progress{height:3px;background:var(--gold)}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;margin-top:-8.5px;border-radius:50%;background:var(--bg-2);border:2.5px solid var(--gold)}
+input[type="range"]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:var(--bg-2);border:2.5px solid var(--gold)}
+.ends{display:flex;justify-content:space-between;font:400 13px/1 var(--font-disp);color:var(--ink-3)}
+.bars{display:grid;gap:10px}
+.bar{display:grid;grid-template-columns:72px minmax(0,1fr) 60px;gap:12px;align-items:center}
+.bar .w{font-size:17px}
+.bar .tr{height:10px;background:var(--bg-3);position:relative}
+.bar .tr i{position:absolute;left:0;top:0;bottom:0;background:var(--line-2);transition:width .25s var(--ease)}
+.bar.best .tr i{background:var(--gold)}
+.bar .pc{text-align:right;font:450 14px/1 var(--font-disp);font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.readout{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px;padding-top:14px;border-top:1px solid var(--line);font:450 14px/1.4 var(--font-disp);color:var(--ink-3)}
+.readout b{display:block;margin-top:4px;font:500 20px/1.2 var(--font-disp);color:var(--ink)}
+
+/* adatvizualizáció */
+.sw{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:18px 24px}
+.sw div{display:grid;gap:6px;font:450 14px/1.4 var(--font-disp);color:var(--ink-3)}
+.sw i{display:block;height:0;border-top:var(--h,2px) var(--st,solid) var(--c)}
+.sw b{font:560 16px/1.2 var(--font-disp);color:var(--ink)}
+.heat{display:grid;grid-template-columns:64px repeat(6,minmax(0,1fr));gap:2px;max-width:420px;font:450 12px/1 var(--font-disp);color:var(--ink-3)}
+.heat .c{aspect-ratio:1;background:color-mix(in oklab,var(--gold) var(--a),var(--bg-2))}
+.heat .rl{display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-size:13px}
+.heat .cl{text-align:center;padding-top:6px;overflow:hidden}
+.chart svg{width:100%;height:auto;display:block}
+.c-grid{stroke:var(--line);fill:none}.c-axis{stroke:var(--line-2);fill:none}
+.c-main{stroke:var(--gold);stroke-width:3.5;fill:none}
+.c-q{stroke:var(--q);stroke-width:1.75;fill:none}.c-k{stroke:var(--k);stroke-width:1.75;fill:none;stroke-dasharray:6 4}.c-v{stroke:var(--v);stroke-width:1.75;fill:none;stroke-dasharray:1.5 3.5;stroke-linecap:round}
+.c-t{font:450 12px var(--font-disp);fill:var(--ink-3)}.c-t.g{fill:var(--gold)}.c-t.q{fill:var(--q)}.c-t.k{fill:var(--k)}.c-t.v{fill:var(--v)}
+.two{display:grid;gap:28px}
+@media (min-width:860px){.two{grid-template-columns:1fr 1fr;align-items:start}}
+
+/* érvényesség + változásnapló */
+.valid{display:inline-flex;align-items:center;gap:8px;font:500 15px/1 var(--font-disp);color:var(--gold)}
+.valid::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.valid.stale{color:var(--alert)}
+.valid.stale::before{border-radius:0;transform:rotate(45deg)}
+.clog{list-style:none;margin:0;padding:0}
+.clog li{display:grid;gap:2px 20px;padding:12px 0;border-top:1px solid var(--line);font-size:16px;line-height:1.55}
+@media (min-width:720px){.clog li{grid-template-columns:120px 110px minmax(0,1fr)}}
+.clog .d{font:450 14px/1.6 var(--font-disp);color:var(--ink-3);font-variant-numeric:tabular-nums}
+.clog .kd{font:560 14px/1.6 var(--font-disp)}
+.clog .new{color:var(--gold)}.clog .mod{color:var(--q)}.clog .old{color:var(--alert)}
+.clog p{margin:0}
+
+/* komponenskészlet oldal */
+.kit-sec{padding:var(--s-7,96px) 0 0}
+.kit-sec>h2{font-size:clamp(26px,3vw,34px);margin-bottom:6px}
+.kit-sec>p.ui{color:var(--ink-3);margin:0 0 28px}
+.kit-head{padding-top:120px;padding-bottom:24px;border-bottom:1px solid var(--line)}
+.kit-head h1{font-size:clamp(40px,6vw,72px);letter-spacing:-.035em}
+.kit-head p{color:var(--ink-2);margin-top:14px;max-width:48ch}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
+
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="nyitooldal.html">AI-tananyagok</a>
+  <nav aria-label="Fő navigáció"><a href="#honnan">Honnan kezdjem?</a><a href="#valtozas">Mi változott?</a></nav>
+  <button class="theme" type="button" data-theme-toggle aria-label="Színtéma váltása"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor"/><path d="M8 1.5a6.5 6.5 0 0 1 0 13z" fill="currentColor"/></svg></button>
+</header>
+<main class="wrap">
+  <div class="kit-head"><h1>Tananyag-komponensek</h1><p>Minden elem, amelyből egy szintalapú tananyagoldal felépül, a nyitóoldal „Tér” nyelvén: csend, tipográfia és egy forgatható modell.</p></div>
+  <div class="lesson">
+    <section class="kit-sec"><h2>Szintfejléc</h2><p class="ui">Elérhető és zárolt állapot. A cím tokenekből áll, rámutatva figyelem-íveket húz.</p><header class="lvl">
+  <div class="numeral" aria-hidden="true">4</div>
+  <div>
+    <p class="lvl-meta">4. szint a 12-ből · ≈ 50 perc · három mélységben · szintzáró kvíz</p>
+    <div class="stage"><h1 data-attend data-read="#lvl-read">Figyelem: ki kire néz a mondatban?</h1></div>
+    <p class="lvl-goal"><b>Cél:</b> A szint végére el tudod magyarázni, hogyan dönti el a modell, hogy egy szó megértéséhez melyik másik szó számít.</p>
+    <p class="read" id="lvl-read" aria-live="polite">A szintcím is tokenekből áll: vidd rá az egeret.</p>
+  </div>
+</header><div style="height:28px"></div><header class="lvl locked" aria-disabled="true">
+  <div class="numeral" aria-hidden="true">5</div>
+  <div>
+    <p class="lvl-meta">5. szint a 12-ből · ≈ 45 perc</p>
+    <h2>Több fej, több nézőpont</h2>
+    <p class="lock"><svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true"><rect x="1" y="7" width="12" height="8" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3.5 7V4.5a3.5 3.5 0 0 1 7 0V7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span>Zárolva. A 4. szint kvízének teljesítésével nyílik meg (legalább 4 helyes válasz az 5-ből). Addig is átolvashatod.</span></p>
+  </div>
+</header></section>
+    <section class="kit-sec"><h2>Mélységi fülek</h2><p class="ui">Ugyanaz a téma három mélységben. Nyilakkal is váltható.</p><div class="depth">
+  <div role="tablist" aria-label="Mélység">
+    <button role="tab" id="tb1" aria-controls="tp1" aria-selected="true"><b>Intuíció</b><span>hétköznapi példával</span></button>
+    <button role="tab" id="tb2" aria-controls="tp2" aria-selected="false" tabindex="-1"><b>Matematika</b><span>képletekkel</span></button>
+    <button role="tab" id="tb3" aria-controls="tp3" aria-selected="false" tabindex="-1"><b>Kutatói szint</b><span>forrásokkal</span></button>
+  </div>
+  <div role="tabpanel" id="tp1" aria-labelledby="tb1" tabindex="0"><p>Olvasd el ezt a mondatot: „Anna kölcsönadta Borinak az esernyőjét, mert ő már hazaért.” Ki ért haza? Hogy eldöntsd, az „ő” szónál visszanézel a mondatban, és mérlegeled, melyik korábbi szó illik hozzá a legjobban.</p><p>A figyelem pontosan ezt csinálja, csak számokkal: minden szó megkérdezi a többit, mennyire fontos neki, és a válaszok arányában keveri össze az információjukat.</p></div>
+  <div role="tabpanel" id="tp2" aria-labelledby="tb2" tabindex="0" hidden><p>Minden szóvektorból három újat képzünk: <span class="mq">Q</span> = X·W<sub>Q</sub>, <span class="mk">K</span> = X·W<sub>K</sub>, <span class="mv">V</span> = X·W<sub>V</sub>. Két szó illeszkedését a <span class="mq">Q</span> és a <span class="mk">K</span> pontszorzata méri; ezt √d<sub>k</sub>-val skálázzuk, a softmax pedig soronként súlyokká alakítja.</p></div>
+  <div role="tabpanel" id="tp3" aria-labelledby="tb3" tabindex="0" hidden><p>Egyes figyelemfejek jól körülírható mintát követnek, például mindig az előző szóra néznek. Vitatott viszont, hogy a figyelemsúlyok önmagukban magyarázzák-e a döntést: Jain és Wallace (2019) szerint nem, Wiegreffe és Pinter (2019) szerint ez a „magyarázat” fogalmán múlik.</p></div>
+</div></section>
+    <section class="kit-sec"><h2>Modell-nézet</h2><p class="ui">A leckébe ágyazott, forgatható 3D ábra: mindig azt a részt mutatja, amiről a szöveg szól.</p><figure class="modelfig">
+  <canvas data-model="attn" role="img" aria-label="A modell figyelem-rétegének forgatható térbeli nézete, kék, borostyán és zöld Q, K, V oszlopokkal." tabindex="0"></canvas>
+  <div class="views" role="group" aria-label="Nézet">
+    <button type="button" data-cam="attn" aria-pressed="true" data-say="A figyelem-réteg: a kék, borostyán és zöld oszlop a Query, a Key és a Value.">Figyelem</button>
+    <button type="button" data-cam="tokens" aria-pressed="false" data-say="Alul a tokenek, fölöttük a beágyazás: itt lesz a szövegből szám.">Tokenek</button>
+    <button type="button" data-cam="whole" aria-pressed="false" data-say="Az egész modell: a fő adatút (arany) alulról felfelé fut át minden rétegen.">Egész modell</button>
+  </div>
+  <figcaption><b>1. ábra.</b> <span data-cap>A figyelem-réteg: a kék, borostyán és zöld oszlop a Query, a Key és a Value.</span> Húzd, vagy használd a nyilakat.</figcaption>
+</figure></section>
+    <section class="kit-sec"><h2>Képlet</h2><p class="ui">MathML, külső könyvtár nélkül; a Q, K, V a jelszíneket kapja.</p><figure class="formula">
+  <div class="row">
+    <math display="block" aria-label="Attention Q K V egyenlő softmax Q szorozva K transzponálttal osztva gyök d k, szorozva V"><mrow><mi mathvariant="normal">Attention</mi><mo>(</mo><mi class="mq">Q</mi><mo>,</mo><mi class="mk">K</mi><mo>,</mo><mi class="mv">V</mi><mo>)</mo><mo>=</mo><mi mathvariant="normal">softmax</mi><mrow><mo>(</mo><mfrac><mrow><mi class="mq">Q</mi><msup><mi class="mk">K</mi><mo>⊤</mo></msup></mrow><msqrt><msub><mi>d</mi><mi>k</mi></msub></msqrt></mfrac><mo>)</mo></mrow><mi class="mv">V</mi></mrow></math>
+    <span class="no">(1)</span>
+  </div>
+  <figcaption>Ahol <b class="mq">Q</b> azt írja le, mit keres egy szó, <b class="mk">K</b> azt, mit kínál a többi, <b class="mv">V</b> azt, amit ténylegesen átad, és <b>d<sub>k</sub></b> a Key vektorok hossza. Vaswani és mtsai., 2017.</figcaption>
+</figure></section>
+    <section class="kit-sec"><h2>Kommentált kód</h2><p class="ui">Olvasásra írva: rövid sorok, számozott megjegyzések alatta.</p><div class="code">
+  <div class="code-top"><span>figyelem.py · Python</span><button type="button" data-copy="kod1">Másolás</button></div>
+  <pre id="kod1" tabindex="0" aria-label="Kódrészlet: figyelem függvény"><code><span class="ln" data-n="1"><span><span class="tk-kw">import</span> numpy <span class="tk-kw">as</span> np</span></span><span class="ln" data-n="2"><span> </span></span><span class="ln" data-n="3"><span><span class="tk-kw">def</span> <span class="tk-fn">figyelem</span>(<span class="tk-q">q</span>, <span class="tk-k">k</span>, <span class="tk-v">v</span>):</span></span><span class="ln" data-n="4"><span>    d = <span class="tk-q">q</span>.shape[<span class="tk-num">-1</span>]</span><span class=an>1</span></span><span class="ln" data-n="5"><span>    pont = <span class="tk-q">q</span> @ <span class="tk-k">k</span>.T / np.sqrt(d)</span><span class=an>2</span></span><span class="ln" data-n="6"><span>    pont -= pont.max(axis=<span class="tk-num">-1</span>, keepdims=<span class="tk-kw">True</span>)</span><span class=an>3</span></span><span class="ln" data-n="7"><span>    w = np.exp(pont)</span></span><span class="ln" data-n="8"><span>    w /= w.sum(axis=<span class="tk-num">-1</span>, keepdims=<span class="tk-kw">True</span>)  <span class="tk-com"># softmax</span></span></span><span class="ln" data-n="9"><span>    <span class="tk-kw">return</span> w @ <span class="tk-v">v</span></span><span class=an>4</span></span></code></pre>
+  <ol class="code-notes">
+    <li><span class="an" aria-hidden="true">1</span><span>Egy figyelemfej vektorhossza; ebből jön a skálázás.</span></li>
+    <li><span class="an" aria-hidden="true">2</span><span>Minden <span class="mq">Query</span> minden <span class="mk">Key</span>-jel: a „ki mennyire illik kihez” táblázat.</span></li>
+    <li><span class="an" aria-hidden="true">3</span><span>A soronkénti maximum levonása nem változtat az eredményen, de megóvja az <code>exp</code>-et a túlcsordulástól.</span></li>
+    <li><span class="an" aria-hidden="true">4</span><span>A <span class="mv">Value</span> vektorok súlyozott összege: ez a blokk kimenete.</span></li>
+  </ol>
+</div></section>
+    <section class="kit-sec"><h2>Táblázat</h2><p class="ui">Hajszálvonalak, jobbra zárt számok, felirat felül.</p><div class="tbl"><table>
+  <caption>„Ma reggel kávét …” — a következő szó valószínűsége három hőmérsékleten</caption>
+  <thead><tr><th scope="col">Szó</th><th scope="col" class="n">Pontszám</th><th scope="col" class="n">T = 0,5</th><th scope="col" class="n">T = 1</th><th scope="col" class="n">T = 2</th><th scope="col">T = 1</th></tr></thead>
+  <tbody><tr class=hl><th scope="row">iszom</th><td class="n">3,2</td><td class="n">71,6 %</td><td class="n">49,7 %</td><td class="n">34,9 %</td><td><span class="bar" style="width:45px" aria-hidden="true"></span></td></tr><tr><th scope="row">főzök</th><td class="n">2,6</td><td class="n">21,6 %</td><td class="n">27,3 %</td><td class="n">25,9 %</td><td><span class="bar" style="width:25px" aria-hidden="true"></span></td></tr><tr><th scope="row">kérek</th><td class="n">1,9</td><td class="n">5,3 %</td><td class="n">13,5 %</td><td class="n">18,2 %</td><td><span class="bar" style="width:12px" aria-hidden="true"></span></td></tr><tr><th scope="row">veszek</th><td class="n">1,2</td><td class="n">1,3 %</td><td class="n">6,7 %</td><td class="n">12,8 %</td><td><span class="bar" style="width:6px" aria-hidden="true"></span></td></tr><tr><th scope="row">öntök</th><td class="n">0,3</td><td class="n">0,2 %</td><td class="n">2,7 %</td><td class="n">8,2 %</td><td><span class="bar" style="width:2px" aria-hidden="true"></span></td></tr></tbody>
+  <tfoot><tr><td colspan="6">Softmax a pontszámokon; oszloponként 100 %. A pontszámok szemléltetők.</td></tr></tfoot>
+</table></div></section>
+    <section class="kit-sec"><h2>Kiemelések</h2><p class="ui">Futó fejjel, nem dobozzal: kulcsgondolat, figyelmeztetés, kipróbálás.</p><div style="display:grid;gap:28px">
+  <p class="key"><b>Kulcsgondolat.</b> A figyelem nem „megért”, hanem súlyoz: minden szó a többiek Value-jainak keverékét kapja, a keverési arányt pedig a Query és a Key hasonlósága adja.</p>
+  <p class="warn"><b>Vigyázat.</b> A figyelemsúlyok hőtérképe csábító magyarázat, de nem bizonyíték. Abból, hogy egy szó nagy súlyt kapott, még nem következik, hogy a döntés azon múlt.</p>
+  <p class="try"><b>Próbáld ki.</b> Állítsd a hőmérsékletet 0,2-re, majd 2,0-ra a lenti kísérletben, és figyeld a bizonytalanságot. Mikor lesz a modell „bátrabb”?</p>
+</div></section>
+    <section class="kit-sec"><h2>Interaktív kísérlet</h2><p class="ui">Csúszka, élő eredmény, ábra.</p><div class="exp" data-exp="temperature" data-words="iszom|főzök|kérek|veszek|öntök" data-logits="3.2|2.6|1.9|1.2|0.3">
+  <div class="exp-ctrl">
+    <h3>Hőmérséklet</h3>
+    <p class="prompt">„Ma reggel kávét <em>…</em>”</p>
+    <div><div class="sv"><label for="tmp">Hőmérséklet (T)</label><output for="tmp">1,00</output></div>
+    <input type="range" id="tmp" min="0.1" max="2" step="0.05" value="1"><div class="ends"><span>0,1 határozott</span><span>2,0 szórt</span></div></div>
+    <button class="pill" type="button" data-reset>Visszaállítás</button>
+  </div>
+  <div class="exp-out"><div class="bars"></div><div class="readout" aria-live="polite"><div>Legvalószínűbb<b data-top></b></div><div>Bizonytalanság<b data-entropy></b></div></div></div>
+</div></section>
+    <section class="kit-sec"><h2>Szintzáró kvíz</h2><p class="ui">Azonnali, magyarázatos visszajelzés; a teljesítés a haladásjelzőt is lépteti.</p><div class="quiz" data-need="4" data-progress="prog">
+  <h3>Szintzáró kvíz</h3><p class="ui">5 kérdés · a továbblépéshez 4 helyes válasz kell</p>
+  <ol class="qs"><li class="q" data-correct="1"><fieldset><legend><span>Mit ad a softmax a pontszámokból?</span></legend><div class="opts"><label class="opt"><input type="radio" name="kq0"><span>A legnagyobb pontszám sorszámát</span><span class="mark" aria-live="polite"></span></label><label class="opt"><input type="radio" name="kq0"><span>Nemnegatív súlyokat, amelyek összege 1</span><span class="mark" aria-live="polite"></span></label><label class="opt"><input type="radio" name="kq0"><span>A pontszámok átlagát</span><span class="mark" aria-live="polite"></span></label><label class="opt"><input type="radio" name="kq0"><span>A pontszámok véletlen sorrendjét</span><span class="mark" aria-live="polite"></span></label></div></fieldset><div class="fb" hidden aria-live="polite"></div><template><b>Miért?</b> A softmax minden pontszámot pozitív számmá alakít, és úgy normál, hogy az összegük pontosan 1 legyen. Ezért olvasható súlyként vagy valószínűségként.</template></li><li class="q" data-correct="2"><fieldset><legend><span>Miért osztjuk a pontszorzatot √d<sub>k</sub>-val?</span></legend><div class="opts"><label class="opt"><input type="radio" name="kq1"><span>Hogy gyorsabb legyen a számítás</span><span class="mark" aria-live="polite"></span></label><label class="opt"><input type="radio" name="kq1"><span>Hogy a kimenet egész szám legyen</span><span class="mark" aria-live="polite"></span></label><label class="opt"><input type="radio" name="kq1"><span>Mert nagy dimenzióban a pontszorzatok szórása nő, és a softmax túl „éles” lenne</span><span class="mark" aria-live="polite"></span></label><label class="opt"><input type="radio" name="kq1"><span>Mert a Key vektorok mindig hosszabbak</span><span class="mark" aria-live="polite"></span></label></div></fieldset><div class="fb" hidden aria-live="polite"></div><template><b>Miért?</b> Ha a vektorelemek nagyjából egységnyi szórásúak, a pontszorzat szórása d<sub>k</sub>-val arányosan nő. A skálázás ezt visszahúzza, így a softmax nem telítődik, és a tanulás nem akad el.</template></li><li class="q" data-correct="2"><fieldset><legend><span>Melyik vektor határozza meg, hogy mit ad át egy szó a többinek?</span></legend><div class="opts"><label class="opt"><input type="radio" name="kq2"><span>Query</span><span class="mark" aria-live="polite"></span></label><label class="opt"><input type="radio" name="kq2"><span>Key</span><span class="mark" aria-live="polite"></span></label><label class="opt"><input type="radio" name="kq2"><span>Value</span><span class="mark" aria-live="polite"></span></label><label class="opt"><input type="radio" name="kq2"><span>A pozíciókódolás</span><span class="mark" aria-live="polite"></span></label></div></fieldset><div class="fb" hidden aria-live="polite"></div><template><b>Miért?</b> A Query és a Key együtt csak azt dönti el, mennyire figyeljen egy szó a másikra. Ami ténylegesen átmegy, az a Value vektorok súlyozott összege.</template></li><li class="q" data-correct="1"><fieldset><legend><span>Mi történik a softmax eloszlásával, ha a hőmérséklet nagyon kicsi?</span></legend><div class="opts"><label class="opt"><input type="radio" name="kq3"><span>Egyenletes lesz</span><span class="mark" aria-live="polite"></span></label><label class="opt"><input type="radio" name="kq3"><span>Szinte minden súly a legnagyobb pontszámra kerül</span><span class="mark" aria-live="polite"></span></label><label class="opt"><input type="radio" name="kq3"><span>Negatív értékek is megjelennek</span><span class="mark" aria-live="polite"></span></label><label class="opt"><input type="radio" name="kq3"><span>Nem változik</span><span class="mark" aria-live="polite"></span></label></div></fieldset><div class="fb" hidden aria-live="polite"></div><template><b>Miért?</b> Kis hőmérsékletnél a különbségek felnagyítódnak, így az eloszlás a legnagyobb értékre koncentrálódik. A kísérletben ki is próbálhatod.</template></li><li class="q" data-correct="1"><fieldset><legend><span>Mi a reziduális kapcsolat szerepe egy blokkban?</span></legend><div class="opts"><label class="opt"><input type="radio" name="kq4"><span>Törli a korábbi információt</span><span class="mark" aria-live="polite"></span></label><label class="opt"><input type="radio" name="kq4"><span>A blokk kimenetét hozzáadja a bemenetéhez, így az eredeti jel tovább halad</span><span class="mark" aria-live="polite"></span></label><label class="opt"><input type="radio" name="kq4"><span>Csak a tanítás végén kapcsol be</span><span class="mark" aria-live="polite"></span></label><label class="opt"><input type="radio" name="kq4"><span>Csökkenti a szavak számát</span><span class="mark" aria-live="polite"></span></label></div></fieldset><div class="fb" hidden aria-live="polite"></div><template><b>Miért?</b> A blokk nem felülírja, hanem kiegészíti a fő adatúton haladó jelet. Ezért rajzoljuk a modellben egyetlen, végigfutó arany vonalként.</template></li></ol>
+  <div class="quiz-foot"><div><div class="track" aria-hidden="true"></div><p class="score-text" aria-live="polite"></p></div><button class="pill" type="button" data-retry hidden>Újrakezdés</button></div>
+</div></section>
+    <section class="kit-sec"><h2>Haladásjelző</h2><p class="ui">12 szint = 12 réteg.</p><div class="layers" id="prog" data-done="4">
+  <svg viewBox="0 0 140 200" role="progressbar" aria-label="Teljesített szintek" aria-valuemin="0" aria-valuemax="12" aria-valuenow="4"></svg>
+  <div><div class="count"><span data-count>4</span><span> / 12</span></div><p>Minden teljesített szint egy réteg a modellben. Töltsd ki hibátlanul a fenti kvízt, és eggyel magasabb lesz.</p></div>
+</div></section>
+    <section class="kit-sec"><h2>Glosszárium</h2><p class="ui">Szakszó, angol megfelelő, meghatározás, kapcsolódó fogalmak.</p><dl class="gloss"><dt><b>figyelem</b><span lang="en">attention</span><span>· először a 4. szinten</span></dt>
+<dd><p>Az a művelet, amellyel a modell minden szóhoz kiszámolja, mennyire vegye figyelembe a többi szót. A súlyokat a Query és a Key hasonlósága adja, a továbbított tartalmat a Value.</p><div class="see">Lásd még:<a href="#">önfigyelem</a><a href="#">softmax</a><a href="#">figyelemfej</a></div></dd></dl></section>
+    <section class="kit-sec"><h2>Irodalomjegyzék</h2><p class="ui">Csak ellenőrzött, valóban létező források.</p><ol class="refs">
+  <li><span class="rn">[1]</span><div><p>Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, Ł. és Polosukhin, I. (2017). <cite lang="en">Attention Is All You Need.</cite> Advances in Neural Information Processing Systems 30.</p><div class="id">Cikk, angol · <a href="https://arxiv.org/abs/1706.03762">arXiv:1706.03762</a></div></div></li>
+  <li><span class="rn">[2]</span><div><p>Jain, S. és Wallace, B. C. (2019). <cite lang="en">Attention is not Explanation.</cite> Proceedings of NAACL-HLT 2019.</p><div class="id">Cikk, angol · <a href="https://arxiv.org/abs/1902.10186">arXiv:1902.10186</a></div></div></li>
+</ol></section>
+  </div>
+  <section class="kit-sec"><h2>Adatvizualizáció</h2><p class="ui">Az arany a fő mennyiség, a Q/K/V csak kategória. Mindkét módban kontrasztos.</p><div style="display:grid;gap:32px"><div class="sw"><div><i style="--c:var(--gold);--h:4px;--st:solid"></i><b>Fő adatút</b><span>--gold · vastag, folytonos</span></div><div><i style="--c:var(--q);--h:2px;--st:solid"></i><b>Query</b><span>--q · vékony, folytonos</span></div><div><i style="--c:var(--k);--h:2px;--st:dashed"></i><b>Key</b><span>--k · vékony, szaggatott</span></div><div><i style="--c:var(--v);--h:2px;--st:dotted"></i><b>Value</b><span>--v · vékony, pontozott</span></div><div><i style="--c:var(--line-2);--h:1px;--st:solid"></i><b>Tengely, rács</b><span>--line-2 · hajszál</span></div></div>
+<div class="two"><figure style="margin:0"><figcaption class="ui dim" style="margin-bottom:12px">Figyelemsúlyok: „A macska az ágyon alszik.” (szemléltető)</figcaption><div class="heat" role="img" aria-label="Figyelem-hőtérkép hat szóra; az alszik leginkább a macska szóra figyel."><span class="rl">A</span><span class="c" style="--a:100%" title="A → A: 1,00"></span><span class="c" style="--a:0%" title="A → macska: 0,00"></span><span class="c" style="--a:0%" title="A → az: 0,00"></span><span class="c" style="--a:0%" title="A → ágyon: 0,00"></span><span class="c" style="--a:0%" title="A → alszik: 0,00"></span><span class="c" style="--a:0%" title="A → .: 0,00"></span><span class="rl">macska</span><span class="c" style="--a:35%" title="macska → A: 0,35"></span><span class="c" style="--a:65%" title="macska → macska: 0,65"></span><span class="c" style="--a:0%" title="macska → az: 0,00"></span><span class="c" style="--a:0%" title="macska → ágyon: 0,00"></span><span class="c" style="--a:0%" title="macska → alszik: 0,00"></span><span class="c" style="--a:0%" title="macska → .: 0,00"></span><span class="rl">az</span><span class="c" style="--a:10%" title="az → A: 0,10"></span><span class="c" style="--a:30%" title="az → macska: 0,30"></span><span class="c" style="--a:60%" title="az → az: 0,60"></span><span class="c" style="--a:0%" title="az → ágyon: 0,00"></span><span class="c" style="--a:0%" title="az → alszik: 0,00"></span><span class="c" style="--a:0%" title="az → .: 0,00"></span><span class="rl">ágyon</span><span class="c" style="--a:5%" title="ágyon → A: 0,05"></span><span class="c" style="--a:35%" title="ágyon → macska: 0,35"></span><span class="c" style="--a:25%" title="ágyon → az: 0,25"></span><span class="c" style="--a:35%" title="ágyon → ágyon: 0,35"></span><span class="c" style="--a:0%" title="ágyon → alszik: 0,00"></span><span class="c" style="--a:0%" title="ágyon → .: 0,00"></span><span class="rl">alszik</span><span class="c" style="--a:5%" title="alszik → A: 0,05"></span><span class="c" style="--a:55%" title="alszik → macska: 0,55"></span><span class="c" style="--a:5%" title="alszik → az: 0,05"></span><span class="c" style="--a:20%" title="alszik → ágyon: 0,20"></span><span class="c" style="--a:15%" title="alszik → alszik: 0,15"></span><span class="c" style="--a:0%" title="alszik → .: 0,00"></span><span class="rl">.</span><span class="c" style="--a:5%" title=". → A: 0,05"></span><span class="c" style="--a:20%" title=". → macska: 0,20"></span><span class="c" style="--a:5%" title=". → az: 0,05"></span><span class="c" style="--a:15%" title=". → ágyon: 0,15"></span><span class="c" style="--a:45%" title=". → alszik: 0,45"></span><span class="c" style="--a:10%" title=". → .: 0,10"></span><span></span><span class="cl">A</span><span class="cl">macska</span><span class="cl">az</span><span class="cl">ágyon</span><span class="cl">alszik</span><span class="cl">.</span></div></figure>
+<figure class="chart" style="margin:0"><svg viewBox="0 0 520 214" role="img" aria-label="Szemléltető vonaldiagram: a fő adatút normája rétegenként nő, a Q, K, V normái lassabban."><line x1="40" x2="488" y1="30" y2="30" class="c-grid"/><line x1="40" x2="488" y1="80" y2="80" class="c-grid"/><line x1="40" x2="488" y1="130" y2="130" class="c-grid"/><line x1="40" x2="488" y1="180" y2="180" class="c-axis"/><text x="40" y="200" class="c-t" text-anchor="middle">1</text><text x="104" y="200" class="c-t" text-anchor="middle">2</text><text x="168" y="200" class="c-t" text-anchor="middle">3</text><text x="232" y="200" class="c-t" text-anchor="middle">4</text><text x="296" y="200" class="c-t" text-anchor="middle">5</text><text x="360" y="200" class="c-t" text-anchor="middle">6</text><text x="424" y="200" class="c-t" text-anchor="middle">7</text><text x="488" y="200" class="c-t" text-anchor="middle">8</text><path d="M40,135 L104,117 L168,98 L232,81 L296,63 L360,48 L424,34 L488,18" class="c-main"/><path d="M40,150 L104,144 L168,135 L232,138 L296,129 L360,123 L424,126 L488,120" class="c-q"/><path d="M40,147 L104,150 L168,141 L232,132 L296,135 L360,129 L424,117 L488,114" class="c-k"/><path d="M40,165 L104,156 L168,153 L232,147 L296,141 L360,144 L424,135 L488,129" class="c-v"/><text x="494" y="22" class="c-t g">fő</text><text x="494" y="108" class="c-t k">K</text><text x="494" y="122" class="c-t q">Q</text><text x="494" y="136" class="c-t v">V</text><text x="40" y="16" class="c-t">norma rétegenként (szemléltető)</text></svg></figure></div>
+<p class="ui dim" style="margin:0">Az arany mindig a fő mennyiség és a legvastagabb vonal. A Q/K/V csak kategória; a szín mellett a vonalstílus és a felirat is megkülönbözteti őket.</p></div></section>
+  <div class="lesson"><section class="kit-sec"><h2>Érvényesség és változásnapló</h2><p class="ui">A gyakorlati, dátumhoz kötött anyagokhoz.</p><div style="display:grid;gap:22px">
+  <div style="display:flex;flex-wrap:wrap;gap:12px 28px"><span class="valid">Érvényes: 2026. szeptember</span><span class="valid stale">Felülvizsgálandó: 2026. március</span></div>
+  <ul class="clog">
+    <li><span class="d">2026. 09. 24.</span><span class="kd new">+ Új</span><p>Új fejezet: képek és dokumentumok feltöltése a csevegőfelületekre.</p></li>
+    <li><span class="d">2026. 09. 12.</span><span class="kd mod">↻ Módosult</span><p>Frissítve a használati korlátokról szóló rész.</p></li>
+    <li><span class="d">2026. 08. 30.</span><span class="kd old">− Elavult</span><p>A böngészőbővítményekről szóló rész archiválva; helyette a 9. fejezet.</p></li>
+  </ul>
+</div></section></div>
+  <div style="height:96px"></div>
+</main>
+<footer class="foot wrap"><span>© 2026 Csaplár Dániel · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.hu" rel="license">CC BY-NC-SA 4.0</a></span><a href="#">Kapcsolat</a></footer>
+<script>
+/* AI-tananyagok · Tér — viselkedés (vanilla). window.AIT */
+(function(){
+"use strict";
+var doc=document, html=doc.documentElement;
+var reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+function $(s,r){return (r||doc).querySelector(s)}
+function $$(s,r){return Array.prototype.slice.call((r||doc).querySelectorAll(s))}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+
+/* ------------------------------------------------------------------
+   Valódi tokenek (nyílt o200k_base tokenizáló, előre kiszámolva)
+   ------------------------------------------------------------------ */
+var TOK={
+  "Mesterséges intelligencia,":[["M",44],["esters",63673],["éges",129232],[" intellig",14237],["encia",5174],[",",11]],
+  " érthetően.":[[" ér",53048],["thet",178602],["ően",185227],[".",13]],
+  " magyarul.":[[" magyar",110460],["ul",361],[".",13]],
+  " ingyen.":[[" ing",4012],["yen",31069],[".",13]],
+  " mindenkinek.":[[" mind",4246],["enk",17039],["inek",64731],[".",13]],
+  " lépésről lépésre.":[[" lé",25423],["p",79],["és",1756],["r",81],["ől",46442],[" lé",25423],["p",79],["és",1756],["re",264],[".",13]],
+  "Figyelem: ki kire néz a mondatban?":[["Fig",37833],["ye",2422],["lem",6596],[":",25],[" ki",3314],[" k",372],["ire",594],[" né",14832],["z",89],[" a",261],[" mond",20179],["at",266],["ban",6893],["?",30]],
+  "Több fej, több nézőpont":[["T",51],["ö",573],["bb",10029],[" fej",130213],[",",11],[" több",86816],[" né",14832],["ző",74133],["pont",132439]],
+  "Honnan kezdjem?":[["H",39],["onn",9525],["an",270],[" kezd",152886],["jem",12864],["?",30]]
+};
+function tokens(arr){
+  return arr.map(function(p){var sp=/^ /.test(p[0]);return (sp?" ":"")+'<span class="t" data-id="'+p[1]+'">'+esc(sp?p[0].slice(1):p[0])+'</span>'}).join("");
+}
+var CANDS=[[" érthetően.",.38],[" magyarul.",.21],[" ingyen.",.17],[" mindenkinek.",.14],[" lépésről lépésre.",.10]];
+
+/* ------------------------------------------------------------------
+   Figyelem-ívek: bármely tokenekre bontott címen.
+   Rámutatva a szórészlet ívet húz az összes korábbi részletre,
+   vastagság = (szemléltető) figyelemsúly. Előre sosem néz.
+   ------------------------------------------------------------------ */
+function attend(stage, heading, read){
+  var arcs=$("svg.arcs",stage); if(!arcs){arcs=doc.createElementNS("http://www.w3.org/2000/svg","svg");arcs.setAttribute("class","arcs");arcs.setAttribute("aria-hidden","true");stage.insertBefore(arcs,stage.firstChild)}
+  var readDefault=read?read.textContent:"";
+  function all(){return $$(".t",heading)}
+  function startsWord(t){var p=t.previousSibling;return !p||(p.nodeType===3&&/\s$/.test(p.textContent))||(p.nodeType===1&&!p.classList.contains("t"))}
+  function weights(i,ts){
+    var s=[],sum=0,starts=ts.map(startsWord),txt=ts.map(function(t){return t.textContent});
+    for(var j=0;j<i;j++){
+      var same=true; for(var m=j+1;m<=i;m++){if(starts[m]){same=false;break}}
+      var v=-0.45*(i-j)+(same?1.4:0)+(txt[j].length>3?0.35:0)+(/^[,.:?]$/.test(txt[j])?-1.3:0);
+      s.push(Math.exp(v)); sum+=Math.exp(v);
+    }
+    return s.map(function(x){return x/sum});
+  }
+  function clear(){arcs.innerHTML="";all().forEach(function(t){t.classList.remove("hot","src")});if(read)read.textContent=readDefault}
+  function show(i){
+    var ts=all(); clear(); ts[i].classList.add("src");
+    if(i===0){if(read)read.textContent="Az első szórészlet még nem tud visszanézni semmire.";return}
+    var w=weights(i,ts),sr=stage.getBoundingClientRect(),a=ts[i].getBoundingClientRect(),best=0,out="";
+    var ax=a.left+a.width/2-sr.left, ay=a.top-sr.top+a.height*0.14;
+    w.forEach(function(x,j){
+      if(x>w[best])best=j; if(x<0.04)return;
+      var b=ts[j].getBoundingClientRect(),bx=b.left+b.width/2-sr.left,by=b.top-sr.top+b.height*0.14;
+      var h=Math.min(130,26+Math.abs(ax-bx)*0.22+Math.abs(ay-by)*0.2),my=Math.min(ay,by)-h;
+      out+='<path d="M'+ax.toFixed(1)+" "+ay.toFixed(1)+" C"+ax.toFixed(1)+" "+my.toFixed(1)+" "+bx.toFixed(1)+" "+my.toFixed(1)+" "+bx.toFixed(1)+" "+by.toFixed(1)+'" stroke-width="'+(0.8+x*9).toFixed(2)+'" opacity="'+(0.3+x*0.85).toFixed(2)+'"/>';
+    });
+    arcs.innerHTML=out; ts[best].classList.add("hot");
+    if(read)read.innerHTML="„"+esc(ts[i].textContent)+"” leginkább ide figyel: „"+esc(ts[best].textContent)+"” ("+Math.round(w[best]*100)+"%). Előre sosem néz.";
+  }
+  function bind(){all().forEach(function(t,i){t.tabIndex=0;t.onmouseenter=t.onfocus=function(){show(i)};t.onmouseleave=t.onblur=clear;t.ontouchstart=function(){show(i)}})}
+  addEventListener("resize",clear); bind();
+  return {bind:bind,clear:clear};
+}
+/* címek automatikus tokenizálása: <h? data-attend> + opcionális data-read="#id" */
+function initAttend(root){
+  $$("[data-attend]",root).forEach(function(h){
+    if(h._ait)return; h._ait=1;
+    var txt=h.textContent.trim(), arr=TOK[txt]; if(!arr)return;
+    h.innerHTML=tokens(arr);
+    var stage=h.closest(".stage")||h.parentNode; stage.classList.add("stage");
+    attend(stage,h,h.getAttribute("data-read")?$(h.getAttribute("data-read")):null);
+  });
+}
+
+/* ------------------------------------------------------------------
+   A nyitóoldal élő címe: tippelő + ívek
+   ------------------------------------------------------------------ */
+function hero(o){
+  var cur=0;
+  o.lead.innerHTML=tokens(TOK[o.lead.textContent.trim()]);
+  var at=attend(o.stage,o.say,o.read);
+  function renderSlot(){o.slot.innerHTML=tokens(TOK[CANDS[cur][0]]);at.bind()}
+  var cands=[];
+  if(o.ribbon){
+    o.ribbon.innerHTML=CANDS.map(function(c,i){var w=c[0].trim().replace(/\.$/,"");
+      return '<button class="cand" type="button" role="radio" style="--p:'+c[1]+'" aria-checked="'+(i===0)+'" tabindex="'+(i===0?0:-1)+'"><span class="bar"></span><span class="w">'+esc(w)+'</span><span class="pr">'+c[1].toFixed(2).replace(".",",")+"</span></button>"}).join("");
+    cands=$$(".cand",o.ribbon);
+    cands.forEach(function(b,i){
+      b.addEventListener("click",function(){pick(i)});
+      b.addEventListener("keydown",function(e){var d=e.key==="ArrowRight"||e.key==="ArrowDown"?1:e.key==="ArrowLeft"||e.key==="ArrowUp"?-1:0;if(d){e.preventDefault();pick((i+d+cands.length)%cands.length,true)}});
+    });
+  }
+  function pick(i,focus){
+    if(i===cur)return; cur=i;
+    cands.forEach(function(b,j){b.setAttribute("aria-checked",String(j===i));b.tabIndex=j===i?0:-1});
+    if(focus&&cands[i])cands[i].focus();
+    if(reduce){renderSlot();return}
+    o.slot.classList.add("swap"); setTimeout(function(){renderSlot();o.slot.classList.remove("swap")},170);
+  }
+  if(o.resample)o.resample.addEventListener("click",function(){var r=Math.random(),a=0,k=0;for(;k<CANDS.length;k++){a+=CANDS[k][1];if(r<a)break}pick(Math.min(k,CANDS.length-1))});
+  renderSlot();
+  return {pick:pick};
+}
+function initHero(root){
+  $$("[data-hero]",root).forEach(function(el){
+    if(el._ait)return; el._ait=1;
+    hero({stage:$(".stage",el),say:$(".say",el),lead:$(".lead-part",el),slot:$(".slot",el),read:$(".read",el),ribbon:$(".ribbon",el),resample:$("[data-resample]",el)});
+  });
+}
+
+/* ------------------------------------------------------------------
+   A 3D modell (vanilla canvas: perspektíva + festő-algoritmus)
+   Nincs folyamatos animáció: csak húzásra és nézetváltáskor rajzol.
+   ------------------------------------------------------------------ */
+var GEO=(function(){
+  var B=[];function box(r,c,s,x){B.push(Object.assign({r:r,c:c,s:s},x||{}))}
+  for(var i=0;i<5;i++)box("input",[-2+i,0,0],[.72,.28,.72],i===2?{lab:"tokenek"}:null);
+  box("embed",[0,.8,0],[5,.3,1.5],{lab:"beágyazás"});
+  for(var b=0;b<4;b++){
+    var y=1.9+b*1.55;
+    box(b?"attn deep":"attn",[-1.45,y,0],[2.1,.95,1.5],{lab:b===0?"figyelem":null});
+    box(b?"mlp deep":"mlp",[1.45,y,0],[2.1,.95,1.5],{lab:b===0?"MLP":(b===3?"mélyebb rétegek":null)});
+    box("qkv",[-2.0,y,1.0],[.16,.8,.16],{col:"q"});box("qkv",[-1.72,y,1.0],[.16,.8,.16],{col:"k"});box("qkv",[-1.44,y,1.0],[.16,.8,.16],{col:"v"});
+  }
+  box("out",[0,8.35,0],[5,.36,1.5],{lab:"kimenet: következő szó"});
+  box("out",[-1.2,9.05,0],[2.4,.12,.3]);box("out",[.55,9.05,0],[1.1,.12,.3]);box("out",[1.4,9.05,0],[.5,.12,.3]);
+  box("loss",[3.9,8.35,0],[1.5,.7,1],{lab:"veszteség"});
+  box("docs",[-4,.3,.3],[1,1.3,.12],{lab:"dokumentumok"});box("docs",[-4.2,.25,-.1],[1,1.3,.12]);
+  box("user",[4,.2,0],[1.3,.7,.9],{lab:"te"});
+  return {B:B,STREAM:[[0,.6,0],[0,8.2,0]],LINKS:[[[-3.4,.3,.3],[-2.4,.1,0],"docs"],[[3.35,.2,0],[2.4,.1,0],"user"],[[3.9,8,0],[3.9,1,0],"user"],[[2.5,8.35,0],[3.15,8.35,0],"loss"]]};
+})();
+var CAMS={
+  home:{yaw:.62,pitch:.32,dist:21,ty:4.6,lit:[]},
+  s1:{yaw:.35,pitch:.22,dist:19,ty:3.6,lit:["input","embed","attn","out"]},
+  s2:{yaw:1.05,pitch:.5,dist:21,ty:4.6,lit:["all"]},
+  s3:{yaw:.05,pitch:.3,dist:13,ty:8.2,lit:["out","loss"]},
+  s4:{yaw:-.45,pitch:.18,dist:14,ty:4.8,lit:["attn","mlp","deep"]},
+  s5:{yaw:.95,pitch:.28,dist:18,ty:4.5,lit:["out","user"],warn:1},
+  s6:{yaw:1.0,pitch:.2,dist:10,ty:.8,lit:["user"]},
+  s7:{yaw:.15,pitch:.3,dist:20,ty:4.6,lit:["all"],wire:1},
+  s8:{yaw:-.55,pitch:.35,dist:13,ty:1.2,lit:["docs","input"]},
+  attn:{yaw:.55,pitch:.28,dist:12.5,ty:3.4,lit:["attn"],only:1},
+  tokens:{yaw:.3,pitch:.45,dist:9,ty:.4,lit:["input","embed"]},
+  whole:{yaw:.62,pitch:.32,dist:21,ty:4.6,lit:["all"]}
+};
+function css(el,n){return getComputedStyle(el).getPropertyValue(n).trim()}
+function hex(c){c=c.replace("#","");if(c.length===3)c=c.split("").map(function(x){return x+x}).join("");return[parseInt(c.substr(0,2),16),parseInt(c.substr(2,2),16),parseInt(c.substr(4,2),16)]}
+function mix(a,b,t){return "rgb("+a.map(function(x,i){return Math.round(x+(b[i]-x)*t)}).join(",")+")"}
+function Model(cv,opt){
+  opt=opt||{};
+  var ctx=cv.getContext("2d"),W=0,H=0,DPR=1,state=CAMS[opt.cam||"home"],cam=Object.assign({},state),from,to,t0,dyaw=0,dpitch=0,drag=null;
+  function lit(r){if(!state.lit.length)return false;if(state.lit[0]==="all")return r!=="qkv";return state.lit.some(function(l){return(" "+r+" ").indexOf(" "+l+" ")>=0})}
+  function size(){DPR=Math.min(2,devicePixelRatio||1);W=cv.clientWidth;H=cv.clientHeight;cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);draw()}
+  function draw(){
+    if(!W||!H)return;
+    var C={fa:hex(css(cv,"--face-a")||"#1a1c20"),fb:hex(css(cv,"--face-b")||"#2c2f35"),edge:css(cv,"--line-2"),gold:css(cv,"--gold"),gw:hex(css(cv,"--gold-wash")||"#2a2312"),ink:css(cv,"--ink"),ink3:css(cv,"--ink-3"),q:css(cv,"--q"),k:css(cv,"--k"),v:css(cv,"--v"),alert:css(cv,"--alert")};
+    ctx.setTransform(DPR,0,0,DPR,0,0);ctx.clearRect(0,0,W,H);
+    var place=opt.place?opt.place(W,H):{cx:W/2,cy:H/2,f:Math.min(W,H)*1.35};
+    var cx=place.cx,cy=place.cy,f=place.f;
+    var yaw=cam.yaw+dyaw,pitch=Math.max(-.2,Math.min(1.2,cam.pitch+dpitch)),cy1=Math.cos(yaw),sy1=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);
+    function P(p){var x=p[0],y=p[1]-cam.ty,z=p[2];var x1=x*cy1-z*sy1,z1=x*sy1+z*cy1;var y2=y*cp-z1*sp,z2=y*sp+z1*cp;var zc=cam.dist-z2;return[cx+f*x1/zc,cy-f*y2/zc,zc,x1,y2,z2]}
+    var L=[.35,.8,.5],faces=[],labels=[],wire=!!state.wire,attnLit=lit("attn");
+    GEO.B.forEach(function(bx){
+      if(state.only&&!lit(bx.r)&&bx.r!=="qkv"&&bx.r!=="embed")return;
+      var c=bx.c,s=bx.s,hx=s[0]/2,hy=s[1]/2,hz=s[2]/2;
+      var V=[[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]].map(function(k){return P([c[0]+k[0]*hx,c[1]+k[1]*hy,c[2]+k[2]*hz])});
+      var O=P(c),l=lit(bx.r);
+      [[0,1,2,3],[5,4,7,6],[4,0,3,7],[1,5,6,2],[3,2,6,7],[4,5,1,0]].forEach(function(fc){
+        var mx=0,my=0,mz=0;fc.forEach(function(k){mx+=V[k][3]/4;my+=V[k][4]/4;mz+=V[k][5]/4});
+        var nx=mx-O[3],ny=my-O[4],nz=mz-O[5],nl=Math.hypot(nx,ny,nz)||1;nx/=nl;ny/=nl;nz/=nl;
+        if(nx*(-mx)+ny*(-my)+nz*(cam.dist-mz)<=0)return;
+        faces.push({p:fc.map(function(k){return V[k]}),z:fc.reduce(function(m,k){return m+V[k][2]},0)/4,sh:Math.max(0,nx*L[0]+ny*L[1]+nz*L[2]),lit:l,col:bx.col});
+      });
+      if(bx.lab&&l&&!opt.nolabels){var p=P([c[0],c[1]+hy,c[2]+hz]);labels.push([p[0],p[1],bx.lab])}
+    });
+    faces.sort(function(a,b){return (a.col?1:0)-(b.col?1:0)||b.z-a.z}); // a Q/K/V oszlopok mindig a blokk előtt állnak
+    function line(a,b,col,w,dash){var p=P(a),q=P(b);ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(q[0],q[1]);ctx.strokeStyle=col;ctx.lineWidth=w;ctx.setLineDash(dash||[]);ctx.stroke();ctx.setLineDash([])}
+    if(!state.only)GEO.LINKS.forEach(function(k){line(k[0],k[1],lit(k[2])?C.gold:C.edge,1,[3,4])});
+    faces.forEach(function(fc){
+      ctx.beginPath();fc.p.forEach(function(p,i){i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])});ctx.closePath();
+      if(fc.col){ctx.globalAlpha=attnLit||!state.lit.length?1:.35;ctx.fillStyle=C[fc.col];if(!wire)ctx.fill();ctx.globalAlpha=1;if(wire){ctx.strokeStyle=C[fc.col];ctx.lineWidth=1;ctx.stroke()}return}
+      if(!wire){ctx.fillStyle=fc.lit?mix(C.gw,C.fb,.12+(1-fc.sh)*.22):mix(C.fa,C.fb,fc.sh);ctx.fill()}
+      ctx.strokeStyle=fc.lit||wire?(state.warn&&fc.lit?C.alert:C.gold):C.edge;ctx.lineWidth=fc.lit||wire?1.4:1;ctx.stroke();
+    });
+    if(!state.only)line(GEO.STREAM[0],GEO.STREAM[1],C.gold,opt.thin?2:3.5);
+    ctx.font="500 13px Geologica, system-ui, sans-serif";ctx.textBaseline="bottom";
+    labels.forEach(function(l){ctx.strokeStyle=C.ink3;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(l[0],l[1]);ctx.lineTo(l[0]+6,l[1]-6);ctx.stroke();ctx.fillStyle=C.ink;ctx.fillText(l[2],l[0]+8,l[1]-8)});
+  }
+  function ease(t){return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2}
+  function tick(now){var t=Math.min(1,(now-t0)/850),e=ease(t);["yaw","pitch","dist","ty"].forEach(function(k){cam[k]=from[k]+(to[k]-from[k])*e});draw();if(t<1)requestAnimationFrame(tick)}
+  function go(key){var tgt=typeof key==="string"?CAMS[key]:key;if(!tgt||tgt===state)return;state=tgt;if(reduce){cam=Object.assign({},tgt);draw();return}from=Object.assign({},cam);to=tgt;t0=performance.now();requestAnimationFrame(tick)}
+  if(opt.interactive!==false){
+    cv.addEventListener("pointerdown",function(e){drag=[e.clientX,e.clientY,dyaw,dpitch];cv.setPointerCapture(e.pointerId)});
+    cv.addEventListener("pointermove",function(e){if(!drag)return;dyaw=drag[2]+(e.clientX-drag[0])*.008;dpitch=drag[3]+(e.clientY-drag[1])*.005;draw()});
+    cv.addEventListener("pointerup",function(){drag=null});
+    cv.addEventListener("keydown",function(e){var d={ArrowLeft:[-.12,0],ArrowRight:[.12,0],ArrowUp:[0,-.08],ArrowDown:[0,.08]}[e.key];if(d){e.preventDefault();dyaw+=d[0];dpitch+=d[1];draw()}});
+  }
+  addEventListener("resize",size);
+  new MutationObserver(draw).observe(html,{attributes:true,attributeFilter:["data-theme"]});
+  matchMedia("(prefers-color-scheme: light)").addEventListener("change",draw);
+  if(doc.fonts)doc.fonts.ready.then(draw);
+  size();
+  return {go:go,draw:draw,size:size};
+}
+/* beágyazott modell-nézet: <canvas data-model="attn"> + opcionális gombok [data-cam] */
+function initModels(root){
+  $$("canvas[data-model]",root).forEach(function(cv){
+    if(cv._ait)return;
+    var m=Model(cv,{cam:cv.getAttribute("data-model"),place:function(W,H){return{cx:W/2,cy:H*.55,f:Math.min(W,H*1.3)*1.2}}});cv._ait=m;
+    var fig=cv.closest("figure");
+    if(fig)$$("[data-cam]",fig).forEach(function(b){b.addEventListener("click",function(){$$("[data-cam]",fig).forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});m.go(b.getAttribute("data-cam"));var cap=$("[data-cap]",fig);if(cap)cap.textContent=b.getAttribute("data-say")||""})});
+  });
+}
+
+/* ------------------------------------------------------------------
+   Mélységi fülek
+   ------------------------------------------------------------------ */
+function initTabs(root){
+  $$('[role="tablist"]',root).forEach(function(list){
+    if(list._ait)return;list._ait=1;
+    var tabs=$$('[role="tab"]',list);
+    function sel(t,f){tabs.forEach(function(x){var on=x===t;x.setAttribute("aria-selected",String(on));x.tabIndex=on?0:-1;var p=doc.getElementById(x.getAttribute("aria-controls"));if(p)p.hidden=!on});if(f)t.focus()}
+    tabs.forEach(function(t,i){t.addEventListener("click",function(){sel(t)});t.addEventListener("keydown",function(e){var j=e.key==="ArrowRight"?(i+1)%tabs.length:e.key==="ArrowLeft"?(i-1+tabs.length)%tabs.length:e.key==="Home"?0:e.key==="End"?tabs.length-1:null;if(j!==null){e.preventDefault();sel(tabs[j],true)}})});
+  });
+}
+
+/* ------------------------------------------------------------------
+   Haladásjelző: 12 szint = 12 réteg (egymásra rakott lapok)
+   ------------------------------------------------------------------ */
+function setProgress(el,done){
+  done=Math.max(0,Math.min(12,done));el.setAttribute("data-done",done);
+  $$(".slab",el).forEach(function(s,i){s.classList.toggle("done",i<done);s.classList.toggle("now",i===done)});
+  var c=$("[data-count]",el);if(c)c.textContent=done;
+  var pb=$('[role="progressbar"]',el);if(pb){pb.setAttribute("aria-valuenow",done);pb.setAttribute("aria-valuetext",done+" szint kész a 12-ből")}
+}
+function initProgress(root){
+  $$(".layers",root).forEach(function(el){
+    if(el._ait)return;el._ait=1;
+    var svg=$("svg",el),out="";
+    for(var i=0;i<12;i++){var y=160-i*12.5;out+='<g class="slab" transform="translate(0 '+y+')"><path class="top" d="M10 10 L70 0 L130 10 L70 20 Z"/><path class="side-l" d="M10 10 L70 20 L70 26 L10 16 Z"/><path class="side-r" d="M70 20 L130 10 L130 16 L70 26 Z"/></g>'}
+    out+='<line class="stream" x1="70" y1="190" x2="70" y2="18"/>';
+    svg.innerHTML=out;
+    setProgress(el,+el.getAttribute("data-done")||0);
+  });
+}
+
+/* ------------------------------------------------------------------
+   Szintzáró kvíz
+   ------------------------------------------------------------------ */
+function initQuiz(root){
+  $$(".quiz",root).forEach(function(qz){
+    if(qz._ait)return;qz._ait=1;
+    var need=+qz.getAttribute("data-need")||4,qs=$$(".q",qz),n=qs.length,track=$(".track",qz),txt=$(".score-text",qz),retry=$("[data-retry]",qz);
+    var target=doc.getElementById(qz.getAttribute("data-progress")||""),base=target?+target.getAttribute("data-done"):0,bumped=false;
+    track.innerHTML=qs.map(function(){return"<i></i>"}).join("")+'<b class="need" style="left:'+(need/n*100)+'%"></b>';
+    function update(){
+      var r=0,a=0;qs.forEach(function(q,i){var st=q.getAttribute("data-answered");track.children[i].className=st||"";if(st)a++;if(st==="r")r++});
+      var status=a<n?"open":r>=need?"passed":"failed";qz.setAttribute("data-status",status);
+      txt.innerHTML=status==="open"?"<b>"+r+"/"+n+"</b> helyes eddig. A továbblépéshez <b>"+need+"/"+n+"</b> kell."
+        :status==="passed"?"<b>✓ Teljesítve, "+r+"/"+n+".</b> Megnyílt a következő szint."
+        :"<b>✕ "+r+"/"+n+".</b> Ez most nem elég, "+need+" kell. Olvasd át a magyarázatokat, és próbáld újra.";
+      retry.hidden=status==="open";
+      if(status==="passed"&&target&&!bumped){bumped=true;setProgress(target,base+1);target.classList.remove("pulse");void target.offsetWidth;if(!reduce)target.classList.add("pulse")}
+    }
+    qs.forEach(function(q){
+      var ok=+q.getAttribute("data-correct");
+      $$('input[type="radio"]',q).forEach(function(inp,idx){inp.addEventListener("change",function(){
+        if(q.hasAttribute("data-answered"))return;
+        var right=idx===ok,opts=$$(".opt",q);q.setAttribute("data-answered",right?"r":"w");
+        opts[idx].classList.add(right?"is-right":"is-wrong");$(".mark",opts[idx]).textContent=right?"✓ Helyes":"✕ Nem ez";
+        if(!right){opts[ok].classList.add("is-right");$(".mark",opts[ok]).textContent="✓ Ez a helyes"}
+        $$('input[type="radio"]',q).forEach(function(x){x.disabled=true});
+        var fb=$(".fb",q);fb.hidden=false;fb.innerHTML=$("template",q).innerHTML;update();
+      })});
+    });
+    retry.addEventListener("click",function(){
+      qs.forEach(function(q){q.removeAttribute("data-answered");$$(".opt",q).forEach(function(o){o.classList.remove("is-right","is-wrong");$(".mark",o).textContent=""});$$('input[type="radio"]',q).forEach(function(x){x.disabled=false;x.checked=false});$(".fb",q).hidden=true});
+      if(target&&bumped){setProgress(target,base);bumped=false}
+      update();$("input",qs[0]).focus();
+    });
+    update();
+  });
+}
+
+/* ------------------------------------------------------------------
+   Kísérlet: softmax hőmérséklettel
+   ------------------------------------------------------------------ */
+function initExperiment(root){
+  $$('[data-exp="temperature"]',root).forEach(function(ex){
+    if(ex._ait)return;ex._ait=1;
+    var words=ex.getAttribute("data-words").split("|"),z=ex.getAttribute("data-logits").split("|").map(Number);
+    var s=$('input[type="range"]',ex),out=$("output",ex),bars=$(".bars",ex),top=$("[data-top]",ex),ent=$("[data-entropy]",ex);
+    bars.innerHTML=words.map(function(w){return'<div class="bar"><span class="w">'+esc(w)+'</span><span class="tr"><i></i></span><span class="pc"></span></div>'}).join("");
+    function run(){
+      var T=+s.value,m=Math.max.apply(null,z),e=z.map(function(x){return Math.exp((x-m)/T)}),sum=e.reduce(function(a,b){return a+b},0),p=e.map(function(x){return x/sum});
+      var best=p.indexOf(Math.max.apply(null,p)),H=-p.reduce(function(a,x){return a+(x>0?x*Math.log2(x):0)},0);
+      var f=function(x,d){return x.toFixed(d).replace(".",",")};
+      out.textContent=f(T,2);s.setAttribute("aria-valuetext","Hőmérséklet "+f(T,2));s.style.setProperty("--p",((T-s.min)/(s.max-s.min)*100)+"%");
+      $$(".bar",bars).forEach(function(b,i){b.classList.toggle("best",i===best);$("i",b).style.width=(p[i]*100).toFixed(1)+"%";$(".pc",b).textContent=f(p[i]*100,1)+" %"});
+      top.textContent=words[best]+", "+Math.round(p[best]*100)+" %";ent.textContent=f(H,2)+" bit";
+    }
+    s.addEventListener("input",run);$("[data-reset]",ex).addEventListener("click",function(){s.value=s.getAttribute("value");run()});run();
+  });
+}
+
+/* ------------------------------------------------------------------
+   Kód másolása, téma
+   ------------------------------------------------------------------ */
+function initCopy(root){
+  $$("[data-copy]",root).forEach(function(b){
+    if(b._ait)return;b._ait=1;
+    b.addEventListener("click",function(){
+      var pre=doc.getElementById(b.getAttribute("data-copy"));if(!pre)return;
+      var text=$$(".ln",pre).map(function(l){var c=l.cloneNode(true);$$(".an",c).forEach(function(a){a.remove()});return c.textContent.replace(/\s+$/,"")}).join("\n");
+      function done(ok){b.textContent=ok?"Másolva":"Nem sikerült";setTimeout(function(){b.textContent="Másolás"},1500)}
+      try{navigator.clipboard.writeText(text).then(function(){done(true)},function(){done(false)})}catch(e){done(false)}
+    });
+  });
+}
+function initTheme(root){
+  var t=store("ait-theme");if(t==="dark"||t==="light")html.setAttribute("data-theme",t);
+  $$("[data-theme-toggle]",root).forEach(function(b){
+    if(b._ait)return;b._ait=1;
+    b.addEventListener("click",function(){var cur=html.getAttribute("data-theme")||(matchMedia("(prefers-color-scheme: light)").matches?"light":"dark");var nx=cur==="dark"?"light":"dark";html.setAttribute("data-theme",nx);store("ait-theme",nx)});
+  });
+}
+
+/* ------------------------------------------------------------------
+   Adatok
+   ------------------------------------------------------------------ */
+var STEPS=[
+  {t:"LLM-tananyag, 1–5. szint",d:"Hogyan lesz a szövegből szám, és hogyan jósolja meg a modell a következő szót.",m:"≈ 5 óra · kezdő",cam:"s1",h:"https://csaplard.github.io/llm-oktatoanyag/"},
+  {t:"3D Transformer",d:"Az egész szerkezet egyben, felülről és metszetben: rövid film és négy ábra.",m:"≈ 15 perc · kezdő",cam:"s2",h:"#"},
+  {t:"Veszteségfüggvény",d:"Mit jelent, hogy a modell téved, és hogyan lesz a tévedés méréséből tanulás.",m:"≈ 4 óra · középhaladó",cam:"s3",h:"#"},
+  {t:"LLM-tananyag, 6–12. szint",d:"Mélyebb rétegek, több figyelemfej, tanítás és a mai kutatási kérdések.",m:"≈ 6 óra · haladó",cam:"s4",h:"https://csaplard.github.io/llm-oktatoanyag/"},
+  {t:"Hibamódok",d:"Miért ad magabiztos, mégis hibás választ egy nyelvi modellre épülő rendszer, és mit tehetsz ellene.",m:"≈ 3 óra · középhaladó",cam:"s5",h:"#"},
+  {t:"AI Atlasz",d:"Mire jók ma az AI-eszközök, mire nem, és hogyan kérdezz tőlük jól.",m:"≈ 3 óra · kezdő · érvényes: 2026. szeptember",cam:"s6",h:"#"},
+  {t:"Python-alapok",d:"Rövid gyakorlólapok, hogy a tananyagok kódrészleteit el is tudd olvasni.",m:"hamarosan · 8 hét × 25 perc · kezdő",cam:"s7",soon:1},
+  {t:"RAG-labor",d:"Építs rendszert, amely a saját dokumentumaidból válaszol, forrásjelöléssel.",m:"hamarosan · ≈ 6 óra · haladó",cam:"s8",soon:1}
+];
+var GROUPS=[
+  {k:"alapok",n:"Alapok",d:"időtálló elvek",items:[
+    {t:"LLM-tananyag",d:"Hogyan jósolja meg egy nyelvi modell a következő szót: a szavak számokká alakításától a figyelemmechanizmuson át a mai kutatási kérdésekig.",f:["12 szint","10–12 óra","kezdőtől kutatóig"],u:"frissítve 2026. 09. 20.",en:1,h:"https://csaplard.github.io/llm-oktatoanyag/"},
+    {t:"Veszteségfüggvény",d:"Mit jelent, hogy egy modell téved, és hogyan lesz a tévedés méréséből tanulás. Lépésenként, kis számpéldákkal.",f:["8 szint","4 óra","középhaladó"],u:"frissítve 2026. 09. 18.",h:"#"},
+    {t:"Hibamódok",d:"Miért ad magabiztos, mégis hibás választ egy nyelvi modellre épülő rendszer? Jellegzetes hibák, felismerésük és kivédésük.",f:["11 fejezet","3 óra","középhaladó"],u:"frissítve 2026. 09. 13.",h:"#"},
+    {t:"Python-alapok",d:"Rövid, napi gyakorlólapok azoknak, akik a tananyagok kódrészleteit olvasni és kipróbálni szeretnék.",f:["13 gyakorlólap","8 hét × 25 perc","kezdő"],u:"hamarosan",soon:1}]},
+  {k:"gyakorlat",n:"Gyakorlat",d:"ami ma igaz, ezért dátummal",items:[
+    {t:"AI Atlasz",d:"Interaktív útmutató a mai AI-eszközök használatához: mire jók, mire nem, és hogyan kérdezz tőlük jól.",f:["18 fejezet","3 óra","kezdő"],u:"érvényes: 2026. szeptember",fresh:1,h:"#"}]},
+  {k:"laborok",n:"Laborok",d:"olvasás helyett kipróbálás",items:[
+    {t:"RAG-labor",d:"Építs lépésről lépésre egy rendszert, amely a saját dokumentumaidból válaszol, forrásjelöléssel és méréssel.",f:["11 lépés","6 óra","haladó"],u:"hamarosan",soon:1},
+    {t:"3D Transformer",d:"Egy transzformer modell működő szerkezetként, felülről és metszetben: rövid film és négy részletes ábra.",f:["30 mp film + 4 ábra","15 perc","kezdő"],u:"frissítve 2026. 09. 20.",h:"#"}]}
+];
+function renderIndex(el){
+  el.innerHTML=GROUPS.map(function(g){return'<div class="grp"><h3>'+g.n+"<span>"+g.d+"</span></h3><ul>"+g.items.map(function(it){
+    return"<li"+(it.soon?' class="soon"':"")+"><h4>"+(it.soon?esc(it.t):'<a href="'+it.h+'">'+esc(it.t)+"</a>")+"</h4><p>"+esc(it.d)+'</p><div class="f">'+it.f.map(esc).join(" · ")+" · <span"+(it.fresh?' class="fresh"':"")+">"+esc(it.u)+"</span>"+(it.en?' · <span class="lang"><span aria-current="true">HU</span><a href="#" lang="en" hreflang="en">EN</a></span>':"")+"</div></li>"}).join("")+"</ul></div>"}).join("");
+}
+function renderSteps(el){
+  el.innerHTML=STEPS.map(function(s,i){return'<li class="step'+(s.soon?" soon":"")+'" data-cam="'+s.cam+'"><div class="panel"><div class="n">'+(i+1)+"</div><h3>"+esc(s.t)+"</h3><p>"+esc(s.d)+'</p><div class="m">'+esc(s.m)+"</div>"+(s.soon?"":'<a href="'+s.h+'">Megnyitás →</a>')+"</div></li>"}).join("");
+}
+function initScene(root){
+  $$("[data-scene]",root).forEach(function(sc){
+    if(sc._ait)return;sc._ait=1;
+    var cv=$("canvas",sc);
+    var m=Model(cv,{cam:"home",place:function(W,H){var d=W>=900;return{cx:d?W*.68:W*.5,cy:d?H*.52:H*.3,f:(d?Math.min(W*.55,H*1.05):Math.min(W*1.05,H*.62))*1.25}}});
+    var steps=$(".steps",sc);if(steps&&!steps.children.length)renderSteps(steps);
+    function on(key){$$(".step",sc).forEach(function(s){s.classList.toggle("on",s.getAttribute("data-cam")===key)});m.go(key)}
+    if("IntersectionObserver" in window){
+      var io=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting)on(en.target.getAttribute("data-cam"))})},{rootMargin:"-45% 0px -50% 0px"});
+      $$("[data-cam]",sc).forEach(function(s){io.observe(s)});
+    }
+  });
+  $$("[data-index]",root).forEach(function(el){if(!el.children.length)renderIndex(el)});
+}
+
+function init(root){root=root||doc;initTheme(root);initHero(root);initAttend(root);initScene(root);initModels(root);initTabs(root);initProgress(root);initQuiz(root);initExperiment(root);initCopy(root)}
+window.AIT={init:init,Model:Model,CAMS:CAMS,attend:attend,tokens:tokens,TOK:TOK,setProgress:setProgress,STEPS:STEPS,GROUPS:GROUPS};
+if(doc.readyState==="loading")doc.addEventListener("DOMContentLoaded",function(){init()});else init();
+})();
+
+</script>
+</body>
+</html>

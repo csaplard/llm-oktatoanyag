@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Python alapok — Mérőlap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --graphite:#1C2126;
+  --panel:#262C33;
+  --panel-2:#2F373F;
+  --steel:#8C98A4;
+  --paper:#E9E7E2;
+  --ink:#1C2126;
+  --amber:#E8A33D;
+  --green:#5CB87A;
+  --red:#D96A63;
+  --rule:rgba(140,152,164,.28);
+
+  --bg:var(--graphite);
+  --surface:var(--panel);
+  --surface-2:var(--panel-2);
+  --text:#DFE4E9;
+  --text-dim:#9BA6B1;
+  --accent:var(--amber);
+  --code-bg:#151A1F;
+
+  --display:"Barlow Condensed",'Arial Narrow',Impact,sans-serif;
+  --body:"IBM Plex Sans",-apple-system,Segoe UI,Roboto,sans-serif;
+  --mono:"IBM Plex Mono",Consolas,monospace;
+}
+html[data-theme="light"]{
+  --bg:var(--paper);
+  --surface:#FFFFFF;
+  --surface-2:#F1EFEA;
+  --text:#1C2126;
+  --text-dim:#5C666F;
+  --code-bg:#20262C;
+  --rule:rgba(28,33,38,.16);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:var(--body);font-size:16px;line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- caliper progress bar (signature) ---------- */
+#gauge{
+  position:fixed;top:0;left:0;right:0;height:34px;z-index:60;
+  background:var(--surface);border-bottom:1px solid var(--rule);
+  display:flex;align-items:flex-end;overflow:hidden;
+}
+#gauge .ticks{position:absolute;inset:0;display:flex}
+#gauge .tick{flex:1;border-right:1px solid var(--rule);position:relative}
+#gauge .tick::after{
+  content:attr(data-n);position:absolute;bottom:3px;left:4px;
+  font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:.04em;
+}
+#gauge .tick.done{background:rgba(232,163,61,.16)}
+#gauge .jaw{
+  position:absolute;top:0;bottom:0;width:2px;background:var(--accent);
+  box-shadow:0 0 8px rgba(232,163,61,.7);transition:left .25s ease;
+}
+#gauge .readout{
+  position:absolute;right:10px;top:7px;font-family:var(--mono);
+  font-size:11px;color:var(--accent);letter-spacing:.08em;
+}
+
+/* ---------- layout ---------- */
+.wrap{display:flex;max-width:1240px;margin:0 auto;padding-top:34px}
+nav{
+  width:264px;flex:0 0 264px;position:sticky;top:34px;height:calc(100vh - 34px);
+  overflow-y:auto;padding:26px 14px 60px 20px;border-right:1px solid var(--rule);
+}
+nav .brand{font-family:var(--display);font-size:23px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;line-height:1.05;margin-bottom:2px}
+nav .brand span{color:var(--accent)}
+nav .sub{font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase;margin-bottom:20px}
+nav a{
+  display:flex;gap:9px;align-items:baseline;text-decoration:none;color:var(--text-dim);
+  padding:5px 8px;border-radius:3px;font-size:14px;line-height:1.35;
+}
+nav a:hover{color:var(--text);background:var(--surface-2)}
+nav a.active{color:var(--accent);background:var(--surface-2)}
+nav a .num{font-family:var(--mono);font-size:11px;opacity:.75;min-width:20px}
+main{flex:1;min-width:0;padding:40px 40px 120px;max-width:820px}
+
+/* ---------- type ---------- */
+h1{
+  font-family:var(--display);font-weight:700;font-size:clamp(38px,6vw,62px);
+  line-height:.98;letter-spacing:.01em;text-transform:uppercase;margin:0 0 10px;
+}
+h2{
+  font-family:var(--display);font-weight:600;font-size:32px;line-height:1.1;
+  text-transform:uppercase;letter-spacing:.03em;margin:0 0 4px;
+}
+h3{font-family:var(--body);font-weight:600;font-size:17px;margin:26px 0 8px}
+p{margin:0 0 14px}
+.lead{font-size:18px;color:var(--text-dim)}
+.eyebrow{
+  font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--accent);margin-bottom:6px;
+}
+section{
+  padding:46px 0 10px;border-top:1px solid var(--rule);margin-top:36px;scroll-margin-top:50px;
+}
+section:first-of-type{border-top:none;margin-top:0;padding-top:8px}
+code{font-family:var(--mono);font-size:.88em;background:var(--surface-2);padding:1px 5px;border-radius:3px}
+pre{
+  background:var(--code-bg);color:#D9E3EA;padding:16px 18px;border-radius:4px;
+  overflow-x:auto;border-left:3px solid var(--accent);margin:16px 0;
+}
+pre code{background:none;padding:0;font-size:13.5px;line-height:1.6;color:inherit}
+.cm{color:#7A8894}.st{color:#9BD1A4}.kw{color:#E8A33D}.nu{color:#8FBCE0}
+ul,ol{margin:0 0 14px;padding-left:22px}
+li{margin-bottom:6px}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule)}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim)}
+
+/* ---------- notes ---------- */
+.note{
+  background:var(--surface);border-left:3px solid var(--steel);
+  padding:14px 16px;margin:18px 0;border-radius:0 4px 4px 0;font-size:15px;
+}
+.note.warn{border-left-color:var(--red)}
+.note .tag{
+  font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--text-dim);display:block;margin-bottom:5px;
+}
+details{background:var(--surface);border:1px solid var(--rule);border-radius:4px;padding:12px 16px;margin:18px 0}
+details summary{
+  cursor:pointer;font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent);
+}
+details[open] summary{margin-bottom:10px}
+
+/* ---------- drills / mérőlap ---------- */
+.sheet{
+  background:var(--surface);border:1px solid var(--rule);border-radius:4px;
+  margin:26px 0;overflow:hidden;
+}
+.sheet-head{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:9px 16px;background:var(--surface-2);border-bottom:1px solid var(--rule);
+}
+.sheet-head .t{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-dim)}
+.sheet-head .score{font-family:var(--mono);font-size:11px;color:var(--accent)}
+.drill{padding:16px;border-bottom:1px solid var(--rule)}
+.drill:last-child{border-bottom:none}
+.drill .q{font-size:15px;margin-bottom:10px}
+.drill pre{margin:10px 0}
+.opts{display:flex;flex-direction:column;gap:7px}
+.opt{
+  text-align:left;font-family:var(--mono);font-size:13.5px;color:var(--text);
+  background:var(--surface-2);border:1px solid var(--rule);border-radius:3px;
+  padding:9px 12px;cursor:pointer;transition:border-color .12s,background .12s;
+}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt:disabled{cursor:default;opacity:.55}
+.opt.ok{border-color:var(--green);background:rgba(92,184,122,.14);color:var(--text);opacity:1}
+.opt.bad{border-color:var(--red);background:rgba(217,106,99,.14);opacity:1}
+.fill{display:flex;gap:8px;flex-wrap:wrap}
+.fill input{
+  font-family:var(--mono);font-size:14px;padding:9px 12px;flex:1;min-width:180px;
+  background:var(--surface-2);border:1px solid var(--rule);border-radius:3px;color:var(--text);
+}
+.fill input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.fill button{
+  font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  padding:9px 16px;background:var(--accent);color:#1C2126;border:none;border-radius:3px;cursor:pointer;font-weight:600;
+}
+.verdict{
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  margin-top:10px;padding:6px 10px;display:none;border:1px dashed;border-radius:2px;
+}
+.verdict.show{display:inline-block}
+.verdict.pass{color:var(--green);border-color:var(--green)}
+.verdict.fail{color:var(--red);border-color:var(--red)}
+.why{font-size:14px;color:var(--text-dim);margin-top:9px;display:none}
+.why.show{display:block}
+
+/* ---------- misc ---------- */
+#themeBtn{
+  position:fixed;right:14px;bottom:14px;z-index:70;
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  background:var(--surface);color:var(--text);border:1px solid var(--rule);
+  padding:9px 13px;border-radius:3px;cursor:pointer;
+}
+#themeBtn:hover{border-color:var(--accent);color:var(--accent)}
+.navtoggle{display:none}
+@media(max-width:900px){
+  nav{display:none}
+  nav.open{display:block;position:fixed;top:34px;left:0;width:82%;max-width:300px;background:var(--bg);z-index:55}
+  main{padding:26px 18px 100px}
+  .navtoggle{
+    display:block;position:fixed;left:14px;bottom:14px;z-index:70;
+    font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    background:var(--surface);color:var(--text);border:1px solid var(--rule);
+    padding:9px 13px;border-radius:3px;cursor:pointer;
+  }
+  h1{font-size:38px}h2{font-size:26px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<div id="gauge">
+  <div class="ticks" id="ticks"></div>
+  <div class="jaw" id="jaw" style="left:0"></div>
+  <div class="readout" id="readout">00 / 14</div>
+</div>
+
+<div class="wrap">
+<nav id="nav">
+  <div class="brand">Python<br><span>alapok</span></div>
+  <div class="sub">1–2. hónap · mérőlapokkal</div>
+  <a href="#f0"><span class="num">00</span><span>Hogyan használd</span></a>
+  <a href="#f1"><span class="num">01</span><span>Változó és típus</span></a>
+  <a href="#f2"><span class="num">02</span><span>Lista</span></a>
+  <a href="#f3"><span class="num">03</span><span>Dict</span></a>
+  <a href="#f4"><span class="num">04</span><span>Feltétel</span></a>
+  <a href="#f5"><span class="num">05</span><span>Ciklus</span></a>
+  <a href="#f6"><span class="num">06</span><span>Függvény</span></a>
+  <a href="#f7"><span class="num">07</span><span>Hibakezelés</span></a>
+  <a href="#f8"><span class="num">08</span><span>Fájl, CSV, JSON</span></a>
+  <a href="#f9"><span class="num">09</span><span>Osztály</span></a>
+  <a href="#f10"><span class="num">10</span><span>Modul, struktúra</span></a>
+  <a href="#f11"><span class="num">11</span><span>venv és pip</span></a>
+  <a href="#f12"><span class="num">12</span><span>Git</span></a>
+  <a href="#f13"><span class="num">13</span><span>Zárófeladat</span></a>
+  <a href="#f14"><span class="num">14</span><span>Fogalomtár</span></a>
+</nav>
+
+<main>
+
+<section id="f0">
+  <div class="eyebrow">00 · Használati utasítás</div>
+  <h1>Python alapok</h1>
+  <p class="lead">Nyolc hét, napi 25 perc kód. Minden példa üzemi adaton fut: karimák, mérési naplók, karbantartási bejegyzések. Nem azért, hogy szórakoztató legyen, hanem mert a saját területeden hamarabb veszed észre, ha hülyeséget írtál.</p>
+
+  <p>Ez az anyag nem videó és nem olvasmány. A fejezetek végén <strong>mérőlapok</strong> vannak: le kell mérned magad, mielőtt továbbmész. Ha egy mérőlapon elhasalsz, olvasd újra a fejezetet — ez nem szégyen, ez a mérés célja.</p>
+
+  <div class="note">
+    <span class="tag">A legfontosabb szabály</span>
+    A kódot te írod. Kereshetsz, dokumentációt olvashatsz, hibaüzenetet bemásolhatsz — de a megoldást ne generáltasd. Az az egy dolog, amit interjún nem lehet blöffölni, hogy a saját kódodat soronként el tudod-e magyarázni.
+  </div>
+
+  <h3>Nyolc hetes menetrend</h3>
+  <table>
+    <tr><th>Hét</th><th>Fejezet</th><th>Mikorra kész</th></tr>
+    <tr><td>1</td><td>01–02 · változó, lista</td><td>napi 3 apró feladat</td></tr>
+    <tr><td>2</td><td>03–04 · dict, feltétel</td><td>napi 3 apró feladat</td></tr>
+    <tr><td>3</td><td>05 · ciklus</td><td>mindent ciklussal oldj meg</td></tr>
+    <tr><td>4</td><td>06 · függvény</td><td>bontsd fel a korábbi kódjaid</td></tr>
+    <tr><td>5</td><td>07–08 · hibakezelés, fájl</td><td>valódi CSV-vel dolgozz</td></tr>
+    <tr><td>6</td><td>09–10 · osztály, modul</td><td>több fájlra bontás</td></tr>
+    <tr><td>7</td><td>11–12 · venv, git</td><td>első repo</td></tr>
+    <tr><td>8</td><td>13 · zárófeladat</td><td>működő eszköz, README-vel</td></tr>
+  </table>
+
+  <h3>Mire kell a gép</h3>
+  <p>Telepíts Pythont (python.org), és nyiss egy szerkesztőt — a VS Code ingyenes és bőven elég. Fájlt <code>.py</code> kiterjesztéssel mentesz, terminálban <code>python fajlnev.py</code> paranccsal futtatod. Ennyi az egész infrastruktúra a hatodik hétig.</p>
+</section>
+
+<section id="f1">
+  <div class="eyebrow">01 · Fejezet</div>
+  <h2>Változó és típus</h2>
+  <p>A változó egy megcímkézett doboz. A címkét te adod, a tartalmat te teszed bele. Semmi több misztikum nincs benne.</p>
+
+<pre><code><span class="cm"># karima adatai</span>
+nevleges_atmero = <span class="nu">150</span>          <span class="cm"># int — egész szám</span>
+nyomasfokozat = <span class="nu">40</span>             <span class="cm"># int</span>
+tomeg_kg = <span class="nu">18.4</span>                <span class="cm"># float — tizedes</span>
+anyagminoseg = <span class="st">"P250GH"</span>       <span class="cm"># str — szöveg</span>
+hegesztheto = <span class="kw">True</span>            <span class="cm"># bool — igaz/hamis</span>
+
+<span class="kw">print</span>(anyagminoseg, nevleges_atmero)</code></pre>
+
+  <p>Négy típus, amivel a munkaidőd 90%-át tölteni fogod: <code>int</code>, <code>float</code>, <code>str</code>, <code>bool</code>. A típus nem dekoráció — meghatározza, mit lehet csinálni az értékkel.</p>
+
+<pre><code><span class="nu">3</span> + <span class="nu">4</span>            <span class="cm"># 7 — összeadás</span>
+<span class="st">"3"</span> + <span class="st">"4"</span>        <span class="cm"># "34" — összefűzés!</span>
+<span class="st">"3"</span> + <span class="nu">4</span>          <span class="cm"># TypeError — hiba</span></code></pre>
+
+  <div class="note warn">
+    <span class="tag">Klasszikus buktató</span>
+    Ha CSV-ből vagy beviteli mezőből olvasol számot, az <strong>szöveg</strong>-ként érkezik. A <code>"150"</code> nem ugyanaz, mint a <code>150</code>. Átalakítás: <code>int("150")</code> vagy <code>float("18.4")</code>.
+  </div>
+
+  <h3>f-string: szöveg és érték együtt</h3>
+<pre><code>jel = <span class="st">f"DN{nevleges_atmero} PN{nyomasfokozat} — {anyagminoseg}"</span>
+<span class="kw">print</span>(jel)   <span class="cm"># DN150 PN40 — P250GH</span></code></pre>
+
+  <details>
+    <summary>Mélyebben — miért nincs típusdeklaráció?</summary>
+    <p>Pythonban a típus az értékhez tartozik, nem a változóhoz. Ugyanaz a név ma <code>int</code>-et, holnap <code>str</code>-t tarthat. Ez kényelmes, de ez a leggyakoribb forrása a későn kiderülő hibáknak. Ezért írnak sokan <em>type hint</em>-et: <code>tomeg_kg: float = 18.4</code> — a Python nem kényszeríti ki, de a szerkesztő szól, és az olvasó érti.</p>
+  </details>
+
+  <div class="sheet" data-sheet>
+    <div class="sheet-head"><span class="t">Mérőlap 01</span><span class="score">—</span></div>
+    <div class="drill" data-type="choice" data-answer="1" data-why="A bemenet szöveg, ezért a + összefűz, nem összead.">
+      <div class="q">Mit ír ki?</div>
+      <pre><code>a = <span class="st">"20"</span>
+b = <span class="st">"5"</span>
+<span class="kw">print</span>(a + b)</code></pre>
+      <div class="opts">
+        <button class="opt">25</button>
+        <button class="opt">205</button>
+        <button class="opt">TypeError</button>
+      </div>
+    </div>
+    <div class="drill" data-type="fill" data-answer="int" data-why="Az int() egész számmá alakít. A float() is elfogadható lenne, de itt egész értékről van szó.">
+      <div class="q">Egészítsd ki: a CSV-ből <code>"40"</code> érkezett, számként kell. <br><code>pn = ____("40")</code></div>
+      <div class="fill"><input type="text" placeholder="függvény neve"><button>Mérés</button></div>
+    </div>
+    <div class="drill" data-type="choice" data-answer="2" data-why="A 18.4 tizedes érték, tehát float.">
+      <div class="q">Milyen típusú a <code>tomeg_kg = 18.4</code>?</div>
+      <div class="opts">
+        <button class="opt">int</button>
+        <button class="opt">str</button>
+        <button class="opt">float</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="f2">
+  <div class="eyebrow">02 · Fejezet</div>
+  <h2>Lista</h2>
+  <p>A lista sorrendtartó gyűjtemény. Akkor használod, ha <em>ugyanolyan fajta</em> dolgokból van több: mérési értékek, karimaméretek, hegesztési varratok azonosítói.</p>
+
+<pre><code>meresek = [<span class="nu">4.12</span>, <span class="nu">4.09</span>, <span class="nu">4.15</span>, <span class="nu">3.98</span>, <span class="nu">4.20</span>]
+
+<span class="kw">print</span>(meresek[<span class="nu">0</span>])       <span class="cm"># 4.12 — az első elem indexe 0!</span>
+<span class="kw">print</span>(meresek[-<span class="nu">1</span>])      <span class="cm"># 4.20 — az utolsó</span>
+<span class="kw">print</span>(<span class="kw">len</span>(meresek))     <span class="cm"># 5 — hány elem van</span>
+
+meresek.append(<span class="nu">4.07</span>)   <span class="cm"># hozzáfűz a végére</span>
+meresek.remove(<span class="nu">3.98</span>)   <span class="cm"># kivesz egy konkrét értéket</span></code></pre>
+
+  <div class="note warn">
+    <span class="tag">Nulláról indexelünk</span>
+    Az első elem a <code>[0]</code>. Egy ötelemű lista utolsó eleme a <code>[4]</code>. Az <code>[5]</code> már <code>IndexError</code>. Ez az első hét leggyakoribb hibája, és soha nem szűnik meg teljesen.
+  </div>
+
+  <h3>Szeletelés</h3>
+<pre><code>meresek[<span class="nu">1</span>:<span class="nu">3</span>]     <span class="cm"># [4.09, 4.15] — 1-től 3-ig, a 3 NEM kell</span>
+meresek[:<span class="nu">2</span>]      <span class="cm"># első kettő</span>
+meresek[-<span class="nu">2</span>:]     <span class="cm"># utolsó kettő</span></code></pre>
+
+  <h3>Hasznos beépítettek</h3>
+<pre><code><span class="kw">sum</span>(meresek)              <span class="cm"># összeg</span>
+<span class="kw">max</span>(meresek)              <span class="cm"># legnagyobb</span>
+<span class="kw">min</span>(meresek)              <span class="cm"># legkisebb</span>
+<span class="kw">sum</span>(meresek) / <span class="kw">len</span>(meresek) <span class="cm"># átlag</span>
+<span class="kw">sorted</span>(meresek)           <span class="cm"># rendezett MÁSOLAT</span></code></pre>
+
+  <div class="sheet" data-sheet>
+    <div class="sheet-head"><span class="t">Mérőlap 02</span><span class="score">—</span></div>
+    <div class="drill" data-type="choice" data-answer="0" data-why="Az indexelés 0-tól indul, tehát a [2] a harmadik elem.">
+      <div class="q">Mit ír ki?</div>
+      <pre><code>dn = [<span class="nu">25</span>, <span class="nu">50</span>, <span class="nu">80</span>, <span class="nu">100</span>]
+<span class="kw">print</span>(dn[<span class="nu">2</span>])</code></pre>
+      <div class="opts">
+        <button class="opt">80</button>
+        <button class="opt">50</button>
+        <button class="opt">100</button>
+      </div>
+    </div>
+    <div class="drill" data-type="choice" data-answer="1" data-why="A szelet a záró indexet nem tartalmazza: az 1. és 2. elem jön vissza.">
+      <div class="q">Mit ad vissza a <code>dn[1:3]</code>, ha <code>dn = [25, 50, 80, 100]</code>?</div>
+      <div class="opts">
+        <button class="opt">[50, 80, 100]</button>
+        <button class="opt">[50, 80]</button>
+        <button class="opt">[25, 50, 80]</button>
+      </div>
+    </div>
+    <div class="drill" data-type="fill" data-answer="append" data-why="Az append() a lista végére fűz egy elemet.">
+      <div class="q">Fűzz hozzá egy értéket a lista végéhez: <code>dn.____(150)</code></div>
+      <div class="fill"><input type="text" placeholder="metódus neve"><button>Mérés</button></div>
+    </div>
+    <div class="drill" data-type="choice" data-answer="2" data-why="Négyelemű listánál a [4] már nem létezik — IndexError.">
+      <div class="q">Mi történik? <code>dn = [25, 50, 80, 100]</code> majd <code>print(dn[4])</code></div>
+      <div class="opts">
+        <button class="opt">None-t ír ki</button>
+        <button class="opt">100-at ír ki</button>
+        <button class="opt">IndexError</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="f3">
+  <div class="eyebrow">03 · Fejezet</div>
+  <h2>Dict — kulcs és érték</h2>
+  <p>Ha a listában ugyanolyan fajta dolgokból van sok, a dictben <em>egy dolog különböző tulajdonságai</em> vannak. Egy karima nem öt szám egymás után, hanem átmérő, nyomásfokozat, anyag, tömeg — mindegyik névvel.</p>
+
+<pre><code>karima = {
+    <span class="st">"dn"</span>: <span class="nu">150</span>,
+    <span class="st">"pn"</span>: <span class="nu">40</span>,
+    <span class="st">"anyag"</span>: <span class="st">"P250GH"</span>,
+    <span class="st">"tomeg_kg"</span>: <span class="nu">18.4</span>,
+}
+
+<span class="kw">print</span>(karima[<span class="st">"anyag"</span>])            <span class="cm"># P250GH</span>
+<span class="kw">print</span>(karima.get(<span class="st">"szabvany"</span>))     <span class="cm"># None — nincs ilyen kulcs, de nem hal meg</span>
+<span class="kw">print</span>(karima.get(<span class="st">"szabvany"</span>, <span class="st">"EN 1092-1"</span>))  <span class="cm"># alapérték</span>
+
+karima[<span class="st">"gyarto"</span>] = <span class="st">"Kovács Kft"</span>   <span class="cm"># új kulcs felvétele</span></code></pre>
+
+  <div class="note">
+    <span class="tag">Mikor melyik</span>
+    <code>lista[0]</code> hibát dob, ha nincs elem. <code>dict["kulcs"]</code> szintén (<code>KeyError</code>). A <code>.get()</code> viszont csendben <code>None</code>-t ad. Éles kódban a <code>.get()</code> alapértékkel gyakran biztonságosabb — de vigyázz: a csendes <code>None</code> később messzebb robban.
+  </div>
+
+  <h3>Lista dictekből — ez a leggyakoribb szerkezet</h3>
+<pre><code>keszlet = [
+    {<span class="st">"dn"</span>: <span class="nu">50</span>,  <span class="st">"pn"</span>: <span class="nu">16</span>, <span class="st">"db"</span>: <span class="nu">12</span>},
+    {<span class="st">"dn"</span>: <span class="nu">80</span>,  <span class="st">"pn"</span>: <span class="nu">16</span>, <span class="st">"db"</span>: <span class="nu">4</span>},
+    {<span class="st">"dn"</span>: <span class="nu">150</span>, <span class="st">"pn"</span>: <span class="nu">40</span>, <span class="st">"db"</span>: <span class="nu">0</span>},
+]
+
+<span class="kw">print</span>(keszlet[<span class="nu">1</span>][<span class="st">"dn"</span>])   <span class="cm"># 80</span></code></pre>
+  <p>Ez a forma fog visszaköszönni minden CSV-beolvasásnál, minden API-válasznál és minden adatbázis-lekérdezésnél. Ha ezt érted, a későbbi anyag fele már ismerős lesz.</p>
+
+  <div class="sheet" data-sheet>
+    <div class="sheet-head"><span class="t">Mérőlap 03</span><span class="score">—</span></div>
+    <div class="drill" data-type="choice" data-answer="1" data-why="A .get() nem dob hibát, hanem None-t ad vissza a hiányzó kulcsra.">
+      <div class="q">Mit ír ki? <code>k = {"dn": 50}</code> majd <code>print(k.get("pn"))</code></div>
+      <div class="opts">
+        <button class="opt">KeyError</button>
+        <button class="opt">None</button>
+        <button class="opt">0</button>
+      </div>
+    </div>
+    <div class="drill" data-type="choice" data-answer="0" data-why="Szögletes zárójellel hiányzó kulcsra KeyError a válasz.">
+      <div class="q">És ez? <code>print(k["pn"])</code></div>
+      <div class="opts">
+        <button class="opt">KeyError</button>
+        <button class="opt">None</button>
+        <button class="opt">üres sor</button>
+      </div>
+    </div>
+    <div class="drill" data-type="fill" data-answer='keszlet[0]["db"]' data-why="Előbb a lista indexe, utána a dict kulcsa.">
+      <div class="q">A fenti <code>keszlet</code> listából hogyan kérnéd le az első tétel darabszámát? (Írd le a teljes kifejezést.)</div>
+      <div class="fill"><input type="text" placeholder='pl. valami[...]["..."]'><button>Mérés</button></div>
+    </div>
+  </div>
+</section>
+
+<section id="f4">
+  <div class="eyebrow">04 · Fejezet</div>
+  <h2>Feltétel</h2>
+  <p>Az <code>if</code> ott dönt, ahol te is döntenél. A gépészeti példák pont ilyenek: elfogadható-e a mérés, kell-e csere, melyik szabvány szerint kell eljárni.</p>
+
+<pre><code>meret = <span class="nu">4.15</span>
+nevleges = <span class="nu">4.00</span>
+turees = <span class="nu">0.10</span>
+
+<span class="kw">if</span> <span class="kw">abs</span>(meret - nevleges) &lt;= turees:
+    <span class="kw">print</span>(<span class="st">"MEGFELELT"</span>)
+<span class="kw">elif</span> meret &gt; nevleges:
+    <span class="kw">print</span>(<span class="st">"FELSŐ HATÁR FELETT"</span>)
+<span class="kw">else</span>:
+    <span class="kw">print</span>(<span class="st">"ALSÓ HATÁR ALATT"</span>)</code></pre>
+
+  <div class="note warn">
+    <span class="tag">A behúzás nem stílus</span>
+    Pythonban a behúzás (4 szóköz) <strong>a szintaxis része</strong>. Ami beljebb van, az tartozik az <code>if</code>-hez. Rossz behúzás = más program, vagy <code>IndentationError</code>. Ez a nyelv egyetlen igazán szokatlan vonása; egy hét alatt megszokod.
+  </div>
+
+  <h3>Összehasonlítás és logika</h3>
+  <table>
+    <tr><th>Jel</th><th>Jelentés</th><th>Példa</th></tr>
+    <tr><td><code>==</code></td><td>egyenlő</td><td><code>pn == 40</code></td></tr>
+    <tr><td><code>!=</code></td><td>nem egyenlő</td><td><code>anyag != "P250GH"</code></td></tr>
+    <tr><td><code>&gt;=</code> <code>&lt;=</code></td><td>nagyobb/kisebb vagy egyenlő</td><td><code>dn &gt;= 100</code></td></tr>
+    <tr><td><code>and</code></td><td>mindkettő igaz</td><td><code>dn &gt; 50 and pn &gt; 16</code></td></tr>
+    <tr><td><code>or</code></td><td>legalább az egyik</td><td><code>sürgős or kritikus</code></td></tr>
+    <tr><td><code>not</code></td><td>tagadás</td><td><code>not hegesztheto</code></td></tr>
+    <tr><td><code>in</code></td><td>benne van-e</td><td><code>"P250GH" in anyaglista</code></td></tr>
+  </table>
+
+  <div class="note warn">
+    <span class="tag">Egy = vagy két ==</span>
+    Az <code>=</code> értékadás, a <code>==</code> összehasonlítás. <code>if pn = 40:</code> szintaktikai hiba. Ez a klasszikus kezdő elgépelés.
+  </div>
+
+  <div class="sheet" data-sheet>
+    <div class="sheet-head"><span class="t">Mérőlap 04</span><span class="score">—</span></div>
+    <div class="drill" data-type="choice" data-answer="1" data-why="4.15 − 4.00 = 0.15, ami nagyobb a 0.10 tűrésnél, és a mért érték nagyobb a névlegesnél.">
+      <div class="q">A fenti tűrés-példa mit ír ki <code>meret = 4.15</code> esetén?</div>
+      <div class="opts">
+        <button class="opt">MEGFELELT</button>
+        <button class="opt">FELSŐ HATÁR FELETT</button>
+        <button class="opt">ALSÓ HATÁR ALATT</button>
+      </div>
+    </div>
+    <div class="drill" data-type="fill" data-answer="==" data-why="Az összehasonlítás két egyenlőségjel; egy = értékadás lenne.">
+      <div class="q">Javítsd: <code>if anyag ____ "P250GH":</code></div>
+      <div class="fill"><input type="text" placeholder="operátor"><button>Mérés</button></div>
+    </div>
+    <div class="drill" data-type="choice" data-answer="2" data-why="Az and mindkét feltételt megköveteli; itt a pn feltétel bukik (16 nem nagyobb 25-nél).">
+      <div class="q"><code>dn = 80</code>, <code>pn = 16</code>. Igaz-e: <code>dn &gt; 50 and pn &gt; 25</code>?</div>
+      <div class="opts">
+        <button class="opt">True</button>
+        <button class="opt">Hibát dob</button>
+        <button class="opt">False</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="f5">
+  <div class="eyebrow">05 · Fejezet</div>
+  <h2>Ciklus</h2>
+  <p>Ha egy műveletet sok elemen kell elvégezned, nem másolod ötvenszer. A <code>for</code> végigmegy egy gyűjteményen.</p>
+
+<pre><code>meresek = [<span class="nu">4.12</span>, <span class="nu">4.09</span>, <span class="nu">4.15</span>, <span class="nu">3.98</span>]
+
+<span class="kw">for</span> ertek <span class="kw">in</span> meresek:
+    <span class="kw">print</span>(ertek)</code></pre>
+
+  <p>Az <code>ertek</code> nevet te adod, és minden körben a következő elemet tartalmazza. Ennyi.</p>
+
+  <h3>Ciklus + feltétel = szűrés</h3>
+<pre><code>hibas = []
+
+<span class="kw">for</span> ertek <span class="kw">in</span> meresek:
+    <span class="kw">if</span> <span class="kw">abs</span>(ertek - <span class="nu">4.00</span>) &gt; <span class="nu">0.10</span>:
+        hibas.append(ertek)
+
+<span class="kw">print</span>(<span class="st">f"{len(hibas)} db kiesett a tűrésből"</span>)</code></pre>
+
+  <h3>Dictek listáján végigmenni</h3>
+<pre><code><span class="kw">for</span> tetel <span class="kw">in</span> keszlet:
+    <span class="kw">if</span> tetel[<span class="st">"db"</span>] == <span class="nu">0</span>:
+        <span class="kw">print</span>(<span class="st">f"ELFOGYOTT: DN{tetel['dn']} PN{tetel['pn']}"</span>)</code></pre>
+
+  <div class="note">
+    <span class="tag">Számláló, ha kell</span>
+    Ha a sorszám is érdekel: <code>for i, ertek in enumerate(meresek):</code> — az <code>i</code> a 0-tól induló index.
+  </div>
+
+  <details>
+    <summary>Mélyebben — list comprehension</summary>
+    <p>A fenti szűrés egy sorban is leírható:</p>
+    <pre><code>hibas = [e <span class="kw">for</span> e <span class="kw">in</span> meresek <span class="kw">if</span> <span class="kw">abs</span>(e - <span class="nu">4.00</span>) &gt; <span class="nu">0.10</span>]</code></pre>
+    <p>Tömör és pythonos, de az első hónapban maradj a hosszú formánál. Előbb tudj gondolkodni ciklusban, csak utána rövidíts. A rövid forma nem okosabb kód, csak kevesebb sor.</p>
+  </details>
+
+  <div class="note warn">
+    <span class="tag">Amit ne csinálj</span>
+    Ne módosítsd azt a listát, amin épp végigmész. Elemek fognak kimaradni, és órákig fogod keresni, miért. Gyűjts egy új listába, aztán cserélj.
+  </div>
+
+  <div class="sheet" data-sheet>
+    <div class="sheet-head"><span class="t">Mérőlap 05</span><span class="score">—</span></div>
+    <div class="drill" data-type="choice" data-answer="0" data-why="Csak a 3.98 tér el 0.10-nél jobban a 4.00-tól (eltérés 0.02… valójában 0.02? nézd meg: |3.98−4.00| = 0.02). A 4.15 eltérése 0.15 — ez esik ki. Tehát egy elem.">
+      <div class="q">Hány elem kerül a <code>hibas</code> listába a fenti szűrésnél, ha <code>meresek = [4.12, 4.09, 4.15, 3.98]</code> és a tűrés 0.10?</div>
+      <div class="opts">
+        <button class="opt">1</button>
+        <button class="opt">2</button>
+        <button class="opt">0</button>
+      </div>
+    </div>
+    <div class="drill" data-type="fill" data-answer="for" data-why="A for kulcsszó indítja a bejárást.">
+      <div class="q">Egészítsd ki: <code>____ tetel in keszlet:</code></div>
+      <div class="fill"><input type="text" placeholder="kulcsszó"><button>Mérés</button></div>
+    </div>
+    <div class="drill" data-type="choice" data-answer="2" data-why="Az enumerate a (sorszám, elem) párokat adja vissza.">
+      <div class="q">Mire való az <code>enumerate()</code>?</div>
+      <div class="opts">
+        <button class="opt">Rendezi a listát</button>
+        <button class="opt">Megszámolja az elemeket</button>
+        <button class="opt">Sorszámot ad az elemek mellé</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="f6">
+  <div class="eyebrow">06 · Fejezet</div>
+  <h2>Függvény</h2>
+  <p>A függvény egy megnevezett művelet, amit többször használsz. Ha ugyanazt a kódot kétszer másolod, függvény kell.</p>
+
+<pre><code><span class="kw">def</span> megfelelt(meret, nevleges, turees):
+    <span class="st">"""Igaz, ha a mért érték a tűrésmezőn belül van."""</span>
+    <span class="kw">return</span> <span class="kw">abs</span>(meret - nevleges) &lt;= turees
+
+
+<span class="kw">if</span> megfelelt(<span class="nu">4.05</span>, <span class="nu">4.00</span>, <span class="nu">0.10</span>):
+    <span class="kw">print</span>(<span class="st">"OK"</span>)</code></pre>
+
+  <p>Három rész: a név (<code>megfelelt</code>), a bemenetek (<code>meret, nevleges, turees</code>) és a visszatérési érték (<code>return</code>). Ha nincs <code>return</code>, a függvény <code>None</code>-t ad vissza — ez is gyakori hibaforrás.</p>
+
+  <h3>Alapértelmezett paraméter</h3>
+<pre><code><span class="kw">def</span> megfelelt(meret, nevleges, turees=<span class="nu">0.10</span>):
+    <span class="kw">return</span> <span class="kw">abs</span>(meret - nevleges) &lt;= turees
+
+megfelelt(<span class="nu">4.05</span>, <span class="nu">4.00</span>)              <span class="cm"># 0.10-zel számol</span>
+megfelelt(<span class="nu">4.05</span>, <span class="nu">4.00</span>, turees=<span class="nu">0.02</span>)  <span class="cm"># felülírva</span></code></pre>
+
+  <div class="note">
+    <span class="tag">Jó függvény ismérve</span>
+    Egy dolgot csinál, és a neve elárulja, mit. Ha a névbe „és" kerül (<code>beolvas_es_kiertekel</code>), akkor két függvény kell. Ez a szabály többet ér, mint bármilyen szintaktikai tudás — és interjún erről kérdeznek.
+  </div>
+
+  <div class="note warn">
+    <span class="tag">Buktató</span>
+    A <code>print()</code> és a <code>return</code> nem ugyanaz. A <code>print</code> kiír a képernyőre, a <code>return</code> értéket ad vissza a hívónak. Számoló függvényben szinte mindig <code>return</code> kell.
+  </div>
+
+  <div class="sheet" data-sheet>
+    <div class="sheet-head"><span class="t">Mérőlap 06</span><span class="score">—</span></div>
+    <div class="drill" data-type="choice" data-answer="1" data-why="Nincs return, ezért a függvény None-t ad vissza — a kiírás csak mellékhatás.">
+      <div class="q">Mit ír ki?</div>
+      <pre><code><span class="kw">def</span> osszead(a, b):
+    <span class="kw">print</span>(a + b)
+
+x = osszead(<span class="nu">2</span>, <span class="nu">3</span>)
+<span class="kw">print</span>(x)</code></pre>
+      <div class="opts">
+        <button class="opt">5, majd 5</button>
+        <button class="opt">5, majd None</button>
+        <button class="opt">None, majd 5</button>
+      </div>
+    </div>
+    <div class="drill" data-type="fill" data-answer="def" data-why="A def kulcsszóval definiálsz függvényt.">
+      <div class="q">Egészítsd ki: <code>____ tomeg_szamit(dn, pn):</code></div>
+      <div class="fill"><input type="text" placeholder="kulcsszó"><button>Mérés</button></div>
+    </div>
+    <div class="drill" data-type="choice" data-answer="2" data-why="A jó függvény egy felelősséggel bír; az „és” a névben két feladat jele.">
+      <div class="q">Melyik függvénynév jelez tervezési hibát?</div>
+      <div class="opts">
+        <button class="opt">szamit_tomeget</button>
+        <button class="opt">ellenoriz_turest</button>
+        <button class="opt">beolvas_es_kiment</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="f7">
+  <div class="eyebrow">07 · Fejezet</div>
+  <h2>Hibakezelés</h2>
+  <p>A kód el fog hasalni. A kérdés csak az, hogy kontrolláltan vagy váratlanul. Ez a te területeden nem elméleti különbség.</p>
+
+<pre><code><span class="kw">try</span>:
+    pn = <span class="kw">int</span>(sor[<span class="st">"pn"</span>])
+<span class="kw">except</span> ValueError:
+    <span class="kw">print</span>(<span class="st">f"Hibás nyomásérték: {sor['pn']}"</span>)
+    pn = <span class="kw">None</span>
+<span class="kw">except</span> KeyError:
+    <span class="kw">print</span>(<span class="st">"Hiányzik a pn oszlop"</span>)
+    pn = <span class="kw">None</span></code></pre>
+
+  <h3>A leggyakoribb hibatípusok</h3>
+  <table>
+    <tr><th>Hiba</th><th>Mit jelent</th></tr>
+    <tr><td><code>ValueError</code></td><td>Jó típus, rossz érték — <code>int("kismedve")</code></td></tr>
+    <tr><td><code>TypeError</code></td><td>Rossz típus — <code>"3" + 4</code></td></tr>
+    <tr><td><code>KeyError</code></td><td>Nincs ilyen kulcs a dictben</td></tr>
+    <tr><td><code>IndexError</code></td><td>Nincs ilyen indexű elem a listában</td></tr>
+    <tr><td><code>FileNotFoundError</code></td><td>Nincs meg a fájl</td></tr>
+    <tr><td><code>ZeroDivisionError</code></td><td>Nullával osztás</td></tr>
+  </table>
+
+  <div class="note warn">
+    <span class="tag">Amit soha</span>
+    Ne írj <code>except:</code> vagy <code>except Exception: pass</code> formát. Ez elnyeli az összes hibát, beleértve azokat is, amikről tudnod kellene. Egy elnyelt hiba rosszabb, mint egy leálló program — a leálló programról tudsz, az elnyeltről nem.
+  </div>
+
+  <details>
+    <summary>Mélyebben — mikor kapd el, és mikor ne</summary>
+    <p>Csak azt a hibát kapd el, amire van értelmes válaszod. Ha a válaszod annyi, hogy „kiírom és megyek tovább", akkor általában jobb hagyni felszállni, és a hívó szinten dönteni. A hibakezelés nem a hiba eltüntetéséről szól, hanem arról, hogy a rendszer <em>ismert állapotba</em> kerüljön.</p>
+    <p>Éles rendszernél a <code>print</code> helyett <code>logging</code> a helyes megoldás — időbélyeggel, szinttel, fájlba. A 3. hónapban jön.</p>
+  </details>
+
+  <div class="sheet" data-sheet>
+    <div class="sheet-head"><span class="t">Mérőlap 07</span><span class="score">—</span></div>
+    <div class="drill" data-type="choice" data-answer="0" data-why="A típus jó (szöveg), csak az érték nem alakítható számmá — ez ValueError.">
+      <div class="q">Milyen hibát dob az <code>int("DN150")</code>?</div>
+      <div class="opts">
+        <button class="opt">ValueError</button>
+        <button class="opt">TypeError</button>
+        <button class="opt">KeyError</button>
+      </div>
+    </div>
+    <div class="drill" data-type="choice" data-answer="1" data-why="Az általános elnyelés minden hibát eltüntet, azokat is, amikről tudnod kellene.">
+      <div class="q">Miért rossz az <code>except Exception: pass</code>?</div>
+      <div class="opts">
+        <button class="opt">Lassítja a programot</button>
+        <button class="opt">Elrejti azokat a hibákat is, amiket látni kellene</button>
+        <button class="opt">Szintaktikailag hibás</button>
+      </div>
+    </div>
+    <div class="drill" data-type="fill" data-answer="KeyError" data-why="Hiányzó dict-kulcs KeyError-t dob.">
+      <div class="q">Milyen hibát dob a <code>karima["szabvany"]</code>, ha nincs ilyen kulcs? (Írd le a hiba nevét.)</div>
+      <div class="fill"><input type="text" placeholder="hiba neve"><button>Mérés</button></div>
+    </div>
+  </div>
+</section>
+
+<section id="f8">
+  <div class="eyebrow">08 · Fejezet</div>
+  <h2>Fájl, CSV, JSON</h2>
+  <p>Itt kezd a Python valódi eszközzé válni: amikor nem beírt adatokkal, hanem a saját fájljaiddal dolgozol.</p>
+
+  <h3>Szövegfájl</h3>
+<pre><code><span class="kw">with</span> <span class="kw">open</span>(<span class="st">"naplo.txt"</span>, encoding=<span class="st">"utf-8"</span>) <span class="kw">as</span> f:
+    <span class="kw">for</span> sor <span class="kw">in</span> f:
+        <span class="kw">print</span>(sor.strip())</code></pre>
+  <p>A <code>with</code> gondoskodik róla, hogy a fájl bezáruljon akkor is, ha hiba történik. A <code>strip()</code> levágja a sorvégi újsort. Az <code>encoding="utf-8"</code> nélkül az ékezetek elszállnak — magyar adatokkal ez nem opcionális.</p>
+
+  <h3>CSV — a munkahelyi adat 90%-a</h3>
+<pre><code><span class="kw">import</span> csv
+
+<span class="kw">with</span> <span class="kw">open</span>(<span class="st">"karimak.csv"</span>, encoding=<span class="st">"utf-8"</span>, newline=<span class="st">""</span>) <span class="kw">as</span> f:
+    olvaso = csv.DictReader(f)
+    <span class="kw">for</span> sor <span class="kw">in</span> olvaso:
+        <span class="kw">print</span>(sor[<span class="st">"dn"</span>], sor[<span class="st">"anyag"</span>])</code></pre>
+  <p>A <code>DictReader</code> minden sort dictté alakít, a fejléc alapján. Vagyis pontosan azt a szerkezetet kapod, amit a 3. fejezetben építettél kézzel.</p>
+
+  <div class="note warn">
+    <span class="tag">Excelből jövő CSV</span>
+    A magyar Excel gyakran pontosvesszővel ment, nem vesszővel, és a tizedesjel vessző. Ilyenkor: <code>csv.DictReader(f, delimiter=";")</code>, a számoknál pedig <code>float(ertek.replace(",", "."))</code>. Ez nem kivétel, hanem az alapeset a te környezetedben.
+  </div>
+
+  <h3>JSON — a gépek nyelve</h3>
+<pre><code><span class="kw">import</span> json
+
+<span class="cm"># kiírás</span>
+<span class="kw">with</span> <span class="kw">open</span>(<span class="st">"keszlet.json"</span>, <span class="st">"w"</span>, encoding=<span class="st">"utf-8"</span>) <span class="kw">as</span> f:
+    json.dump(keszlet, f, ensure_ascii=<span class="kw">False</span>, indent=<span class="nu">2</span>)
+
+<span class="cm"># beolvasás</span>
+<span class="kw">with</span> <span class="kw">open</span>(<span class="st">"keszlet.json"</span>, encoding=<span class="st">"utf-8"</span>) <span class="kw">as</span> f:
+    keszlet = json.load(f)</code></pre>
+  <p>A JSON szerkezete pontosan a Python listák és dictek szerkezete. Ezért lesz ismerős minden API-válasz — a 4. hónapban ez fizet vissza.</p>
+
+  <div class="sheet" data-sheet>
+    <div class="sheet-head"><span class="t">Mérőlap 08</span><span class="score">—</span></div>
+    <div class="drill" data-type="choice" data-answer="2" data-why="A with blokk garantálja a fájl lezárását, hiba esetén is.">
+      <div class="q">Mire jó a <code>with open(...)</code> szerkezet?</div>
+      <div class="opts">
+        <button class="opt">Gyorsabban olvas</button>
+        <button class="opt">Automatikusan javítja a kódolást</button>
+        <button class="opt">Hiba esetén is lezárja a fájlt</button>
+      </div>
+    </div>
+    <div class="drill" data-type="choice" data-answer="0" data-why="A DictReader a fejléc alapján dictekké alakítja a sorokat.">
+      <div class="q">Mit ad vissza soronként a <code>csv.DictReader</code>?</div>
+      <div class="opts">
+        <button class="opt">dictet, a fejléc kulcsaival</button>
+        <button class="opt">listát, index szerint</button>
+        <button class="opt">egy hosszú szöveget</button>
+      </div>
+    </div>
+    <div class="drill" data-type="fill" data-answer="utf-8" data-why="Magyar ékezetes szöveghez az utf-8 kódolás kell.">
+      <div class="q">Milyen kódolást adj meg magyar szöveges fájlnál? <code>encoding="____"</code></div>
+      <div class="fill"><input type="text" placeholder="kódolás"><button>Mérés</button></div>
+    </div>
+  </div>
+</section>
+
+<section id="f9">
+  <div class="eyebrow">09 · Fejezet</div>
+  <h2>Osztály — alapszinten</h2>
+  <p>Az osztály összecsomagolja az adatot és a rá vonatkozó műveleteket. Nem kell szeretni, és nem kell mindent osztályba tenni — de olvasni tudnod kell, mert minden könyvtár így épül.</p>
+
+<pre><code><span class="kw">class</span> Karima:
+    <span class="kw">def</span> __init__(self, dn, pn, anyag):
+        self.dn = dn
+        self.pn = pn
+        self.anyag = anyag
+
+    <span class="kw">def</span> jelolés(self):
+        <span class="kw">return</span> <span class="st">f"DN{self.dn} PN{self.pn} {self.anyag}"</span>
+
+
+k = Karima(<span class="nu">150</span>, <span class="nu">40</span>, <span class="st">"P250GH"</span>)
+<span class="kw">print</span>(k.jelolés())     <span class="cm"># DN150 PN40 P250GH</span>
+<span class="kw">print</span>(k.dn)            <span class="cm"># 150</span></code></pre>
+
+  <p>Az <code>__init__</code> a létrehozáskor fut le. A <code>self</code> maga a példány — minden metódus első paramétere, és nem te adod meg hívásnál.</p>
+
+  <div class="note">
+    <span class="tag">Mikor kell osztály</span>
+    Ha ugyanaz az adathalmaz és a rá vonatkozó műveletek együtt mozognak, és több példány van belőlük. Egyszerű adattároláshoz a dict vagy a <code>dataclass</code> elég. A „mindent osztályba" reflex java-örökség, Pythonban nem érdem.
+  </div>
+
+  <details>
+    <summary>Mélyebben — dataclass</summary>
+<pre><code><span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass
+
+<span class="cm">@dataclass</span>
+<span class="kw">class</span> Karima:
+    dn: <span class="kw">int</span>
+    pn: <span class="kw">int</span>
+    anyag: <span class="kw">str</span></code></pre>
+    <p>Ugyanaz, kevesebb gépeléssel: automatikus <code>__init__</code>, olvasható kiírás, összehasonlíthatóság. Adatot tároló osztályoknál szinte mindig ez a jobb választás.</p>
+  </details>
+
+  <div class="sheet" data-sheet>
+    <div class="sheet-head"><span class="t">Mérőlap 09</span><span class="score">—</span></div>
+    <div class="drill" data-type="choice" data-answer="1" data-why="Az __init__ a példány létrehozásakor fut le, és beállítja a kezdőállapotot.">
+      <div class="q">Mikor fut le az <code>__init__</code>?</div>
+      <div class="opts">
+        <button class="opt">A program indulásakor</button>
+        <button class="opt">Amikor létrehozol egy példányt</button>
+        <button class="opt">Minden metódushívásnál</button>
+      </div>
+    </div>
+    <div class="drill" data-type="choice" data-answer="0" data-why="A self magára a példányra hivatkozik; hívásnál nem adod meg.">
+      <div class="q">Mi a <code>self</code>?</div>
+      <div class="opts">
+        <button class="opt">Maga a példány</button>
+        <button class="opt">Az osztály neve</button>
+        <button class="opt">Egy kötelező, üres paraméter</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="f10">
+  <div class="eyebrow">10 · Fejezet</div>
+  <h2>Modul és projektstruktúra</h2>
+  <p>Amikor a fájlod 200 sor fölé nő, szét kell szedni. Minden <code>.py</code> fájl egy modul, amit importálhatsz.</p>
+
+<pre><code>karima_eszkoz/
+├── main.py           <span class="cm"># belépési pont</span>
+├── beolvasas.py      <span class="cm"># CSV-kezelés</span>
+├── ellenorzes.py     <span class="cm"># tűrésvizsgálat</span>
+├── adatok/
+│   └── karimak.csv
+├── requirements.txt
+└── README.md</code></pre>
+
+<pre><code><span class="cm"># main.py</span>
+<span class="kw">from</span> beolvasas <span class="kw">import</span> csv_betolt
+<span class="kw">from</span> ellenorzes <span class="kw">import</span> megfelelt
+
+sorok = csv_betolt(<span class="st">"adatok/karimak.csv"</span>)
+<span class="kw">for</span> sor <span class="kw">in</span> sorok:
+    ...</code></pre>
+
+  <div class="note">
+    <span class="tag">A __main__ trükk</span>
+<pre style="margin:8px 0 0"><code><span class="kw">if</span> __name__ == <span class="st">"__main__"</span>:
+    fomuvelet()</code></pre>
+    <p style="margin:8px 0 0">Ez a blokk csak akkor fut, ha a fájlt közvetlenül indítod — importáláskor nem. Enélkül az importálás mellékhatásokat okoz. Minden komoly Python-fájlban látni fogod.</p>
+  </div>
+
+  <h3>README — ez is a munka része</h3>
+  <p>Négy dolog: mit csinál, hogyan telepíted, hogyan futtatod, mi a bemenet formátuma. Öt sor is elég. Egy README nélküli repo interjún azt üzeni, hogy nem szoktál mással dolgozni.</p>
+
+  <div class="sheet" data-sheet>
+    <div class="sheet-head"><span class="t">Mérőlap 10</span><span class="score">—</span></div>
+    <div class="drill" data-type="choice" data-answer="2" data-why="Az if __name__ == '__main__' blokk importáláskor nem fut le.">
+      <div class="q">Mit ér el az <code>if __name__ == "__main__":</code> blokk?</div>
+      <div class="opts">
+        <button class="opt">Gyorsítja az indulást</button>
+        <button class="opt">Elrejti a hibákat</button>
+        <button class="opt">Importáláskor nem futtatja a kódot</button>
+      </div>
+    </div>
+    <div class="drill" data-type="fill" data-answer="import" data-why="A from ... import ... szerkezettel hozol be nevet másik modulból.">
+      <div class="q">Egészítsd ki: <code>from ellenorzes ____ megfelelt</code></div>
+      <div class="fill"><input type="text" placeholder="kulcsszó"><button>Mérés</button></div>
+    </div>
+  </div>
+</section>
+
+<section id="f11">
+  <div class="eyebrow">11 · Fejezet</div>
+  <h2>venv és pip</h2>
+  <p>Minden projektnek saját, elkülönített környezete van. Így nem törik el az egyik projekt attól, hogy a másikhoz frissítettél egy csomagot.</p>
+
+<pre><code><span class="cm"># környezet létrehozása (a projekt mappájában)</span>
+python -m venv .venv
+
+<span class="cm"># aktiválás — Windows</span>
+.venv\Scripts\activate
+
+<span class="cm"># aktiválás — Linux/Mac</span>
+<span class="kw">source</span> .venv/bin/activate
+
+<span class="cm"># csomag telepítése</span>
+pip install requests
+
+<span class="cm"># a jelenlegi állapot rögzítése</span>
+pip freeze &gt; requirements.txt
+
+<span class="cm"># máshol ugyanaz visszaállítható</span>
+pip install -r requirements.txt</code></pre>
+
+  <div class="note">
+    <span class="tag">Miért számít</span>
+    A <code>requirements.txt</code> az, ami miatt a kódod más gépen is fut. Ez nem formalitás: „nálam működik" a szoftvermérnökség legrégebbi kifogása, és a venv az egyik válasz rá.
+  </div>
+
+  <div class="note warn">
+    <span class="tag">Ne kövesd verziókövetésben</span>
+    A <code>.venv</code> mappát soha ne tedd gitbe — nagy, gépfüggő, és felesleges. Erre való a <code>.gitignore</code>.
+  </div>
+
+  <div class="sheet" data-sheet>
+    <div class="sheet-head"><span class="t">Mérőlap 11</span><span class="score">—</span></div>
+    <div class="drill" data-type="choice" data-answer="1" data-why="A venv projektenként külön csomagkörnyezetet ad, így nem ütköznek a függőségek.">
+      <div class="q">Mi a virtuális környezet fő haszna?</div>
+      <div class="opts">
+        <button class="opt">Gyorsabb futás</button>
+        <button class="opt">Projektenként elkülönített csomagok</button>
+        <button class="opt">Automatikus hibajavítás</button>
+      </div>
+    </div>
+    <div class="drill" data-type="fill" data-answer="requirements.txt" data-why="A pip freeze kimenetét hagyományosan ebbe a fájlba mentjük.">
+      <div class="q">Mi a szokásos fájlnév: <code>pip freeze &gt; ____</code></div>
+      <div class="fill"><input type="text" placeholder="fájlnév"><button>Mérés</button></div>
+    </div>
+  </div>
+</section>
+
+<section id="f12">
+  <div class="eyebrow">12 · Fejezet</div>
+  <h2>Git</h2>
+  <p>Nem AI, nem is Python — de enélkül a portfóliód nem létezik. A git az, ami megmutatja, hogy dolgozol: mikor, mit, milyen lépésekben.</p>
+
+<pre><code>git init                      <span class="cm"># új repo a mappában</span>
+git status                    <span class="cm"># mi változott</span>
+git add .                     <span class="cm"># változások előkészítése</span>
+git commit -m <span class="st">"CSV beolvasás"</span>  <span class="cm"># mentés üzenettel</span>
+git log --oneline             <span class="cm"># előzmények</span>
+git diff                      <span class="cm"># mi változott pontosan</span></code></pre>
+
+  <h3>Ágak</h3>
+<pre><code>git branch turesvizsgalat     <span class="cm"># új ág</span>
+git switch turesvizsgalat     <span class="cm"># átváltás</span>
+git switch main               <span class="cm"># vissza</span></code></pre>
+
+  <div class="note">
+    <span class="tag">Commit-üzenet</span>
+    Azt írd le, <em>mit</em> és <em>miért</em>, ne azt, hogy „módosítás" vagy „javítás2". Jó: <code>tűrésellenőrzés kiterjesztése alsó határra</code>. Egy interjúztató végignézi a commit-listádat — az árulkodóbb, mint a kód maga.
+  </div>
+
+  <div class="note warn">
+    <span class="tag">.gitignore</span>
+    Legalább ennyi legyen benne: <code>.venv/</code>, <code>__pycache__/</code>, <code>*.pyc</code>, és minden, ami céges adatot vagy kulcsot tartalmaz. Egy véletlenül feltöltött API-kulcs vagy üzemi adat visszavonhatatlan.
+  </div>
+
+  <div class="sheet" data-sheet>
+    <div class="sheet-head"><span class="t">Mérőlap 12</span><span class="score">—</span></div>
+    <div class="drill" data-type="fill" data-answer="commit" data-why="A git commit rögzíti az előkészített változásokat.">
+      <div class="q">Egészítsd ki: <code>git ____ -m "üzenet"</code></div>
+      <div class="fill"><input type="text" placeholder="parancs"><button>Mérés</button></div>
+    </div>
+    <div class="drill" data-type="choice" data-answer="0" data-why="A .gitignore-ba a generált, gépfüggő és bizalmas dolgok kerülnek.">
+      <div class="q">Melyik NE kerüljön be a repóba?</div>
+      <div class="opts">
+        <button class="opt">.venv mappa</button>
+        <button class="opt">README.md</button>
+        <button class="opt">requirements.txt</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="f13">
+  <div class="eyebrow">13 · Zárófeladat</div>
+  <h2>Karimanapló-elemző</h2>
+  <p>Nyolc hét után ezt kell tudnod megírni — segítség nélkül, két-három óra alatt. Ha megy, készen állsz a 3. hónapra.</p>
+
+  <h3>A feladat</h3>
+  <p>Készíts eszközt, ami beolvas egy CSV-t mérési adatokkal, és jelentést ad arról, mi esett ki a tűrésből.</p>
+
+  <h3>Bemenet</h3>
+<pre><code>azonosito;dn;pn;anyag;mert_vastagsag;nevleges_vastagsag
+K-001;150;40;P250GH;4,12;4,00
+K-002;80;16;P250GH;3,74;4,00
+K-003;150;40;16Mo3;4,08;4,00</code></pre>
+
+  <h3>Követelmények</h3>
+  <ol>
+    <li>Olvassa be a CSV-t (pontosvessző, tizedesvessző, UTF-8)</li>
+    <li>Számolja ki soronként az eltérést a névlegestől</li>
+    <li>Jelölje meg, ami ±0,10 mm-en kívül esik</li>
+    <li>Írja ki: összes tétel, megfelelt, nem felelt meg, átlagos eltérés</li>
+    <li>Mentse a hibás tételeket külön CSV-be</li>
+    <li>Kezelje: hiányzó fájl, hiányzó oszlop, számmá nem alakítható érték</li>
+    <li>Legyen legalább három függvény, külön modulokban</li>
+    <li>Legyen git repo, értelmes commitokkal és README-vel</li>
+  </ol>
+
+  <h3>Bővítés, ha könnyen ment</h3>
+  <ul>
+    <li>Anyagminőségenként külön statisztika</li>
+    <li>Parancssori paraméter a tűréshatárra (<code>argparse</code>)</li>
+    <li><code>logging</code> a <code>print</code> helyett</li>
+  </ul>
+
+  <div class="note">
+    <span class="tag">Önellenőrzés</span>
+    Nyisd meg a kész kódot egy hét múlva. Ha bármelyik sorra azt mondod, hogy „ezt nem tudom, miért írtam", ott van egy lyuk. Ez a legjobb visszamérés, ami létezik.
+  </div>
+</section>
+
+<section id="f14">
+  <div class="eyebrow">14 · Függelék</div>
+  <h2>Fogalomtár</h2>
+  <table>
+    <tr><th>Fogalom</th><th>Röviden</th></tr>
+    <tr><td><code>int / float / str / bool</code></td><td>egész / tizedes / szöveg / igaz-hamis</td></tr>
+    <tr><td>lista</td><td>sorrendtartó gyűjtemény, index szerint elérhető</td></tr>
+    <tr><td>dict</td><td>kulcs–érték párok</td></tr>
+    <tr><td>index</td><td>elem sorszáma, 0-tól</td></tr>
+    <tr><td>szelet (slice)</td><td><code>[a:b]</code> — a-tól b-ig, b nélkül</td></tr>
+    <tr><td>iteráció</td><td>végigmenés egy gyűjtemény elemein</td></tr>
+    <tr><td>paraméter / argumentum</td><td>a függvény bemeneti neve / a ténylegesen átadott érték</td></tr>
+    <tr><td><code>return</code></td><td>a függvény visszaadott értéke</td></tr>
+    <tr><td>kivétel (exception)</td><td>futásidejű hiba, elkapható</td></tr>
+    <tr><td>modul</td><td>egy <code>.py</code> fájl, importálható</td></tr>
+    <tr><td>csomag (package)</td><td>modulok mappája</td></tr>
+    <tr><td>venv</td><td>projektszintű, elkülönített Python-környezet</td></tr>
+    <tr><td>commit</td><td>egy mentett változtatáscsomag a gitben</td></tr>
+    <tr><td>repo</td><td>verziókövetett projektmappa</td></tr>
+  </table>
+
+  <h3>Hova tovább</h3>
+  <p>A 3. hónap a szoftvermérnöki alap: API-hívás, <code>async</code>, <code>pytest</code>, <code>logging</code>. Utána jön a RAG framework nélkül. Ha ez a mérőlap-csomag végig zöld, oda készen mész.</p>
+</section>
+
+</main>
+</div>
+
+<button id="themeBtn">Világos</button>
+<button class="navtoggle" id="navBtn">Tartalom</button>
+
+<script>
+(function(){
+  // ---- gauge ----
+  var sections = Array.prototype.slice.call(document.querySelectorAll('section'));
+  var ticks = document.getElementById('ticks');
+  sections.forEach(function(s,i){
+    var d = document.createElement('div');
+    d.className='tick'; d.setAttribute('data-n', String(i).padStart(2,'0'));
+    ticks.appendChild(d);
+  });
+  var tickEls = Array.prototype.slice.call(ticks.children);
+  var jaw = document.getElementById('jaw');
+  var readout = document.getElementById('readout');
+  var navLinks = Array.prototype.slice.call(document.querySelectorAll('nav a'));
+  readout.textContent = '00 / ' + String(sections.length-1).padStart(2,'0');
+
+  function update(){
+    var y = window.scrollY + 120, cur = 0;
+    sections.forEach(function(s,i){ if(s.offsetTop <= y) cur = i; });
+    tickEls.forEach(function(t,i){ t.classList.toggle('done', i <= cur); });
+    var w = ticks.getBoundingClientRect().width;
+    jaw.style.left = ((cur+1) * (w/sections.length)) + 'px';
+    readout.textContent = String(cur).padStart(2,'0') + ' / ' + String(sections.length-1).padStart(2,'0');
+    navLinks.forEach(function(a,i){ a.classList.toggle('active', i === cur); });
+  }
+  window.addEventListener('scroll', update, {passive:true});
+  window.addEventListener('resize', update);
+  update();
+
+  // ---- drills ----
+  function norm(s){
+    return s.toLowerCase().replace(/\s+/g,'').replace(/[""]/g,'"').replace(/['']/g,"'");
+  }
+  function verdictEl(drill){
+    var v = drill.querySelector('.verdict');
+    if(!v){
+      v = document.createElement('div'); v.className='verdict';
+      drill.appendChild(v);
+      var w = document.createElement('div'); w.className='why';
+      w.textContent = drill.getAttribute('data-why') || '';
+      drill.appendChild(w);
+    }
+    return v;
+  }
+  function mark(drill, ok){
+    var v = verdictEl(drill);
+    v.textContent = ok ? 'Megfelelt' : 'Nem felelt meg';
+    v.className = 'verdict show ' + (ok ? 'pass' : 'fail');
+    drill.querySelector('.why').classList.add('show');
+    drill.setAttribute('data-done', ok ? '1' : '0');
+    score(drill.closest('[data-sheet]'));
+  }
+  function score(sheet){
+    if(!sheet) return;
+    var all = sheet.querySelectorAll('.drill');
+    var done = sheet.querySelectorAll('.drill[data-done]');
+    var ok = sheet.querySelectorAll('.drill[data-done="1"]');
+    sheet.querySelector('.score').textContent =
+      done.length ? (ok.length + ' / ' + all.length) : '—';
+  }
+
+  document.querySelectorAll('.drill[data-type="choice"]').forEach(function(drill){
+    var correct = parseInt(drill.getAttribute('data-answer'), 10);
+    var opts = Array.prototype.slice.call(drill.querySelectorAll('.opt'));
+    opts.forEach(function(btn, idx){
+      btn.addEventListener('click', function(){
+        if(drill.hasAttribute('data-done')) return;
+        opts.forEach(function(b,i){
+          b.disabled = true;
+          if(i === correct) b.classList.add('ok');
+          else if(i === idx) b.classList.add('bad');
+        });
+        mark(drill, idx === correct);
+      });
+    });
+  });
+
+  document.querySelectorAll('.drill[data-type="fill"]').forEach(function(drill){
+    var want = norm(drill.getAttribute('data-answer'));
+    var input = drill.querySelector('input');
+    var btn = drill.querySelector('button');
+    function check(){
+      if(drill.hasAttribute('data-done')) return;
+      mark(drill, norm(input.value) === want);
+      input.disabled = true; btn.disabled = true;
+    }
+    btn.addEventListener('click', check);
+    input.addEventListener('keydown', function(e){ if(e.key === 'Enter') check(); });
+  });
+
+  // ---- theme ----
+  var root = document.documentElement;
+  var tb = document.getElementById('themeBtn');
+  tb.addEventListener('click', function(){
+    var light = root.getAttribute('data-theme') === 'light';
+    root.setAttribute('data-theme', light ? 'dark' : 'light');
+    tb.textContent = light ? 'Világos' : 'Sötét';
+  });
+
+  // ---- mobile nav ----
+  var nb = document.getElementById('navBtn'), nv = document.getElementById('nav');
+  nb.addEventListener('click', function(){ nv.classList.toggle('open'); });
+  navLinks.forEach(function(a){ a.addEventListener('click', function(){ nv.classList.remove('open'); }); });
+})();
+</script>
+</body>
+</html>
