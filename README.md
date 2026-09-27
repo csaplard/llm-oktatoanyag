@@ -4,7 +4,7 @@ A comprehensive guide to LLMs — from tokenization through backpropagation to t
 research frontier of mechanistic interpretability. Written in Hungarian, with a
 full English edition.
 
-**➜ [Read it in English](https://csaplard.github.io/llm-oktatoanyag/en/)** · **[Olvasd magyarul](https://csaplard.github.io/llm-oktatoanyag/)**
+**➜ [Read it in English](https://ailessons.hu/llm-oktatoanyag/en/)** · **[Olvasd magyarul](https://ailessons.hu/llm-oktatoanyag/)**
 
 ## What this is
 
