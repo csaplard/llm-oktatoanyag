@@ -8,10 +8,11 @@
 - Szakmai pontosítások egy külső áttekintés alapján: a tananyag hatóköre (autoregresszív transzformerek), szemléltető jelölés a valószínűségeknél, a generálási kör és a gyorsítótár összhangja, a világmodellezés hatóköre (+ Li et al. 2023, Gurnee & Tegmark 2024), a szuperpozíció hipotézisként (játékmodell és valódi modell elkülönítve; 12. ábra és kvízmagyarázat), az induction-ábra felirata.
 - Nyelvi javítások: dekódoló, részszó-tokenizáció, szórész, névelők (az i-edik, az eᵢ, az „a vár fokán”), két idézőjel.
 - Az irodalomjegyzék tételei közvetlen linket kaptak.
+- A két régi tárolási kulcs új nevet kapott (`llm-learning-path-v1`, `llm-reading-mode`); a régi kulcsok tartalma első betöltéskor egyszer átköltözik, így a mentett haladás megmarad.
 - Szintén ebben a kiadásban (2026-09-26):
 - Az oldal átvette az AI-tananyagok közös arculatát (`src/arculat.css`): Geologica és Literata betűk, alapból sötét mód, a témaválasztás az egész oldalon közös (`ait-theme`). A szerkezet, a 13 ábra, a kvízek és a haladásmentés nem változott; a tárolási kulcsok ugyanazok, így a mentett haladás megmarad.
 - „Vissza az AI-tananyagokhoz” link a fejlécben és a tartalomjegyzékben.
-- A „Katedra” név a kódból is kikerült (csak a két régi tárolási kulcs neve maradt meg, hogy a haladás ne vesszen el).
+- A korábbi munkanév a kódból is kikerült.
 - Javítva: a tartalomjegyzék görgetéskövetője csak az oldalon belüli linkeket figyeli.
 
 ### English
@@ -19,10 +20,11 @@
 - Dark mode by default: the theme is light only if the visitor chose it with the toggle.
 - Scientific clarifications after an external review: the guide's scope (autoregressive transformers), illustrative labels on probabilities, generation loop consistent with caching, the scope of world modeling (+ Li et al. 2023, Gurnee & Tegmark 2024), superposition as a hypothesis (toy vs. real models; Figure 12 and a quiz explanation), the induction-figure caption.
 - Direct links for bibliography entries.
+- The two legacy storage keys were renamed (`llm-learning-path-v1`, `llm-reading-mode`); their content moves over once on first load, so saved progress is kept.
 - Also in this release (2026-09-26):
 - The page adopts the shared AI-tananyagok design (`src/arculat.css`): Geologica and Literata type, dark mode by default, a site-wide theme choice (`ait-theme`). Structure, the 13 figures, quizzes and saved progress are unchanged; storage keys are the same, so progress is kept.
 - “Back to the learning hub” link in the header and the table of contents.
-- The “Katedra” name is gone from the code as well (only two legacy storage key names remain, so progress is not lost).
+- The earlier working name is gone from the code as well.
 - Fixed: the table-of-contents scroll spy only tracks in-page links.
 
 ## v1.1.3 — 2026-09-19
@@ -52,7 +54,7 @@
 - Egy pontatlanság, amely a v1.1.1 saját felülvizsgálatával ellentétes volt: a pre-norm kvízválasza még azt állította, hogy a mély modellek „warmup-trükkök nélkül is stabilan tanulnak”. Most: jellemzően stabilabban, garancia nélkül.
 - A build nyelvenként külön csomagolja a tanulási elemeket: a magyar kiadásba csak magyar, az angolba csak angol szöveg kerül. A kétnyelvű forrás változatlan.
 - A `scripts/build.py` Windowson is fut (explicit UTF-8), és van `--check` módja, amelyet a teszt is használ.
-- Új megosztókártya az aktuális szóhasználattal; a „Katedra” felirat kikerült a látható szövegből és a megosztási metaadatokból.
+- Új megosztókártya az aktuális szóhasználattal; a korábbi munkanév kikerült a látható szövegből és a megosztási metaadatokból.
 
 ### English
 
@@ -61,7 +63,7 @@
 - Fixed a leftover that contradicted v1.1.1’s own review: the pre-norm answer still claimed deep models “train stably without warmup tricks”. Now: typically more stably, with no guarantee.
 - The build bundles the learning components per language, so each edition carries only its own language. The bilingual sources are unchanged.
 - `scripts/build.py` runs on Windows (explicit UTF-8) and has a `--check` mode, used by the test suite.
-- New share cards with current wording; the “Katedra” label is gone from visible text and share metadata.
+- New share cards with current wording; the earlier working name is gone from visible text and share metadata.
 
 ## 2026-09-19 — Elnevezések / Labels
 

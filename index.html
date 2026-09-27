@@ -3260,7 +3260,12 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
   }
   var progress = loadProgress();
   var readMode = 'free';
-  try { if(window.localStorage.getItem('katedra-reading-mode') === 'guided') readMode = 'guided'; } catch(e){}
+  try {
+    // one-time move from the pre-2026-09-27 key name
+    var legacyMode = window.localStorage.getItem('katedra-reading-mode');
+    if(legacyMode !== null){ if(window.localStorage.getItem('llm-reading-mode') === null) window.localStorage.setItem('llm-reading-mode', legacyMode); window.localStorage.removeItem('katedra-reading-mode'); }
+    if(window.localStorage.getItem('llm-reading-mode') === 'guided') readMode = 'guided';
+  } catch(e){}
 
   function isUnlocked(n){ return progress.unlocked.indexOf(n) >= 0; }
   function levelByN(n){
@@ -3712,7 +3717,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
     mode: function(){ return readMode; },
     setMode: function(mode){
       readMode = mode === 'guided' ? 'guided' : 'free';
-      try { window.localStorage.setItem('katedra-reading-mode', readMode); } catch(e){}
+      try { window.localStorage.setItem('llm-reading-mode', readMode); } catch(e){}
       renderLocks(); renderProgress();
     },
     refresh: function(){ renderLocks(); renderProgress(); }
@@ -4412,7 +4417,9 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
 /* Learning companion: no dependencies, shared HU/EN local progress. */
 (function () {
   'use strict';
-  var KEY = 'katedra-learning-path-v1';  // legacy key name: keeps saved progress
+  var KEY = 'llm-learning-path-v1';
+  // one-time move from the pre-2026-09-27 key name, so saved progress is kept
+  try { var legacy = window.localStorage.getItem('katedra-learning-path-v1'); if (legacy !== null) { if (window.localStorage.getItem(KEY) === null) window.localStorage.setItem(KEY, legacy); window.localStorage.removeItem('katedra-learning-path-v1'); } } catch (e) {}
   var lang = document.documentElement.lang.toLowerCase().indexOf('en') === 0 ? 'en' : 'hu';
   function t(hu, en) { return lang === 'hu' ? hu : en; }
   function esc(value) { return String(value).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }

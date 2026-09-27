@@ -86,7 +86,7 @@ for (const file of ['index.html','en/index.html']) {
   });
   test(file+': works offline with unavailable or corrupt storage',()=>{
     for(const blocked of [true,false]) {
-      const {w,d,errors}=page(file,{[KEY]:'{broken','katedra-reading-mode':'invalid'},blocked);
+      const {w,d,errors}=page(file,{[KEY]:'{broken','llm-reading-mode':'invalid'},blocked);
       assert.equal(d.querySelectorAll('.learning-lab').length,14);
       assert.deepEqual(errors,[]);w.close();
     }

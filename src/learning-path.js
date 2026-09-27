@@ -1,7 +1,9 @@
 /* Learning companion: no dependencies, shared HU/EN local progress. */
 (function () {
   'use strict';
-  var KEY = 'katedra-learning-path-v1';  // legacy key name: keeps saved progress
+  var KEY = 'llm-learning-path-v1';
+  // one-time move from the pre-2026-09-27 key name, so saved progress is kept
+  try { var legacy = window.localStorage.getItem('katedra-learning-path-v1'); if (legacy !== null) { if (window.localStorage.getItem(KEY) === null) window.localStorage.setItem(KEY, legacy); window.localStorage.removeItem('katedra-learning-path-v1'); } } catch (e) {}
   var lang = document.documentElement.lang.toLowerCase().indexOf('en') === 0 ? 'en' : 'hu';
   function t(hu, en) { return lang === 'hu' ? hu : en; }
   function esc(value) { return String(value).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
