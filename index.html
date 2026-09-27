@@ -32,9 +32,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geologica:slnt,wght,CRSV,SHRP@-12..0,100..900,0..1,0..100&family=Literata:ital,opsz,wght@0,7..72,300..700;1,7..72,300..700&display=swap" rel="stylesheet">
 <script>
-  /* Téma: a látogató választása (az egész oldalon közös), különben a rendszerbeállítás, alapból sötét. */
+  /* Téma: a látogató választása (az egész oldalon közös), különben sötét. */
   (function(){var t=null;try{t=localStorage.getItem('ait-theme')}catch(e){}
-  if(t!=='dark'&&t!=='light')t=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';
+  if(t!=='dark'&&t!=='light')t='dark'; // alapértelmezés: sötét mód
   document.documentElement.setAttribute('data-theme',t)})();
 </script>
 <style>
@@ -1037,7 +1037,7 @@ nav#toc .hub-link { margin: 0 0 18px 10px; }
 <div class="chapter-kicker">1. fejezet</div>
 <h2>Mi az a nagy nyelvi modell?</h2>
 
-<p>Egy nagy nyelvi modell (large language model, LLM) a felszínen megtévesztően egyszerű dolgot csinál: <strong>adott szövegkezdet után megjósolja a következő szövegdarabot</strong>. Kap egy tokensorozatot — „A macska felmászott a” —, és kimenetként egy valószínűség-eloszlást ad a szótára összes lehetséges következő tokenjére: „fára” 62%, „fa” 11%, „kerítésre” 7%, és így tovább több tízezer további lehetőségre. A szöveg generálása ennek az egyetlen műveletnek az ismétlése: a modell húz egy tokent az eloszlásból, hozzáfűzi a szöveghez, majd az egésszel újra lefuttatja önmagát. Ezt hívjuk <strong>autoregresszív</strong> generálásnak.</p>
+<p>Egy nagy nyelvi modell (large language model, LLM) a felszínen megtévesztően egyszerű dolgot csinál: <strong>adott szövegkezdet után megjósolja a következő szövegdarabot</strong>. Kap egy tokensorozatot — „A macska felmászott a” —, és kimenetként egy valószínűség-eloszlást ad a szótára összes lehetséges következő tokenjére: „fára” 62%, „fa” 11%, „kerítésre” 7% (szemléltető számok), és így tovább több tízezer további lehetőségre. A szöveg generálása ennek az egyetlen műveletnek az ismétlése: a modell húz egy tokent az eloszlásból, hozzáfűzi a szöveghez, majd a meghosszabbodott szövegre kiszámítja a következő token eloszlását. A gyakorlatban a korábbi számítások egy része gyorsítótárból újrahasználható; erről az inferenciáról szóló fejezetben lesz szó. Ezt hívjuk <strong>autoregresszív</strong> generálásnak. A tananyag elsősorban az ilyen, szöveget tokenenként előállító, autoregresszív transzformermodellek működését mutatja be.</p>
 
 <p>Ami ebből a definícióból nem látszik: ahhoz, hogy a következő tokent <em>jól</em> jósold meg, implicit módon nagyon sok mindent kell „tudni”. A „Párizs Franciaország fővárosa, Berlin pedig …” folytatásához földrajzi tényeket; a „ha 3 alma 600 Ft, akkor 7 alma …” folytatásához aritmetikát; egy félbehagyott Python-függvény folytatásához programozást. A következő token jóslása tehát nem egy szűk feladat, hanem egy <strong>kényszer, amely a szöveget előállító világ modellezését jutalmazza</strong>. A tanítás során a modell paraméterei fokozatosan olyan belső gépezetté rendeződnek, amely nyelvtant, tényeket, stílust és következtetési mintázatokat reprezentál — pusztán azért, mert ezek nélkül a jóslás rosszabb lenne.</p>
 
@@ -1153,7 +1153,7 @@ Az LLM nem adatbázis és nem szabályrendszer: egyetlen hatalmas, differenciál
 
 <p>A neurális háló nem betűket lát, hanem számokat. Az első lépés tehát a szöveg feldarabolása egy rögzített <strong>szótár</strong> (vocabulary) elemeire — ezek a <strong>tokenek</strong> —, majd minden darab lecserélése a szótárbeli sorszámára. A kérdés: mekkorák legyenek a darabok?</p>
 
-<p>Két szélsőség kínálkozik, és mindkettő rossz. Ha <strong>karakterenként</strong> tokenizálunk, a szótár apró (néhány száz elem), de a sorozatok nagyon hosszúak lesznek, és a modellnek minden szó jelentését karakterekből kellene minden alkalommal összeraknia. Ha <strong>szavanként</strong>, a sorozatok rövidek, de a szótár robbanásszerűen nő (a magyar ragozás miatt a „ház, házam, házaimban, házaitokból…” mind külön elem lenne), és minden ismeretlen szó — új név, elgépelés, ritka összetétel — kezelhetetlen. A gyakorlati megoldás a kettő közötti <strong>rész-szó (subword) tokenizáció</strong>: a gyakori szavak egyetlen tokent kapnak, a ritkák értelmes darabokra esnek szét. A domináns algoritmus a <strong>byte-pair encoding (BPE)</strong>.</p>
+<p>Két szélsőség kínálkozik, és mindkettő rossz. Ha <strong>karakterenként</strong> tokenizálunk, a szótár apró (néhány száz elem), de a sorozatok nagyon hosszúak lesznek, és a modellnek minden szó jelentését karakterekből kellene minden alkalommal összeraknia. Ha <strong>szavanként</strong>, a sorozatok rövidek, de a szótár robbanásszerűen nő (a magyar ragozás miatt a „ház, házam, házaimban, házaitokból…” mind külön elem lenne), és minden ismeretlen szó — új név, elgépelés, ritka összetétel — kezelhetetlen. A gyakorlati megoldás a kettő közötti <strong>részszó-tokenizáció (subword)</strong>: a gyakori szavak egyetlen tokent kapnak, a ritkák értelmes darabokra esnek szét. A domináns algoritmus a <strong>byte-pair encoding (BPE)</strong>.</p>
 
 <p>A BPE alapötlete tömörítési elv: <em>ami gyakran fordul elő együtt, azt vonjuk össze egy szimbólummá</em>. A szótárat nem kézzel írjuk, hanem adatból tanuljuk: karakterekből (pontosabban bájtokból) indulunk, és ismételten összeolvasztjuk a korpuszban leggyakrabban szomszédos párokat, amíg a szótár el nem éri a kívánt méretet — jellemzően 32&nbsp;000 és 260&nbsp;000 közötti elemszámot.</p>
 
@@ -1310,12 +1310,12 @@ while |szótár| &lt; V:
 </figure>
 
 <h3>Mekkora ez a tér?</h3>
-<p>Az embedding-vektorok hossza a modell <strong>rejtett dimenziója</strong>, <span class="math">d<sub><span class="rm">model</span></sub></span> — kis modelleknél néhány száz, nagyoknál 4&nbsp;000–20&nbsp;000 körüli érték. Az összes token embeddingje egyetlen táblázatot alkot: egy <span class="math">V × d<sub><span class="rm">model</span></sub></span> méretű mátrixot (V a szótárméret). Egy 128k-s szótár és 8&nbsp;192-es dimenzió mellett ez önmagában több mint egymilliárd paraméter. Fontos előretekintés: ez a vektor csak a <em>kiindulópont</em> — a token szótári jelentése. A transzformer rétegei (4. fejezet) ezt a vektort fokozatosan a <em>szövegkörnyezetbeli</em> jelentéssé írják át: a „vár” token vektora a rétegeken áthaladva mássá válik a „a vár fokán” és a „rám vár” kontextusban.</p>
+<p>Az embedding-vektorok hossza a modell <strong>rejtett dimenziója</strong>, <span class="math">d<sub><span class="rm">model</span></sub></span> — kis modelleknél néhány száz, nagyoknál 4&nbsp;000–20&nbsp;000 körüli érték. Az összes token embeddingje egyetlen táblázatot alkot: egy <span class="math">V × d<sub><span class="rm">model</span></sub></span> méretű mátrixot (V a szótárméret). Egy 128k-s szótár és 8&nbsp;192-es dimenzió mellett ez önmagában több mint egymilliárd paraméter. Fontos előretekintés: ez a vektor csak a <em>kiindulópont</em> — a token szótári jelentése. A transzformer rétegei (4. fejezet) ezt a vektort fokozatosan a <em>szövegkörnyezetbeli</em> jelentéssé írják át: a „vár” token vektora a rétegeken áthaladva mássá válik az „a vár fokán” és a „rám vár” kontextusban.</p>
 
 <details class="level l2">
 <summary><span class="badge b2">Matematika</span> Az embedding mint mátrixszorzás, és a hasonlóság mérése</summary>
 <div class="body">
-<p>Az embedding-tábla a <span class="math"><b>W</b><sub>E</sub> ∈ ℝ<sup>V×d</sup></span> mátrix. Ha a <span class="math">i</span>-edik tokent a <span class="math"><b>e</b><sub>i</sub></span> one-hot vektorral kódoljuk (csupa nulla, egyetlen 1-essel az <span class="math">i</span>-edik helyen), akkor az embedding formálisan mátrixszorzás:</p>
+<p>Az embedding-tábla a <span class="math"><b>W</b><sub>E</sub> ∈ ℝ<sup>V×d</sup></span> mátrix. Ha az <span class="math">i</span>-edik tokent az <span class="math"><b>e</b><sub>i</sub></span> one-hot vektorral kódoljuk (csupa nulla, egyetlen 1-essel az <span class="math">i</span>-edik helyen), akkor az embedding formálisan mátrixszorzás:</p>
 <div class="eq"><b>x</b> = <b>e</b><sub>i</sub><sup>⊤</sup> <b>W</b><sub>E</sub> &nbsp;&nbsp;<span class="rm">(=</span> <b>W</b><sub>E</sub> <span class="rm">i-edik sora)</span></div>
 <p>A gyakorlatban ezt persze sorkivétellel (lookup) implementáljuk, de a mátrix-nézet fontos: így látszik, hogy <span class="math"><b>W</b><sub>E</sub></span> ugyanolyan tanulható súlymátrix, mint bármely másik, és a <em>bemeneti lookup felől érkező</em> gradiens csak a batchben előforduló tokenek sorait érinti. Megosztott bemeneti–kimeneti súlyoknál (weight tying) a kimeneti softmax felől más sorok is kapnak gradienst; az optimalizáló állapota és a weight decay szintén módosíthatja a frissítést.</p>
 <p>Két vektor hasonlóságának standard mértéke a <strong>koszinusz-hasonlóság</strong> — az irányok egyezése, a hossztól függetlenítve:</p>
@@ -2055,7 +2055,7 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
 <div class="body">
 <p><strong>Kvantálás.</strong> A kisebb bitmélység csökkentheti a súlyok és a KV-cache memóriaigényét, illetve a memóriaforgalmat. Egyszerű egész kvantálásnál például w ≈ s·q, esetenként külön nullponttal; a skálát gyakran csoportonként tároljuk. A GPTQ és AWQ a kis bitmélységű súlyok hibáját mérsékli. A 4 bit hasznos kompromisszum lehet, de a minőségvesztést az adott modellen és feladaton mérni kell, különösen 2 bitnél. Az FP8 lebegőpontos formátum, nem 8 bites egész. A tárolás csökkenése önmagában nem garantál azonos arányú gyorsulást.</p>
 <p><strong>Spekulatív dekódolás.</strong> Egy gyors draftmodell k tokent javasol; a célmodell ezek feltételes eloszlásait párhuzamosan ellenőrizheti. Egzakt mintavételnél a q drafteloszlásból húzott x tokent min(1, p(x)/q(x)) valószínűséggel fogadjuk el. Elutasításkor a <strong>normalizált max(0, p − q)</strong> eloszlásból mintázunk, nem egyszerűen p-ből. Az első elutasítás utáni javaslatokat eldobjuk; ha mind elfogadható, a célmodell egy további tokent adhat. Így a cél-eloszlás megőrizhető. A gyorsulás függ az elfogadási aránytól, a draft és az ellenőrzés költségétől; nem ingyenes vagy garantált. <a href="https://arxiv.org/html/2211.17192v2">Leviathan és mtsai., 2.3. szakasz</a>.</p>
-<p><strong>Kiszolgálás.</strong> Éles rendszerben sok kérés fut együtt: a <em>continuous batching</em> a dekódló lépéseket több kérés közt köti kötegbe (a GPU-t a súlybeolvasáson osztoztatja), a <em>PagedAttention</em> (vLLM) a KV-cache-t lapokra tördelve gazdálkodik a memóriával, a prefix-cache a közös promptkezdeteket (rendszerprompt!) osztja meg. A prefill és a dekódolás eltérő profilja miatt a nagy rendszerek a kettőt gyakran külön gépcsoportra bontják.</p>
+<p><strong>Kiszolgálás.</strong> Éles rendszerben sok kérés fut együtt: a <em>continuous batching</em> a dekódoló lépéseket több kérés közt köti kötegbe (a GPU-t a súlybeolvasáson osztoztatja), a <em>PagedAttention</em> (vLLM) a KV-cache-t lapokra tördelve gazdálkodik a memóriával, a prefix-cache a közös promptkezdeteket (rendszerprompt!) osztja meg. A prefill és a dekódolás eltérő profilja miatt a nagy rendszerek a kettőt gyakran külön gépcsoportra bontják.</p>
 </div>
 </details>
 
@@ -2132,7 +2132,7 @@ Az információelmélet szerint egy p valószínűségű esemény optimális kó
   <text x="20" y="300" font-size="11" class="svg-muted">Az áramkör tetszőleges tokenpárra működik — nem „Kovács Annát” tanulta meg, hanem a mintaismétlés absztrakt műveletét. Ez az in-context</text>
   <text x="20" y="316" font-size="11" class="svg-muted">learning egyik alapmechanizmusa: a tanítás közben hirtelen, fázisátmenetszerűen alakul ki, és megjelenése a loss-görbén is látszik.</text>
 </svg>
-<figcaption><span class="fig-num">11. ábra.</span> Az induction-áramkör két fej kompozíciója. Az előző-token-fej minden pozícióhoz odaírja a streambe az előtte álló token azonosítóját; az induction head ezt az annotációt keresi meg a jelenlegi tokennel (QK-kör), és a találat <em>következő</em> tokenjét másolja a kimenetbe (OV-kör). Tankönyvi tisztaságú példa arra, hogy tanult súlyokban felismerhető, emberi fogalmakkal leírható algoritmus él.</figcaption>
+<figcaption><span class="fig-num">11. ábra.</span> Az induction-áramkör két fej kompozíciója. Az előző-token-fej minden pozícióhoz odaírja a streambe az előtte álló token azonosítóját; az induction head a mostani A token alapján megtalálja azt a korábbi B pozíciót, amelyen ez az annotáció („előttem A állt”) szerepel (QK-kör), és B információját továbbítja a kimenet felé (OV-kör). Tankönyvi tisztaságú példa arra, hogy tanult súlyokban felismerhető, emberi fogalmakkal leírható algoritmus él.</figcaption>
 </figure>
 
 <div class="quiz" id="quiz-10" data-level="10">
@@ -2378,7 +2378,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
 <dt>Szuperpozíció</dt><dd>Több jellemző tárolása, mint ahány dimenzió van — átfedő, közel merőleges irányokban, a ritkaság kihasználásával. 8.4.</dd>
 <dt>SFT (supervised fine-tuning)</dt><dd>Felügyelt finomhangolás minta-párbeszédeken; az asszisztens-viselkedés formájának megtanítása. 6. fejezet.</dd>
 <dt>Temperature</dt><dd>Mintavételi paraméter: a logitok osztója, az eloszlás élesítése/lapítása. 7. fejezet.</dd>
-<dt>Token</dt><dd>A szöveg atomi egysége a modell számára — jellemzően szó-rész (BPE-darab). 2. fejezet.</dd>
+<dt>Token</dt><dd>A szöveg atomi egysége a modell számára — jellemzően szórész (BPE-darab). 2. fejezet.</dd>
 <dt>Transzformer</dt><dd>Attention- és MLP-blokkok residual streamre épülő, párhuzamosan tanítható architektúrája. 4. fejezet.</dd>
 <dt>Unembedding</dt><dd>A végső streamvektort a szótár logitjaira vetítő mátrix. 4.7.</dd>
 </dl>

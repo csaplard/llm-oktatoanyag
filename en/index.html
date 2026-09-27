@@ -33,9 +33,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geologica:slnt,wght,CRSV,SHRP@-12..0,100..900,0..1,0..100&family=Literata:ital,opsz,wght@0,7..72,300..700;1,7..72,300..700&display=swap" rel="stylesheet">
 <script>
-  /* Téma: a látogató választása (az egész oldalon közös), különben a rendszerbeállítás, alapból sötét. */
+  /* Téma: a látogató választása (az egész oldalon közös), különben sötét. */
   (function(){var t=null;try{t=localStorage.getItem('ait-theme')}catch(e){}
-  if(t!=='dark'&&t!=='light')t=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';
+  if(t!=='dark'&&t!=='light')t='dark'; // default: dark mode
   document.documentElement.setAttribute('data-theme',t)})();
 </script>
 <style>
@@ -1038,7 +1038,7 @@ nav#toc .hub-link { margin: 0 0 18px 10px; }
 <div class="chapter-kicker">Chapter 1</div>
 <h2>What is a large language model?</h2>
 
-<p>On the surface, a large language model (LLM) does something deceptively simple: <strong>given the beginning of a text, it predicts the next piece of it</strong>. It receives a sequence of tokens — “The cat climbed up the” — and returns a probability distribution over every possible next token in its vocabulary: “tree” 62%, “stairs” 11%, “fence” 7%, and so on across tens of thousands of further options. Generating text is nothing but the repetition of that single operation: the model draws a token from the distribution, appends it to the text, then runs itself again on the whole thing. This is called <strong>autoregressive</strong> generation.</p>
+<p>On the surface, a large language model (LLM) does something deceptively simple: <strong>given the beginning of a text, it predicts the next piece of it</strong>. It receives a sequence of tokens — “The cat climbed up the” — and returns a probability distribution over every possible next token in its vocabulary: “tree” 62%, “stairs” 11%, “fence” 7% (illustrative numbers), and so on across tens of thousands of further options. Generating text is nothing but the repetition of that single operation: the model draws a token from the distribution, appends it to the text, then computes the next-token distribution for the extended text. In practice part of the earlier computation can be reused from a cache; the chapter on inference covers this. This is called <strong>autoregressive</strong> generation. This guide focuses mainly on such autoregressive transformer models that produce text token by token.</p>
 
 <p>What the definition hides is this: to predict the next token <em>well</em>, you implicitly need to know a great deal. Continuing “Paris is the capital of France, and Berlin is …” takes geographical facts; continuing “if 3 apples cost $6, then 7 apples …” takes arithmetic; continuing a half-finished Python function takes programming. Next-token prediction is therefore not a narrow task but a <strong>pressure that rewards modeling the world which produced the text</strong>. Over the course of training, the model's parameters gradually organize into internal machinery that represents grammar, facts, style and patterns of inference — purely because without them the prediction would be worse.</p>
 
