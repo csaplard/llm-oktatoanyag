@@ -4,7 +4,7 @@
   © 2026 Dániel Csaplár · csaplar.d@gmail.com
   License: CC BY-NC-SA 4.0 (Attribution · NonCommercial · ShareAlike)
   https://creativecommons.org/licenses/by-nc-sa/4.0/
-  v1.1.3 · last updated: 19 September 2026
+  v1.2.0 · last updated: 27 September 2026
   Hungarian original: https://csaplard.github.io/llm-oktatoanyag/
 -->
 <html lang="en">
@@ -1027,9 +1027,9 @@ nav#toc .hub-link { margin: 0 0 18px 10px; }
   <div class="meta-line hero-meta">
     <span>Dániel Csaplár</span>
     <span class="dot">·</span>
-    <span>v1.1.3</span>
+    <span>v1.2.0</span>
     <span class="dot">·</span>
-    <span>last updated: 19 September 2026</span>
+    <span>last updated: 27 September 2026</span>
     <span class="dot">·</span>
     <a href="#valtozasnaplo">changelog</a>
   </div>
@@ -2392,31 +2392,31 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
 <p>The list is deliberately short: the foundational texts of the field, roughly in the order of this material's chapters. The foundational texts are freely available; linked titles lead directly to the original sources.</p>
 <ol class="refs">
 <li><b><a href="https://arxiv.org/abs/1706.03762">Vaswani et al. (2017): Attention Is All You Need</a></b> — the original transformer paper. (Chapter 4)</li>
-<li><b>Radford et al. (2019): Language Models are Unsupervised Multitask Learners</b> (GPT-2) and <b>Brown et al. (2020): Language Models are Few-Shot Learners</b> (GPT-3) — the discovery of scaling and in-context learning. (Chapters 1 and 9)</li>
-<li><b>Sennrich et al. (2016): Neural Machine Translation of Rare Words with Subword Units</b> — the introduction of BPE into NLP. (Chapter 2)</li>
+<li><b><a href="https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf">Radford et al. (2019): Language Models are Unsupervised Multitask Learners</a></b> (GPT-2) and <b><a href="https://arxiv.org/abs/2005.14165">Brown et al. (2020): Language Models are Few-Shot Learners</a></b> (GPT-3) — the discovery of scaling and in-context learning. (Chapters 1 and 9)</li>
+<li><b><a href="https://arxiv.org/abs/1508.07909">Sennrich et al. (2016): Neural Machine Translation of Rare Words with Subword Units</a></b> — the introduction of BPE into NLP. (Chapter 2)</li>
 <li><b><a href="https://github.com/google/sentencepiece">SentencePiece: official documentation</a></b> — BPE and unigram implementations and tokenizer training. (Chapter 2)</li>
-<li><b>Rumelhart, Hinton &amp; Williams (1986): Learning representations by back-propagating errors</b> — the classic of backprop; as a modern complement, <b>Karpathy: Neural Networks: Zero to Hero</b>, a video series from a hand-built autograd to a GPT. (Chapter 5)</li>
-<li><b>Kingma &amp; Ba (2015): Adam</b> and <b>Loshchilov &amp; Hutter (2019): Decoupled Weight Decay Regularization</b> (AdamW). (5.4)</li>
-<li><b>Kaplan et al. (2020): Scaling Laws for Neural Language Models</b> and <b>Hoffmann et al. (2022): Training Compute-Optimal Large Language Models</b> (Chinchilla). (5.6)</li>
-<li><b>Su et al. (2021): RoFormer</b> — RoPE. (4.6)</li>
-<li><b>Ouyang et al. (2022): Training language models to follow instructions with human feedback</b> (InstructGPT) — the RLHF recipe. (Chapter 6)</li>
-<li><b>Bai et al. (2022): Constitutional AI: Harmlessness from AI Feedback</b>. (Chapter 6)</li>
-<li><b>Rafailov et al. (2023): Direct Preference Optimization</b>. (Chapter 6)</li>
-<li><b>Dao et al. (2022): FlashAttention</b> and <b>Kwon et al. (2023): Efficient Memory Management for LLM Serving with PagedAttention</b> (vLLM). (Chapter 7)</li>
-<li><b>Leviathan et al. (2023): Fast Inference from Transformers via Speculative Decoding</b>. (Chapter 7)</li>
-<li><b>Elhage et al. (2021): A Mathematical Framework for Transformer Circuits</b> — the residual stream / QK–OV formalism. (8.2)</li>
-<li><b>Olsson et al. (2022): In-context Learning and Induction Heads</b>. (8.3)</li>
-<li><b>Elhage et al. (2022): Toy Models of Superposition</b>. (8.4)</li>
-<li><b>Li et al. (2023): Emergent World Representations: Exploring a Sequence Model Trained on a Synthetic Task</b> and <b>Gurnee &amp; Tegmark (2024): Language Models Represent Space and Time</b> — studies of internal “world” representations. (Chapter 1)</li>
-<li><b>Olshausen &amp; Field (1996): Emergence of simple-cell receptive field properties by learning a sparse code for natural images</b> — the classic of sparse coding, the conceptual ancestor of SAEs. (8.5)</li>
-<li><b>Bricken et al. (2023): Towards Monosemanticity</b> and <b>Templeton et al. (2024): Scaling Monosemanticity</b> — SAEs at small and frontier scale. (8.5)</li>
-<li><b>Lindsey et al. (2025): On the Biology of a Large Language Model</b> — attribution graphs, case studies (planning, mental arithmetic, unfaithful CoT). (8.6)</li>
-<li><b>Schaeffer et al. (2023): Are Emergent Abilities of Large Language Models a Mirage?</b> — the emergence debate. (5.6)</li>
-<li><b>Berglund et al. (2023): The Reversal Curse</b>. (Chapter 9)</li>
-<li><b>Greenblatt et al. (2024): Alignment Faking in Large Language Models</b>. (Chapter 6)</li>
+<li><b><a href="https://doi.org/10.1038/323533a0">Rumelhart, Hinton &amp; Williams (1986): Learning representations by back-propagating errors</a></b> — the classic of backprop; as a modern complement, <b><a href="https://karpathy.ai/zero-to-hero.html">Karpathy: Neural Networks: Zero to Hero</a></b>, a video series from a hand-built autograd to a GPT. (Chapter 5)</li>
+<li><b><a href="https://arxiv.org/abs/1412.6980">Kingma &amp; Ba (2015): Adam</a></b> and <b><a href="https://arxiv.org/abs/1711.05101">Loshchilov &amp; Hutter (2019): Decoupled Weight Decay Regularization</a></b> (AdamW). (5.4)</li>
+<li><b><a href="https://arxiv.org/abs/2001.08361">Kaplan et al. (2020): Scaling Laws for Neural Language Models</a></b> and <b><a href="https://arxiv.org/abs/2203.15556">Hoffmann et al. (2022): Training Compute-Optimal Large Language Models</a></b> (Chinchilla). (5.6)</li>
+<li><b><a href="https://arxiv.org/abs/2104.09864">Su et al. (2021): RoFormer</a></b> — RoPE. (4.6)</li>
+<li><b><a href="https://arxiv.org/abs/2203.02155">Ouyang et al. (2022): Training language models to follow instructions with human feedback</a></b> (InstructGPT) — the RLHF recipe. (Chapter 6)</li>
+<li><b><a href="https://arxiv.org/abs/2212.08073">Bai et al. (2022): Constitutional AI: Harmlessness from AI Feedback</a></b>. (Chapter 6)</li>
+<li><b><a href="https://arxiv.org/abs/2305.18290">Rafailov et al. (2023): Direct Preference Optimization</a></b>. (Chapter 6)</li>
+<li><b><a href="https://arxiv.org/abs/2205.14135">Dao et al. (2022): FlashAttention</a></b> and <b><a href="https://arxiv.org/abs/2309.06180">Kwon et al. (2023): Efficient Memory Management for LLM Serving with PagedAttention</a></b> (vLLM). (Chapter 7)</li>
+<li><b><a href="https://arxiv.org/abs/2211.17192">Leviathan et al. (2023): Fast Inference from Transformers via Speculative Decoding</a></b>. (Chapter 7)</li>
+<li><b><a href="https://transformer-circuits.pub/2021/framework/index.html">Elhage et al. (2021): A Mathematical Framework for Transformer Circuits</a></b> — the residual stream / QK–OV formalism. (8.2)</li>
+<li><b><a href="https://arxiv.org/abs/2209.11895">Olsson et al. (2022): In-context Learning and Induction Heads</a></b>. (8.3)</li>
+<li><b><a href="https://arxiv.org/abs/2209.10652">Elhage et al. (2022): Toy Models of Superposition</a></b>. (8.4)</li>
+<li><b><a href="https://arxiv.org/abs/2210.13382">Li et al. (2023): Emergent World Representations: Exploring a Sequence Model Trained on a Synthetic Task</a></b> and <b><a href="https://arxiv.org/abs/2310.02207">Gurnee &amp; Tegmark (2024): Language Models Represent Space and Time</a></b> — studies of internal “world” representations. (Chapter 1)</li>
+<li><b><a href="https://doi.org/10.1038/381607a0">Olshausen &amp; Field (1996): Emergence of simple-cell receptive field properties by learning a sparse code for natural images</a></b> — the classic of sparse coding, the conceptual ancestor of SAEs. (8.5)</li>
+<li><b><a href="https://transformer-circuits.pub/2023/monosemantic-features/index.html">Bricken et al. (2023): Towards Monosemanticity</a></b> and <b><a href="https://transformer-circuits.pub/2024/scaling-monosemanticity/index.html">Templeton et al. (2024): Scaling Monosemanticity</a></b> — SAEs at small and frontier scale. (8.5)</li>
+<li><b><a href="https://transformer-circuits.pub/2025/attribution-graphs/biology.html">Lindsey et al. (2025): On the Biology of a Large Language Model</a></b> — attribution graphs, case studies (planning, mental arithmetic, unfaithful CoT). (8.6)</li>
+<li><b><a href="https://arxiv.org/abs/2304.15004">Schaeffer et al. (2023): Are Emergent Abilities of Large Language Models a Mirage?</a></b> — the emergence debate. (5.6)</li>
+<li><b><a href="https://arxiv.org/abs/2309.12288">Berglund et al. (2023): The Reversal Curse</a></b>. (Chapter 9)</li>
+<li><b><a href="https://arxiv.org/abs/2412.14093">Greenblatt et al. (2024): Alignment Faking in Large Language Models</a></b>. (Chapter 6)</li>
 </ol>
 
-<p style="margin-top:36px; padding-top:18px; border-top:1px solid var(--border); font-size:13.5px; color:var(--ink-muted);">This material was written for teaching. Its subject matter reflects the state of the field as of <strong>July 2026</strong>; the last update to this edition was <strong>19 September 2026</strong> — the difference between the two is set out in the <a href="#valtozasnaplo">changelog</a>. The numerical examples (sizes, ratios) illustrate typical orders of magnitude, not the specifications of particular products. The figures are schematic. Corrections and suggestions are welcome: <a href="mailto:csaplar.d@gmail.com">csaplar.d@gmail.com</a>. ◆</p>
+<p style="margin-top:36px; padding-top:18px; border-top:1px solid var(--border); font-size:13.5px; color:var(--ink-muted);">This material was written for teaching. Its subject matter reflects the state of the field as of <strong>July 2026</strong>; the last update to this edition was <strong>27 September 2026</strong> — the difference between the two is set out in the <a href="#valtozasnaplo">changelog</a>. The numerical examples (sizes, ratios) illustrate typical orders of magnitude, not the specifications of particular products. The figures are schematic. Corrections and suggestions are welcome: <a href="mailto:csaplar.d@gmail.com">csaplar.d@gmail.com</a>. ◆</p>
 </section>
 
 <section id="valtozasnaplo">
@@ -2424,6 +2424,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
 <h2>Changelog</h2>
 <p>This material covers a fast-moving field. The list below is in reverse chronological order, so you can see how current the version you are reading is.</p>
 <dl class="changelog">
+  <dt>v1.2.0 — 27 September 2026</dt><dd>Shared AI-tananyagok design, dark mode by default. Scientific clarifications after an external review: the guide’s scope (autoregressive transformers), generation loop consistent with caching, the scope of world modeling and superposition (as a hypothesis, separating toy and real models), the induction-figure caption; language fixes; direct links in the bibliography.</dd>
   <dt>19 September 2026 — Labels</dt><dd>The navigation, links and example labels now consistently use “Interactive experiments”.</dd>
   <dt>v1.1.3 — 19 September 2026</dt><dd>Order-independent quiz explanations; corrected family-relation, SAE, Adam, memory and emergence questions; more beginner-friendly wording. Fixed language-specific builds with new regression coverage. Saved progress is unchanged.</dd>
   <dt>v1.1.2 — 19 September 2026</dt><dd>Quizzes: length-based clues to the correct answer were substantially reduced; the explanations once again say why the right answer is right and why the wrong one is tempting. The learning components are built separately per language, so the English edition carries no Hungarian text, and vice versa. New share card. Your progress is kept.</dd>
@@ -2437,7 +2438,7 @@ An LLM is not a database (recall is not guaranteed), nor a logic engine (derivat
 <footer class="page-footer">
   <p class="foot-line feedback-line">Using it in teaching or at work? I would love to hear about it: <a href="mailto:csaplar.d@gmail.com">csaplar.d@gmail.com</a></p>
   <p class="foot-line"><strong>© 2026 Dániel Csaplár</strong> · <a href="mailto:csaplar.d@gmail.com">csaplar.d@gmail.com</a>. This work is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="license noopener noreferrer" target="_blank">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC&nbsp;BY-NC-SA&nbsp;4.0)</a>: credit the author, do not use it commercially, and share any derivative work under the same terms.</p>
-  <p class="foot-line">v1.1.3 · last updated: 19 September 2026 · your progress is stored only in your own browser. · <a href="../" hreflang="hu">Hungarian version</a></p>
+  <p class="foot-line">v1.2.0 · last updated: 27 September 2026 · your progress is stored only in your own browser. · <a href="../" hreflang="hu">Hungarian version</a></p>
 </footer>
 <div class="reset-row">
   <button id="resetProgress" type="button">Reset progress</button>

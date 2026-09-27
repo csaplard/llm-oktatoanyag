@@ -4,7 +4,7 @@
   © 2026 Csaplár Dániel · csaplar.d@gmail.com
   Licenc: CC BY-NC-SA 4.0 (Nevezd meg! · Ne add el! · Így add tovább!)
   https://creativecommons.org/licenses/by-nc-sa/4.0/deed.hu
-  v1.1.3 · utolsó frissítés: 2026. szeptember 19.
+  v1.2.0 · utolsó frissítés: 2026. szeptember 27.
 -->
 <html lang="hu">
 <head>
@@ -1026,9 +1026,9 @@ nav#toc .hub-link { margin: 0 0 18px 10px; }
   <div class="meta-line hero-meta">
     <span>Csaplár Dániel</span>
     <span class="dot">·</span>
-    <span>v1.1.3</span>
+    <span>v1.2.0</span>
     <span class="dot">·</span>
-    <span>utolsó frissítés: 2026. szeptember 19.</span>
+    <span>utolsó frissítés: 2026. szeptember 27.</span>
     <span class="dot">·</span>
     <a href="#valtozasnaplo">változásnapló</a>
   </div>
@@ -2391,37 +2391,38 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
 <p>A lista szándékosan rövid: a terület alapszövegei, nagyjából a jelen anyag fejezeteinek sorrendjében. A hivatkozott alapművek szabadon elérhetők; a közvetlenül linkelt címek az eredeti forráshoz vezetnek.</p>
 <ol class="refs">
 <li><b><a href="https://arxiv.org/abs/1706.03762">Vaswani et al. (2017): Attention Is All You Need</a></b> — az eredeti transzformer-cikk. (4. fejezet)</li>
-<li><b>Radford et al. (2019): Language Models are Unsupervised Multitask Learners</b> (GPT-2) és <b>Brown et al. (2020): Language Models are Few-Shot Learners</b> (GPT-3) — a skálázás és az in-context learning felfedezése. (1., 9. fejezet)</li>
-<li><b>Sennrich et al. (2016): Neural Machine Translation of Rare Words with Subword Units</b> — a BPE bevezetése az NLP-be. (2. fejezet)</li>
+<li><b><a href="https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf">Radford et al. (2019): Language Models are Unsupervised Multitask Learners</a></b> (GPT-2) és <b><a href="https://arxiv.org/abs/2005.14165">Brown et al. (2020): Language Models are Few-Shot Learners</a></b> (GPT-3) — a skálázás és az in-context learning felfedezése. (1., 9. fejezet)</li>
+<li><b><a href="https://arxiv.org/abs/1508.07909">Sennrich et al. (2016): Neural Machine Translation of Rare Words with Subword Units</a></b> — a BPE bevezetése az NLP-be. (2. fejezet)</li>
 <li><b><a href="https://github.com/google/sentencepiece">SentencePiece: hivatalos dokumentáció</a></b> — a BPE- és unigram-tokenizálás implementációja és tanítása. (2. fejezet)</li>
-<li><b>Rumelhart, Hinton &amp; Williams (1986): Learning representations by back-propagating errors</b> — a backprop klasszikusa; modern kiegészítésként <b>Karpathy: Neural Networks: Zero to Hero</b> videósorozata a kézzel épített autogradtól a GPT-ig. (5. fejezet)</li>
-<li><b>Kingma &amp; Ba (2015): Adam</b> és <b>Loshchilov &amp; Hutter (2019): Decoupled Weight Decay Regularization</b> (AdamW). (5.4)</li>
-<li><b>Kaplan et al. (2020): Scaling Laws for Neural Language Models</b> és <b>Hoffmann et al. (2022): Training Compute-Optimal Large Language Models</b> (Chinchilla). (5.6)</li>
-<li><b>Su et al. (2021): RoFormer</b> — a RoPE. (4.6)</li>
-<li><b>Ouyang et al. (2022): Training language models to follow instructions with human feedback</b> (InstructGPT) — az RLHF-recept. (6. fejezet)</li>
-<li><b>Bai et al. (2022): Constitutional AI: Harmlessness from AI Feedback</b>. (6. fejezet)</li>
-<li><b>Rafailov et al. (2023): Direct Preference Optimization</b>. (6. fejezet)</li>
-<li><b>Dao et al. (2022): FlashAttention</b> és <b>Kwon et al. (2023): Efficient Memory Management for LLM Serving with PagedAttention</b> (vLLM). (7. fejezet)</li>
-<li><b>Leviathan et al. (2023): Fast Inference from Transformers via Speculative Decoding</b>. (7. fejezet)</li>
-<li><b>Elhage et al. (2021): A Mathematical Framework for Transformer Circuits</b> — a residual stream / QK–OV formalizmus. (8.2)</li>
-<li><b>Olsson et al. (2022): In-context Learning and Induction Heads</b>. (8.3)</li>
-<li><b>Elhage et al. (2022): Toy Models of Superposition</b>. (8.4)</li>
-<li><b>Li et al. (2023): Emergent World Representations: Exploring a Sequence Model Trained on a Synthetic Task</b> és <b>Gurnee &amp; Tegmark (2024): Language Models Represent Space and Time</b> — belső „világ”-reprezentációk vizsgálata. (1. fejezet)</li>
-<li><b>Olshausen &amp; Field (1996): Emergence of simple-cell receptive field properties by learning a sparse code for natural images</b> — a ritka kódolás klasszikusa, az SAE-k gondolati őse. (8.5)</li>
-<li><b>Bricken et al. (2023): Towards Monosemanticity</b> és <b>Templeton et al. (2024): Scaling Monosemanticity</b> — SAE-k kis és frontier-méretben. (8.5)</li>
-<li><b>Lindsey et al. (2025): On the Biology of a Large Language Model</b> — attribúciós gráfok, esettanulmányok (tervezés, fejszámolás, hűtlen CoT). (8.6)</li>
-<li><b>Schaeffer et al. (2023): Are Emergent Abilities of Large Language Models a Mirage?</b> — az emergencia-vita. (5.6)</li>
-<li><b>Berglund et al. (2023): The Reversal Curse</b>. (9. fejezet)</li>
-<li><b>Greenblatt et al. (2024): Alignment Faking in Large Language Models</b>. (6. fejezet)</li>
+<li><b><a href="https://doi.org/10.1038/323533a0">Rumelhart, Hinton &amp; Williams (1986): Learning representations by back-propagating errors</a></b> — a backprop klasszikusa; modern kiegészítésként <b><a href="https://karpathy.ai/zero-to-hero.html">Karpathy: Neural Networks: Zero to Hero</a></b> videósorozata a kézzel épített autogradtól a GPT-ig. (5. fejezet)</li>
+<li><b><a href="https://arxiv.org/abs/1412.6980">Kingma &amp; Ba (2015): Adam</a></b> és <b><a href="https://arxiv.org/abs/1711.05101">Loshchilov &amp; Hutter (2019): Decoupled Weight Decay Regularization</a></b> (AdamW). (5.4)</li>
+<li><b><a href="https://arxiv.org/abs/2001.08361">Kaplan et al. (2020): Scaling Laws for Neural Language Models</a></b> és <b><a href="https://arxiv.org/abs/2203.15556">Hoffmann et al. (2022): Training Compute-Optimal Large Language Models</a></b> (Chinchilla). (5.6)</li>
+<li><b><a href="https://arxiv.org/abs/2104.09864">Su et al. (2021): RoFormer</a></b> — a RoPE. (4.6)</li>
+<li><b><a href="https://arxiv.org/abs/2203.02155">Ouyang et al. (2022): Training language models to follow instructions with human feedback</a></b> (InstructGPT) — az RLHF-recept. (6. fejezet)</li>
+<li><b><a href="https://arxiv.org/abs/2212.08073">Bai et al. (2022): Constitutional AI: Harmlessness from AI Feedback</a></b>. (6. fejezet)</li>
+<li><b><a href="https://arxiv.org/abs/2305.18290">Rafailov et al. (2023): Direct Preference Optimization</a></b>. (6. fejezet)</li>
+<li><b><a href="https://arxiv.org/abs/2205.14135">Dao et al. (2022): FlashAttention</a></b> és <b><a href="https://arxiv.org/abs/2309.06180">Kwon et al. (2023): Efficient Memory Management for LLM Serving with PagedAttention</a></b> (vLLM). (7. fejezet)</li>
+<li><b><a href="https://arxiv.org/abs/2211.17192">Leviathan et al. (2023): Fast Inference from Transformers via Speculative Decoding</a></b>. (7. fejezet)</li>
+<li><b><a href="https://transformer-circuits.pub/2021/framework/index.html">Elhage et al. (2021): A Mathematical Framework for Transformer Circuits</a></b> — a residual stream / QK–OV formalizmus. (8.2)</li>
+<li><b><a href="https://arxiv.org/abs/2209.11895">Olsson et al. (2022): In-context Learning and Induction Heads</a></b>. (8.3)</li>
+<li><b><a href="https://arxiv.org/abs/2209.10652">Elhage et al. (2022): Toy Models of Superposition</a></b>. (8.4)</li>
+<li><b><a href="https://arxiv.org/abs/2210.13382">Li et al. (2023): Emergent World Representations: Exploring a Sequence Model Trained on a Synthetic Task</a></b> és <b><a href="https://arxiv.org/abs/2310.02207">Gurnee &amp; Tegmark (2024): Language Models Represent Space and Time</a></b> — belső „világ”-reprezentációk vizsgálata. (1. fejezet)</li>
+<li><b><a href="https://doi.org/10.1038/381607a0">Olshausen &amp; Field (1996): Emergence of simple-cell receptive field properties by learning a sparse code for natural images</a></b> — a ritka kódolás klasszikusa, az SAE-k gondolati őse. (8.5)</li>
+<li><b><a href="https://transformer-circuits.pub/2023/monosemantic-features/index.html">Bricken et al. (2023): Towards Monosemanticity</a></b> és <b><a href="https://transformer-circuits.pub/2024/scaling-monosemanticity/index.html">Templeton et al. (2024): Scaling Monosemanticity</a></b> — SAE-k kis és frontier-méretben. (8.5)</li>
+<li><b><a href="https://transformer-circuits.pub/2025/attribution-graphs/biology.html">Lindsey et al. (2025): On the Biology of a Large Language Model</a></b> — attribúciós gráfok, esettanulmányok (tervezés, fejszámolás, hűtlen CoT). (8.6)</li>
+<li><b><a href="https://arxiv.org/abs/2304.15004">Schaeffer et al. (2023): Are Emergent Abilities of Large Language Models a Mirage?</a></b> — az emergencia-vita. (5.6)</li>
+<li><b><a href="https://arxiv.org/abs/2309.12288">Berglund et al. (2023): The Reversal Curse</a></b>. (9. fejezet)</li>
+<li><b><a href="https://arxiv.org/abs/2412.14093">Greenblatt et al. (2024): Alignment Faking in Large Language Models</a></b>. (6. fejezet)</li>
 </ol>
 
-<p style="margin-top:36px; padding-top:18px; border-top:1px solid var(--border); font-size:13.5px; color:var(--ink-muted);">Ez az anyag oktatási céllal készült. A szakmai tartalom a terület <strong>2026. júliusi</strong> állapotát tükrözi; a kiadás utolsó frissítése <strong>2026. szeptember 19.</strong> — a kettő közti különbség a <a href="#valtozasnaplo">változásnaplóban</a> olvasható. A számszerű példák (méretek, arányok) tipikus nagyságrendeket illusztrálnak, nem konkrét termékek specifikációit. Az ábrák sematikusak. Hibajelzést, kiegészítési ötletet szívesen fogadok: <a href="mailto:csaplar.d@gmail.com">csaplar.d@gmail.com</a>. ◆</p>
+<p style="margin-top:36px; padding-top:18px; border-top:1px solid var(--border); font-size:13.5px; color:var(--ink-muted);">Ez az anyag oktatási céllal készült. A szakmai tartalom a terület <strong>2026. júliusi</strong> állapotát tükrözi; a kiadás utolsó frissítése <strong>2026. szeptember 27.</strong> — a kettő közti különbség a <a href="#valtozasnaplo">változásnaplóban</a> olvasható. A számszerű példák (méretek, arányok) tipikus nagyságrendeket illusztrálnak, nem konkrét termékek specifikációit. Az ábrák sematikusak. Hibajelzést, kiegészítési ötletet szívesen fogadok: <a href="mailto:csaplar.d@gmail.com">csaplar.d@gmail.com</a>. ◆</p>
 </section>
 <section id="valtozasnaplo">
 <div class="chapter-kicker">Függelék</div>
 <h2>Változásnapló</h2>
 <p>Ez az anyag gyorsan mozgó területről szól. Az alábbi lista fordított időrendben mutatja, mi változott — így látszik, mikori állapotot olvasol.</p>
 <dl class="changelog">
+  <dt>v1.2.0 — 2026. szeptember 27.</dt><dd>Közös arculat az AI-tananyagokkal, alapból sötét mód. Szakmai pontosítások egy külső áttekintés alapján: a tananyag hatóköre (autoregresszív transzformerek), a generálási kör és a gyorsítótár összhangja, a világmodellezés és a szuperpozíció hatóköre (hipotézisként, játékmodell és valódi modell elkülönítve), az induction-ábra felirata; nyelvi javítások; közvetlen linkek az irodalomjegyzékben.</dd>
   <dt>2026. szeptember 19. — Elnevezések</dt><dd>Az interaktív példák egységes neve „Interaktív kísérletek” lett a menüben, a hivatkozásokban és a példák felirataiban.</dd>
   <dt>v1.1.3 — 2026. szeptember 19.</dt><dd>Sorrendtől független kvízmagyarázatok; rokonsági, SAE-, Adam-, memória- és emergenciakérdések pontosítása; kezdőbarátabb megfogalmazás. Javított nyelvi build, új regressziós tesztekkel. A mentett haladás változatlan.</dd>
   <dt>v1.1.2 — 2026. szeptember 19.</dt><dd>Kvízek: jelentősen csökkent a válaszhosszból adódó segítség; a magyarázatok ismét elmondják, miért jó a helyes válasz és miért csábító a rossz. A tanulási elemek nyelvenként külön épülnek, így az angol kiadásba nem kerül magyar szöveg, és fordítva. Új megosztókártya. A haladásod megmarad.</dd>
@@ -2434,7 +2435,7 @@ Az LLM nem adatbázis (nem garantált a visszaidézés), nem is logikai gép (ne
 <footer class="page-footer">
   <p class="foot-line feedback-line">Tanításban vagy a munkahelyeden használod? Örülnék, ha megírnád: <a href="mailto:csaplar.d@gmail.com">csaplar.d@gmail.com</a></p>
   <p class="foot-line"><strong>© 2026 Csaplár Dániel</strong> · <a href="mailto:csaplar.d@gmail.com">csaplar.d@gmail.com</a>. Ez a mű a <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.hu" rel="license noopener noreferrer" target="_blank">Creative Commons Nevezd meg! – Ne add el! – Így add tovább! 4.0 Nemzetközi (CC&nbsp;BY-NC-SA&nbsp;4.0)</a> licenc alatt érhető el: nevezd meg a szerzőt, ne használd kereskedelmi célra, és a származékos műveket ugyanilyen feltételekkel add tovább.</p>
-  <p class="foot-line">v1.1.3 · utolsó frissítés: 2026. szeptember 19. · a haladásod kizárólag a saját böngésződben tárolódik.</p>
+  <p class="foot-line">v1.2.0 · utolsó frissítés: 2026. szeptember 27. · a haladásod kizárólag a saját böngésződben tárolódik.</p>
 </footer>
 <div class="reset-row">
   <button id="resetProgress" type="button">Haladás törlése</button>

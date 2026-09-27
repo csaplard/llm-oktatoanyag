@@ -1,9 +1,14 @@
 # Változásnapló / Changelog
 
-## Kiadatlan / Unreleased — 2026-09-26
+## v1.2.0 — 2026-09-27
 
 ### Magyar
 
+- Alapból sötét mód: a téma csak akkor világos, ha a látogató a kapcsolóval választotta.
+- Szakmai pontosítások egy külső áttekintés alapján: a tananyag hatóköre (autoregresszív transzformerek), szemléltető jelölés a valószínűségeknél, a generálási kör és a gyorsítótár összhangja, a világmodellezés hatóköre (+ Li et al. 2023, Gurnee & Tegmark 2024), a szuperpozíció hipotézisként (játékmodell és valódi modell elkülönítve; 12. ábra és kvízmagyarázat), az induction-ábra felirata.
+- Nyelvi javítások: dekódoló, részszó-tokenizáció, szórész, névelők (az i-edik, az eᵢ, az „a vár fokán”), két idézőjel.
+- Az irodalomjegyzék tételei közvetlen linket kaptak.
+- Szintén ebben a kiadásban (2026-09-26):
 - Az oldal átvette az AI-tananyagok közös arculatát (`src/arculat.css`): Geologica és Literata betűk, alapból sötét mód, a témaválasztás az egész oldalon közös (`ait-theme`). A szerkezet, a 13 ábra, a kvízek és a haladásmentés nem változott; a tárolási kulcsok ugyanazok, így a mentett haladás megmarad.
 - „Vissza az AI-tananyagokhoz” link a fejlécben és a tartalomjegyzékben.
 - A „Katedra” név a kódból is kikerült (csak a két régi tárolási kulcs neve maradt meg, hogy a haladás ne vesszen el).
@@ -11,10 +16,15 @@
 
 ### English
 
+- Dark mode by default: the theme is light only if the visitor chose it with the toggle.
+- Scientific clarifications after an external review: the guide's scope (autoregressive transformers), illustrative labels on probabilities, generation loop consistent with caching, the scope of world modeling (+ Li et al. 2023, Gurnee & Tegmark 2024), superposition as a hypothesis (toy vs. real models; Figure 12 and a quiz explanation), the induction-figure caption.
+- Direct links for bibliography entries.
+- Also in this release (2026-09-26):
 - The page adopts the shared AI-tananyagok design (`src/arculat.css`): Geologica and Literata type, dark mode by default, a site-wide theme choice (`ait-theme`). Structure, the 13 figures, quizzes and saved progress are unchanged; storage keys are the same, so progress is kept.
 - “Back to the learning hub” link in the header and the table of contents.
 - The “Katedra” name is gone from the code as well (only two legacy storage key names remain, so progress is not lost).
 - Fixed: the table-of-contents scroll spy only tracks in-page links.
+
 ## v1.1.3 — 2026-09-19
 
 ### Magyar
